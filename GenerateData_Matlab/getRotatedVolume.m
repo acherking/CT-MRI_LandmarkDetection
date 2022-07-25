@@ -8,6 +8,7 @@ rotOrig = [];
 
 % get vertices
 sz = size(vol);
+% Shawn: VertArray? maybe vertArray = zeros(8, 3)
 VertArray = zeros(6, 3);
 for idx=0:7
    vertArray(idx+1, :) = de2bi(idx, 3, 'left-msb') .* sz;
@@ -30,7 +31,7 @@ for row = minVert(1):maxVert(1)
     for col = minVert(2):maxVert(2)
         for slc = minVert(3):maxVert(3)
 
-            % get indices in vol
+            % get indices in vol, Shawn: RHS&LHS? maybe use reverse rotMat (rotMatR = axang2rotm([ax, -randAng]);)
             volIdx = [col, row, slc] * rotMat + orig; % calculations in RHS
             volIdx = [volIdx(2), volIdx(1), volIdx(3)]; % convert to LHS
             volIdx = round(volIdx);

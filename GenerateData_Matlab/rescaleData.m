@@ -1,11 +1,11 @@
-function [vol, pts, mask] = rescaleData(vol, pts, sz, mask)
+function [augVol, pts, mask] = rescaleData(augVol, augPts, imgSz, mask)
 
-% rescale vol to be sz
-volSz = size(vol);
-vol = imresize3(vol, sz);
+% rescale augVol to be imgSz
+augVolSz = size(augVol);
+augVol = imresize3(augVol, imgSz);
 
 % resample points
-sc = (sz - 1) ./ (volSz - 1);
+sc = (imgSz - 1) ./ (augVolSz - 1);
 sc = [sc(2), sc(1), sc(3)];
 
 for idx = 1:3
@@ -13,7 +13,7 @@ for idx = 1:3
 end
 
 if nargin > 3
-    mask = imresize3(mask, sz);
+    mask = imresize3(mask, imgSz);
 else
     mask = [];
 end
