@@ -1,11 +1,14 @@
 
-function saveAugmentedPtData(vol, pts, nAug, inPath, outPath, imgIdx, nameStr)
+function saveAugmentedPtData(vol, pts, nAug, inPath, outPath, patName)
 
 imgSz = [170 170 30]; % change as required
 %cropScale = 3/4;
 
 idx = 1;
 while idx <= nAug
+
+    strIdx = string(idx);
+    fprintf("Start augmentation for patient: %s -- %d\n", patName, idx)
 
     % save the original data first, then start the augmentation
     if idx == 1
@@ -19,20 +22,26 @@ while idx <= nAug
     % crop to include only the middle region   
     %[augVol, augPts] = getCroppedVolume(augVol, augPts, cropScale);   
     
+    origBase = "/Volumes/Shawn_SSD/PhD/Project/Date/augmentation_from_matlab/original_augmentation_data/";
+    origFile = origBase + patName + '_aug_' + strIdx + '.mat';
+    save(origFile, 'augVol', 'augPts', '-v7.3');
+    
     if checkPointLimits(size(augVol), augPts)
         
         % reduce size
-        
         [augVol, augPts] = rescaleData(augVol, augPts, imgSz);
-        strIdx = (imgIdx - 1) * nAug + idx
-        fileName = [nameStr{strIdx}, '.mat'];       
+        strIdx = num2str(idx);
+        fileName_vol = [inPath patName '_17017030_AugVol_' strIdx '.mat'];
+        fileName_pts = [outPath patName '_17017030_AugPts_' strIdx '.mat'];
                 
         % save to datastores
-        v = augVol;
-        save([inPath, fileName], 'v');
+        rescaled_aug_vol = augVol;
+        save(fileName_vol, 'rescaled_aug_vol', '-v7.3');
+        fprintf("Saved augmentation vol for patient: %s -- %d \n To Path: %s\n", patName, idx, fileName_vol)
 
-        v = augPts(:);
-        save([outPath, fileName], 'v');
+        rescaled_aug_pts = augPts(:);
+        save(fileName_pts, 'rescaled_aug_pts', '-v7.3');
+        fprintf("Saved augmentation pts for patient: %s -- %d \n To Path: %s\n\n", patName, idx, fileName_pts)
         
         idx = idx + 1;
     end

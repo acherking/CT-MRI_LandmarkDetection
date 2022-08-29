@@ -4,9 +4,10 @@ maxAng = 15 * pi / 180;
 randAng = 2 * rand * maxAng - maxAng;
 ax = rand(1, 3);
 rotMat = axang2rotm([ax, randAng]);
+invRotMat = axang2rotm([ax, -randAng]);
 
 % get rotated volume and points
-[augVol, augPts] = getRotatedVolume(vol, pts, rotMat, orig);
+[augVol, augPts] = getRotatedVolume(vol, pts, rotMat, invRotMat, orig);
 
 % get translated volume and points
 [augVol, augPts] = getTranslatedVolume(augVol, augPts);

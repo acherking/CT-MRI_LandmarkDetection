@@ -1,4 +1,4 @@
-function [rotVol, rotPts, rotOrig, mask] = getRotatedVolume(vol, pts, rotMat, orig)
+function [rotVol, rotPts, rotOrig, mask] = getRotatedVolume(vol, pts, rotMat,invRotMat, orig)
 
 % get min of volume as filler value
 fillVal = min(vol(:));
@@ -8,16 +8,15 @@ rotOrig = [];
 
 % get vertices
 sz = size(vol);
-% Shawn: VertArray? maybe vertArray = zeros(8, 3)
-VertArray = zeros(6, 3);
 for idx=0:7
-   vertArray(idx+1, :) = de2bi(idx, 3, 'left-msb') .* sz;
+   %vertArray(idx+1, :) = de2bi(idx, 3, 'left-msb') .* sz;
+   vertArray(idx+1, :) = int2bit(idx, 3).' .* sz;
 end
 vertArray(find(vertArray == 0)) = 1; % from 0-indexing to 1-indexing
 
 % convert to new coordinates
 for idx = 1:8
-    vertArray(idx, :) = (vertArray(idx, :) - orig) * rotMat;
+    vertArray(idx, :) = (rotMat * (vertArray(idx, :) - orig).').';
 end
 
 % get limits
@@ -32,7 +31,7 @@ for row = minVert(1):maxVert(1)
         for slc = minVert(3):maxVert(3)
 
             % get indices in vol, Shawn: RHS&LHS? maybe use reverse rotMat (rotMatR = axang2rotm([ax, -randAng]);)
-            volIdx = [col, row, slc] * rotMat + orig; % calculations in RHS
+            volIdx = (invRotMat * [col, row, slc].').' + orig; % calculations in RHS
             volIdx = [volIdx(2), volIdx(1), volIdx(3)]; % convert to LHS
             volIdx = round(volIdx);
 
@@ -58,5 +57,5 @@ if ~isempty(pts)
     rotOrig = -minVert + 1;
 
     % rotate points around the center of the original image
-    rotPts = (pts - orig) * rotMat - minVert + 1;
+    rotPts = (rotMat * (pts - orig).').' - minVert + 1;
 end

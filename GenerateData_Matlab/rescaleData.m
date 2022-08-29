@@ -1,4 +1,4 @@
-function [augVol, pts, mask] = rescaleData(augVol, augPts, imgSz, mask)
+function [augVol, augPts, mask] = rescaleData(augVol, augPts, imgSz, mask)
 
 % rescale augVol to be imgSz
 augVolSz = size(augVol);
@@ -9,7 +9,7 @@ sc = (imgSz - 1) ./ (augVolSz - 1);
 sc = [sc(2), sc(1), sc(3)];
 
 for idx = 1:3
-   pts(:, idx) = sc(idx) * (pts(:, idx) - 1) + 1; 
+   augPts(:, idx) = sc(idx) * (augPts(:, idx) - 1) + 1; 
 end
 
 if nargin > 3

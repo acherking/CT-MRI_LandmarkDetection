@@ -1,3 +1,7 @@
 .idea/
 
 Resources/~*
+
+GenerateData_Matlab/*.mat
+
+JupterNotebook/__pycache__
