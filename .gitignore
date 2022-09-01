@@ -5,3 +5,4 @@ Resources/~*
 GenerateData_Matlab/*.mat
 
 JupterNotebook/__pycache__
+JupterNotebook/.ipynb_checkpoints
