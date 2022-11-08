@@ -14,3 +14,10 @@ module load tensorflow/2.1.0-python-3.7.4
 
 import tensorflow as tf
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+
+
+# To show which device dit the operations
+tf.debugging.set_log_device_placement(True)
+
+# Data Parallelism basics?
+## 1. divide batch: batch-size=10, 2 GPUs, each batch of size 10 will be divided among the 2 GPUs, with each receiving 5 input examples in each step.
