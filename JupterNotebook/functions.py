@@ -21,7 +21,7 @@ def show_pts(volume, pts, pixel_space):
 
     axs[0][0].set_title("LLSCC ant")
     axs[0][0].set_aspect('equal', 'datalim')
-    axs[0][0].pcolormesh(x_column[:], y_row[:], volume[:, :, pts[0, 2]], cmap=pyplot.gray())
+    axs[0][0].pcolormesh(x_column[:], y_row[:], volume[:, :, int(pts[0, 2])], cmap=pyplot.gray())
     llscc_ant = Circle((pts[0, 0] * pixel_space[1], pts[0, 1] * pixel_space[0]), landmark_radius, facecolor='None',
                        edgecolor='r', lw=1)
     axs[0][0].add_patch(llscc_ant)
@@ -29,7 +29,7 @@ def show_pts(volume, pts, pixel_space):
 
     axs[0][1].set_title("LLSCC post")
     axs[0][1].set_aspect('equal', 'datalim')
-    axs[0][1].pcolormesh(x_column[:], y_row[:], volume[:, :, pts[1, 2]], cmap=pyplot.gray())
+    axs[0][1].pcolormesh(x_column[:], y_row[:], volume[:, :, int(pts[1, 2])], cmap=pyplot.gray())
     llscc_post = Circle((pts[1, 0] * pixel_space[1], pts[1, 1] * pixel_space[0]), landmark_radius, facecolor='None',
                         edgecolor='r', lw=1)
     axs[0][1].add_patch(llscc_post)
@@ -37,7 +37,7 @@ def show_pts(volume, pts, pixel_space):
 
     axs[1][0].set_title("RLSCC ant")
     axs[1][0].set_aspect('equal', 'datalim')
-    axs[1][0].pcolormesh(x_column[:], y_row[:], volume[:, :, pts[2, 2]], cmap=pyplot.gray())
+    axs[1][0].pcolormesh(x_column[:], y_row[:], volume[:, :, int(pts[2, 2])], cmap=pyplot.gray())
     rlscc_ant = Circle((pts[2, 0] * pixel_space[1], pts[2, 1] * pixel_space[0]), landmark_radius, facecolor='None',
                        edgecolor='r', lw=1)
     axs[1][0].add_patch(rlscc_ant)
@@ -45,7 +45,7 @@ def show_pts(volume, pts, pixel_space):
 
     axs[1][1].set_title("RLSCC post")
     axs[1][1].set_aspect('equal', 'datalim')
-    axs[1][1].pcolormesh(x_column[:], y_row[:], volume[:, :, pts[3, 2]], cmap=pyplot.gray())
+    axs[1][1].pcolormesh(x_column[:], y_row[:], volume[:, :, int(pts[3, 2])], cmap=pyplot.gray())
     rlscc_post = Circle((pts[3, 0] * pixel_space[1], pts[3, 1] * pixel_space[0]), landmark_radius, facecolor='None',
                         edgecolor='r', lw=1)
     axs[1][1].add_patch(rlscc_post)
@@ -68,7 +68,7 @@ def load_mat_data(volume_path, pts_path="None"):
         load_mat_pts = file_data.get('augPts')
 
     volume = np.array(load_mat_vol).T
-    pts = np.array(load_mat_pts).reshape(3, 4).T.astype(int)
+    pts = np.array(load_mat_pts).reshape(3, 4).T
 
     # close file automatically: file_data or file_volume&file_pts
 

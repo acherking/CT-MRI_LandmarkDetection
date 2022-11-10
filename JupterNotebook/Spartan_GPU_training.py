@@ -26,7 +26,7 @@ def load_mat_data(x_base_path, y_base_path):
         load_mat_vol = file_vol.get('rescaled_aug_vol')
         load_mat_pts = file_pts.get('rescaled_aug_pts')
         x_dataset.append(np.array(load_mat_vol).T)
-        y_dataset.append(np.array(load_mat_pts).reshape(3,4).T)
+        y_dataset.append(np.array(load_mat_pts).reshape(3, 4).T)
         file_vol.close()
         file_pts.close()
 
