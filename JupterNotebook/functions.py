@@ -9,6 +9,7 @@ import numpy as np
 import h5py
 
 
+# print the Scans with pts: LLSCC ant, LLSCC post, RLSCC ant, RLSCC post
 def show_pts(volume, pts, pixel_space):
     y_row = numpy.arange(0.0, volume.shape[0] * pixel_space[0], pixel_space[0])
     x_column = numpy.arange(0.0, volume.shape[1] * pixel_space[1], pixel_space[1])
@@ -54,6 +55,7 @@ def show_pts(volume, pts, pixel_space):
     pyplot.show()
 
 
+# Load Mat data for single patient
 def load_mat_data(volume_path, pts_path="None"):
     load_mat_vol = []
     load_mat_pts = []
@@ -74,3 +76,23 @@ def load_mat_data(volume_path, pts_path="None"):
 
     return volume, pts
 
+
+# Load Mat data from files in directory
+def load_mat_data_dir(x_base_path, y_base_path):
+    # e.g. AZ_17017030_AugVol_1.mat
+    # x_base_path = "/Volumes/Shawn_SSD/PhD/Project/Date/augmentation_from_matlab/Train/Input/"
+    # e.g. AZ_17017030_AugPts_1.mat
+    # y_base_path = "/Volumes/Shawn_SSD/PhD/Project/Date/augmentation_from_matlab/Train/Output/"
+
+    x_files = [f for f in listdir(x_base_path) if isfile(join(x_base_path, f))]
+
+    x_dataset = []
+    y_dataset = []
+    for x_file in x_files:
+        x_file_path = join(x_base_path, x_file)
+        y_file_path = join(y_base_path, x_file.replace("AugVol", "AugPts"))
+        load_mat_vol, load_mat_pts = load_mat_data(x_file_path, y_file_path)
+        x_dataset.append(load_mat_vol)
+        y_dataset.append(load_mat_pts)
+
+    return x_dataset, y_dataset
