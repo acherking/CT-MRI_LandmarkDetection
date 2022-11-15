@@ -1,7 +1,10 @@
 import tensorflow as tf
 from tensorflow import keras
-import keras.layers as layers
+import tensorflow.keras.layers as layers
 import numpy as np
+
+# gpus = tf.config.experimental.list_physical_devices('GPU')
+# tf.config.experimental.set_memory_growth(gpus, True)
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
@@ -40,10 +43,10 @@ Y_val_one = np.asarray(Y_val)[:, 0, :]
 # Y_test_one = np.asarray(Y_test)[:, 0, :]
 
 print("X_train_reshape Shape: ", np.shape(X_train))
-print("Y_train_one Shape: ", np.shape(Y_train))
+print("Y_train_one Shape: ", np.shape(Y_train_one))
 
 print("X_val_reshape Shape: ", np.shape(X_val))
-print("Y_val_one Shape: ", np.shape(Y_val))
+print("Y_val_one Shape: ", np.shape(Y_val_one))
 
 # print("X_test_reshape Shape: ", np.shape(X_test))
 # print("Y_test_one Shape: ", np.shape(Y_test))
@@ -51,10 +54,10 @@ print("Y_val_one Shape: ", np.shape(Y_val))
 """ *** Training Process *** """
 
 # Prepare dataset used in the training process
-train_dataset = tf.data.Dataset.from_tensor_slices((X_train_reshape, Y_train))
+train_dataset = tf.data.Dataset.from_tensor_slices((X_train_reshape, Y_train_one))
 train_dataset = train_dataset.shuffle(buffer_size=1400).batch(2)
 
-val_dataset = tf.data.Dataset.from_tensor_slices((X_val_reshape, Y_val))
+val_dataset = tf.data.Dataset.from_tensor_slices((X_val_reshape, Y_val_one))
 val_dataset = val_dataset.shuffle(buffer_size=200).batch(2)
 
 # Check these datasets
