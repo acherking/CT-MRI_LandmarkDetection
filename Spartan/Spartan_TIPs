@@ -1,5 +1,6 @@
 sinteractive -p gpu-a100 --gres=gpu:1 -A ***
 # sinteractive -p gpu-a100 --gres=gpu:1 --mem=30G --time=(01:30:00?)
+sinteractive -p gpu-a100 --gres=gpu:1 --mem=30G --time=01:30:00
 
 -p: partition
 --gres: generic resources
@@ -9,6 +10,9 @@ sinteractive -p gpu-a100 --gres=gpu:1 -A ***
 
 module purge
 module load cuda/11.1.1
+module load tensorflow/2.6.0-python-3.8.6
+
+# It seems this version was not compiled to use GPU
 module load tensorflow/2.7.1
 
 ***Python***
