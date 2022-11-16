@@ -3,7 +3,7 @@
 #SBATCH -p gpu-a100
 #SBATCH --gres=gpu:1
 #SBATCH --time 1:00:00
-#SBATCH --mem=30G
+#SBATCH --mem=50G
 
 module purge
 module load cuda/11.1.1

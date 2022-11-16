@@ -15,8 +15,8 @@ def load_data():
     y_train = np.load(y_train_path, allow_pickle=True)
     x_val = np.load(x_val_path, allow_pickle=True)
     y_val = np.load(y_val_path, allow_pickle=True)
-    x_test = np.load(x_val_path, allow_pickle=True)
-    y_test = np.load(y_val_path, allow_pickle=True)
+    x_test = np.load(x_test_path, allow_pickle=True)
+    y_test = np.load(y_test_path, allow_pickle=True)
 
     # Data shape validation
     print("X_train Shape: ", np.shape(x_train))
@@ -31,8 +31,8 @@ def load_data():
     y_train_one = np.asarray(y_train)[:, 0, :]
     x_val_reshape = np.asarray(x_val).reshape(100, 170, 170, 30, 1)
     y_val_one = np.asarray(y_val)[:, 0, :]
-    x_test_reshape = np.asarray(x_val).reshape(200, 170, 170, 30, 1)
-    y_test_one = np.asarray(y_val)[:, 0, :]
+    x_test_reshape = np.asarray(x_test).reshape(200, 170, 170, 30, 1)
+    y_test_one = np.asarray(y_test)[:, 0, :]
 
     print("X_train_reshape Shape: ", np.shape(x_train))
     print("Y_train_one Shape: ", np.shape(y_train_one))
