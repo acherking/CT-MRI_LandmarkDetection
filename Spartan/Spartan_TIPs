@@ -15,6 +15,10 @@ module load tensorflow/2.6.0-python-3.8.6
 # It seems this version was not compiled to use GPU
 module load tensorflow/2.7.1
 
+***Slurm***
+# Slurm Environmental Variables
+https://hpcc.umd.edu/hpcc/help/slurmenv.html
+
 ***Python***
 
 import tensorflow as tf

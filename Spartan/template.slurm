@@ -4,10 +4,23 @@
 #SBATCH --gres=gpu:1
 #SBATCH --time 1:00:00
 #SBATCH --mem=50G
+#SBATCH --output ./output/slurm-%j.out
 
 module purge
 module load cuda/11.1.1
 module load tensorflow/2.6.0-python-3.8.6
+
+if output=$(git status --porcelain) && [ -n "$output" ]; then
+  echo "Git: some files need to be committed :)"
+  echo "$output"
+  exit 1
+fi
+echo "***Code version***"
+version=$(git log -1 --oneline)
+echo "Git Commit Version: $version"
+echo "JobId:$SLURM_JOB_ID"
+echo "******************"
+echo
 
 python3 /data/gpfs/projects/punim1836/Training/Spartan_GPU_training.py
 
