@@ -33,3 +33,17 @@ def first_model(width=170, height=170, depth=30):
     # Define the model.
     model = keras.Model(inputs, outputs, name="3dcnn")
     return model
+
+
+# inspired by: "Deep learning approach for automatic landmark detection
+# and alignment analysis in whole-spine lateral radiographs"
+# Author: Yu-Cheng Yeh, Chi-Hung Weng ...
+def spine_lateral_radiograph(width=170, height=170, depth=30):
+    """
+    The original model is for 2D image, our data are 3D.
+    Change it to a 3D convolutional neural network model."""
+    inputs = keras.Input((width, height, depth, 1))
+
+    x_hidden = layers.Conv3D(filters=64, kernel_size=3, activation="relu")(inputs)
+
+    return model
