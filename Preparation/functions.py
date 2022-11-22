@@ -8,6 +8,8 @@ from os.path import isfile, join
 import numpy as np
 import h5py
 
+from scipy.ndimage import zoom
+
 
 # print the Scans with pts: LLSCC ant, LLSCC post, RLSCC ant, RLSCC post
 def show_pts(volume, pts, pixel_space):
@@ -96,3 +98,12 @@ def load_mat_data_dir(x_base_path, y_base_path):
         y_dataset.append(load_mat_pts)
 
     return x_dataset, y_dataset
+
+
+def rescale_3d_volume(volume, target_size=(170, 170, 30)):
+    zoom_scale = np.divide(target_size, volume.shape)
+    print("zoom scale is: ", zoom_scale)
+
+    zoomed_volume = zoom(volume, zoom_scale)
+
+    return zoomed_volume
