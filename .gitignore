@@ -6,5 +6,6 @@ GenerateData_Matlab/*.mat
 
 Preparation/__pycache__
 Preparation/data
+Spartan/__pycache__/
 
 Spartan/Output

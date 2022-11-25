@@ -1,15 +1,12 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-import tensorflow.keras.layers as layers
+# for tensorflow 2.7 (on Spartan)
+# import tensorflow.keras.layers as layers
+# for test on tensorflow 2.9
+import keras.layers as layers
 
 from tensorflow import Tensor
-# from keras.layers import Input, Conv2D, ReLU, BatchNormalization, \
-#    Add, AveragePooling2D, Flatten, Dense
-from keras.models import Model
-
-from Preparation import functions
-from scipy.ndimage import zoom
 
 
 # https://keras.io/examples/vision/3D_image_classification/
@@ -41,7 +38,7 @@ def first_model(width=170, height=170, depth=30):
     outputs = layers.Dense(units=3, )(x_hidden)
 
     # Define the model.
-    model = keras.Model(inputs, outputs, name="3dcnn")
+    model = keras.Model(inputs, outputs, name="3d-cnn")
     return model
 
 
