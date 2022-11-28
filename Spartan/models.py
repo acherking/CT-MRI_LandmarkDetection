@@ -62,11 +62,10 @@ def residual_block(x: Tensor, downsample: bool, filters: int, kernel_size: int =
                       filters=filters,
                       padding="same")(y)
 
-    if downsample:
-        x = layers.Conv3D(kernel_size=1,
-                          strides=2,
-                          filters=filters,
-                          padding="same")(x)
+    x = layers.Conv3D(kernel_size=1,
+                      strides=(1 if not downsample else 2),
+                      filters=filters,
+                      padding="same")(x)
     out = layers.Add()([x, y])
     out = relu_bn(out)
     return out
@@ -78,25 +77,25 @@ def coordinate_3d(row_size, clown_size, slice_size):
     base_array = np.ones(row_size * clown_size * slice_size).reshape((row_size, clown_size, slice_size))
 
     matrix_x = np.copy(base_array)
-    c_0_v = [(2*i-clown_size-1)/clown_size for i in range(1, clown_size+1)]
+    c_0_v = [(2 * i - clown_size - 1) / clown_size for i in range(1, clown_size + 1)]
     for i in range(clown_size):
         matrix_x[:, i, :] = matrix_x[:, i, :] * c_0_v[i]
 
     matrix_y = np.copy(base_array)
-    c_1_v = [(2*i-row_size-1)/row_size for i in range(1, row_size+1)]
+    c_1_v = [(2 * i - row_size - 1) / row_size for i in range(1, row_size + 1)]
     for i in range(row_size):
         matrix_y[i, :, :] = matrix_y[i, :, :] * c_1_v[i]
 
     matrix_z = np.copy(base_array)
-    c_2_v = [(2*i-slice_size-1)/slice_size for i in range(1, slice_size+1)]
+    c_2_v = [(2 * i - slice_size - 1) / slice_size for i in range(1, slice_size + 1)]
     for i in range(slice_size):
         matrix_z[:, :, i] = matrix_z[:, :, i] * c_2_v[i]
 
-    matrix_x = tf.repeat(matrix_x.reshape((row_size, clown_size, slice_size, 1)), repeats=4, axis=-1)\
+    matrix_x = tf.repeat(matrix_x.reshape((row_size, clown_size, slice_size, 1)), repeats=4, axis=-1).numpy() \
         .reshape((row_size, clown_size, slice_size, 4, 1))
-    matrix_y = tf.repeat(matrix_y.reshape((row_size, clown_size, slice_size, 1)), repeats=4, axis=-1) \
+    matrix_y = tf.repeat(matrix_y.reshape((row_size, clown_size, slice_size, 1)), repeats=4, axis=-1).numpy() \
         .reshape((row_size, clown_size, slice_size, 4, 1))
-    matrix_z = tf.repeat(matrix_z.reshape((row_size, clown_size, slice_size, 1)), repeats=4, axis=-1) \
+    matrix_z = tf.repeat(matrix_z.reshape((row_size, clown_size, slice_size, 1)), repeats=4, axis=-1).numpy() \
         .reshape((row_size, clown_size, slice_size, 4, 1))
 
     coordinate_xyz = layers.Concatenate(axis=-1)([matrix_x, matrix_y, matrix_z])
@@ -104,7 +103,7 @@ def coordinate_3d(row_size, clown_size, slice_size):
     return coordinate_xyz
 
 
-def spine_lateral_radiograph(width=170, height=170, depth=30):
+def spine_lateral_radiograph(width=172, height=172, depth=32):
     """
     The original model is for 2D image, our data are 3D.
     Change it to a 3D convolutional neural network model."""
@@ -159,7 +158,7 @@ def spine_lateral_radiograph(width=170, height=170, depth=30):
 
     # Upsampling & Concatenate
     upsampling_blue_x = layers.UpSampling3D(size=2)(blue_x)
-    grey_x_s2 = layers.Concatenate(axis=3)([upsampling_blue_x, yellow_x, violet_x, grey_x_s1])
+    grey_x_s2 = layers.Concatenate(axis=4)([upsampling_blue_x, yellow_x, violet_x, grey_x_s1])
 
     x = residual_block(grey_x_s2, downsample=False, filters=4)
     x = residual_block(x, downsample=False, filters=4)
@@ -168,14 +167,14 @@ def spine_lateral_radiograph(width=170, height=170, depth=30):
     # e.x. 170*170*30*4*3, 4 type of coordinates, 3 dimensions
     coordinate_xyz = coordinate_3d(width, height, depth)
     # in our project, e.x. heatmap shape: 170*170*30*4
-    pro_matrix_s1 = tf.repeat(layers.Softmax(axis=[0, 1, 2])(heatmap_s1).numpy(), repeats=3, axis=-1)\
-        .reshape(width, height, depth, 4, 3)
-    outputs_s1 = tf.math.reduce_sum(layers.Multiply()[coordinate_xyz, pro_matrix_s1], axis=[0, 1, 2])
+    pro_matrix_s1 = layers.Reshape((width, height, depth, 4, 3)) \
+        (tf.repeat(layers.Softmax(axis=[0, 1, 2])(heatmap_s1), repeats=3, axis=-1))
+    outputs_s1 = tf.math.reduce_sum(layers.multiply([coordinate_xyz, pro_matrix_s1]), axis=[0, 1, 2])
     model_s1 = keras.Model(inputs, outputs_s1, name="ResStage1")
 
-    pro_matrix_s2 = tf.repeat(layers.Softmax(axis=[0, 1, 2])(heatmap_s2).numpy(), repeats=3, axis=-1) \
-        .reshape(width, height, depth, 4, 3)
-    outputs_s2 = tf.math.reduce_sum(layers.Multiply()[coordinate_xyz, pro_matrix_s2], axis=[0, 1, 2])
+    pro_matrix_s2 = layers.Reshape((width, height, depth, 4, 3)) \
+        (tf.repeat(layers.Softmax(axis=[0, 1, 2])(heatmap_s2), repeats=3, axis=-1))
+    outputs_s2 = tf.math.reduce_sum(layers.multiply([coordinate_xyz, pro_matrix_s2]), axis=[0, 1, 2])
     model_s2 = keras.Model(inputs, outputs_s2, name="ResStage2")
 
     return model_s1, model_s2
