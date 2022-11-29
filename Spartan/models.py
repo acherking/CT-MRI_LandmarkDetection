@@ -71,7 +71,7 @@ def residual_block(x: Tensor, downsample: bool, filters: int, kernel_size: int =
     return out
 
 
-def coordinate_3d(row_size, clown_size, slice_size):
+def coordinate_3d(row_size, clown_size, slice_size, batch_size):
     # pts (x, y, z) * 4
     # matrix_x -> x (clown), matrix_Y -> y (row), matrix_Z -> z (slice)
     base_array = np.ones(row_size * clown_size * slice_size).reshape((row_size, clown_size, slice_size))
@@ -108,6 +108,8 @@ def spine_lateral_radiograph(width=172, height=172, depth=32):
     The original model is for 2D image, our data are 3D.
     Change it to a 3D convolutional neural network model."""
     inputs = keras.Input((width, height, depth, 1))
+    # e.x. batches*170*170*30*4*3, 4 type of coordinates, 3 dimensions
+    base_coordinate_xyz = keras.Input((width, height, depth, 4, 3))
 
     x = layers.BatchNormalization()(inputs)
     x = layers.ReLU()(x)
@@ -164,17 +166,17 @@ def spine_lateral_radiograph(width=172, height=172, depth=32):
     x = residual_block(x, downsample=False, filters=4)
     heatmap_s2 = residual_block(x, downsample=False, filters=4)
 
-    # e.x. 170*170*30*4*3, 4 type of coordinates, 3 dimensions
-    coordinate_xyz = coordinate_3d(width, height, depth)
     # in our project, e.x. heatmap shape: 170*170*30*4
     pro_matrix_s1 = layers.Reshape((width, height, depth, 4, 3)) \
         (tf.repeat(layers.Softmax(axis=[0, 1, 2])(heatmap_s1), repeats=3, axis=-1))
-    outputs_s1 = tf.math.reduce_sum(layers.multiply([coordinate_xyz, pro_matrix_s1]), axis=[0, 1, 2])
-    model_s1 = keras.Model(inputs, outputs_s1, name="ResStage1")
+    outputs_s1 = tf.math.reduce_sum(layers.multiply([base_coordinate_xyz, pro_matrix_s1]), axis=[1, 2, 3])
+    # model_s1 = keras.Model([inputs, base_coordinate_xyz], outputs_s1, name="ResStage1")
 
     pro_matrix_s2 = layers.Reshape((width, height, depth, 4, 3)) \
         (tf.repeat(layers.Softmax(axis=[0, 1, 2])(heatmap_s2), repeats=3, axis=-1))
-    outputs_s2 = tf.math.reduce_sum(layers.multiply([coordinate_xyz, pro_matrix_s2]), axis=[0, 1, 2])
-    model_s2 = keras.Model(inputs, outputs_s2, name="ResStage2")
+    outputs_s2 = tf.math.reduce_sum(layers.multiply([base_coordinate_xyz, pro_matrix_s2]), axis=[1, 2, 3])
+    # model_s2 = keras.Model([inputs, base_coordinate_xyz], outputs_s2, name="ResStage2")
 
-    return model_s1, model_s2
+    model = keras.Model([inputs, base_coordinate_xyz], [outputs_s1, outputs_s2], name="ResModel")
+
+    return model
