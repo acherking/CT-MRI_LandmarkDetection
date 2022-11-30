@@ -100,7 +100,11 @@ def coordinate_3d(row_size, clown_size, slice_size, batch_size):
 
     coordinate_xyz = layers.Concatenate(axis=-1)([matrix_x, matrix_y, matrix_z])
 
-    return coordinate_xyz
+    batch_coordinate_xyz = []
+    for i in range(batch_size):
+        batch_coordinate_xyz.append(np.copy(coordinate_xyz))
+
+    return np.asarray(batch_coordinate_xyz)
 
 
 def spine_lateral_radiograph(width=172, height=172, depth=32):

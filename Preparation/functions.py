@@ -68,8 +68,10 @@ def load_mat_data(volume_path, pts_path="None"):
         load_mat_pts = file_pts.get('rescaled_aug_pts')
     else:
         file_data = h5py.File(volume_path, 'r')
-        load_mat_vol = file_data.get('augVol')
-        load_mat_pts = file_data.get('augPts')
+        # load_mat_vol = file_data.get('augVol')
+        # load_mat_pts = file_data.get('augPts')
+        load_mat_vol = file_data.get('rescaled_aug_vol')
+        load_mat_pts = file_data.get('rescaled_aug_pts')
 
     volume = np.array(load_mat_vol).T
     pts = np.array(load_mat_pts).reshape(3, 4).T

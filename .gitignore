@@ -3,6 +3,7 @@
 Resources/~*
 
 GenerateData_Matlab/*.mat
+GenerateData_Matlab/*.asv
 
 Preparation/__pycache__
 Preparation/data
