@@ -1,6 +1,7 @@
 import numpy as np
 
 
+# load dataset from various directories (train, val, test), volume and pts are separated.
 def load_data():
     # Set Data Path
     data_base_path = "/data/gpfs/projects/punim1836/Data/combined_aug_data/"
@@ -43,3 +44,8 @@ def load_data():
 
     return x_train_reshape, y_train_one, x_val_reshape, y_val_one, x_test_reshape, y_test_one
 
+
+# load dataset from a single directory, each file contains both volume and pts (X & Y).
+def load_dataset(dir_path):
+
+    return
