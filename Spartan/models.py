@@ -1,9 +1,10 @@
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
+# from tensorflow import keras
 # for tensorflow 2.7 (on Spartan)
 # import tensorflow.keras.layers as layers
 # for test on tensorflow 2.9
+import keras
 import keras.layers as layers
 
 from tensorflow import Tensor
@@ -107,7 +108,7 @@ def coordinate_3d(row_size, clown_size, slice_size, batch_size):
     return np.asarray(batch_coordinate_xyz)
 
 
-def spine_lateral_radiograph(width=172, height=172, depth=32):
+def spine_lateral_radiograph_model(width=176, height=176, depth=48):
     """
     The original model is for 2D image, our data are 3D.
     Change it to a 3D convolutional neural network model."""

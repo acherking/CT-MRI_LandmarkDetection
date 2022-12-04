@@ -81,8 +81,8 @@ def load_mat_data(volume_path, pts_path="None"):
     return volume, pts
 
 
-# Load Mat data from files in directory
-def load_mat_data_dir(x_base_path, y_base_path):
+# Load Mat data from files in directory, X and Y in different dir
+def load_mat_data_dirs(x_base_path, y_base_path):
     # e.g. AZ_17017030_AugVol_1.mat
     # x_base_path = "/Volumes/Shawn_SSD/PhD/Project/Date/augmentation_from_matlab/Train/Input/"
     # e.g. AZ_17017030_AugPts_1.mat
@@ -96,6 +96,26 @@ def load_mat_data_dir(x_base_path, y_base_path):
         x_file_path = join(x_base_path, x_file)
         y_file_path = join(y_base_path, x_file.replace("AugVol", "AugPts"))
         load_mat_vol, load_mat_pts = load_mat_data(x_file_path, y_file_path)
+        x_dataset.append(load_mat_vol)
+        y_dataset.append(load_mat_pts)
+
+    return x_dataset, y_dataset
+
+
+# Load Mat data from files in directory, X and Y in the same dir and samefile
+def load_mat_data_dir(base_path):
+    # e.g. AZ_17017030_AugVol_1.mat
+    # x_base_path = "/Volumes/Shawn_SSD/PhD/Project/Date/augmentation_from_matlab/Train/Input/"
+    # e.g. AZ_17017030_AugPts_1.mat
+    # y_base_path = "/Volumes/Shawn_SSD/PhD/Project/Date/augmentation_from_matlab/Train/Output/"
+
+    files = [f for f in listdir(base_path) if isfile(join(base_path, f))]
+
+    x_dataset = []
+    y_dataset = []
+    for file in files:
+        file_path = join(base_path, file)
+        load_mat_vol, load_mat_pts = load_mat_data(file_path)
         x_dataset.append(load_mat_vol)
         y_dataset.append(load_mat_pts)
 

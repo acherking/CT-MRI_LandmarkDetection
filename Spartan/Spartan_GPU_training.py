@@ -10,7 +10,7 @@ import models
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
 X_train_reshape, Y_train_one, X_val_reshape, Y_val_one, X_test_reshape, Y_test_one = \
-    support_modules.load_data()
+    support_modules.load_data("/data/gpfs/projects/punim1836/Data/17617648/", (176, 176, 48))
 
 """ *** Training Process *** """
 
@@ -36,26 +36,9 @@ for step, (x, y) in enumerate(val_dataset):
     print(y.shape)
     break
 
-# Define data loaders. (Shawn: Looks like the same as above)
-# train_loader = tf.data.Dataset.from_tensor_slices((X_train_reshape, Y_train))
-# validation_loader = tf.data.Dataset.from_tensor_slices((X_val_reshape, Y_val))
-#
-# batch_size = 2
-# train_dataset = (
-#     train_loader.shuffle(len(X_train_reshape))
-#     .batch(batch_size)
-#     .prefetch(2)
-# )
-# # Only rescale.
-# validation_dataset = (
-#     validation_loader.shuffle(len(X_val))
-#     .batch(batch_size)
-#     .prefetch(2)
-# )
-
 # Get model.
-my_model = models.first_model(width=170, height=170, depth=30)
-my_model.summary()
+slr_model = models.spine_lateral_radiograph_model(width=176, height=176, depth=48)
+slr_model.summary()
 
 # Compile model.
 initial_learning_rate = 0.0001
