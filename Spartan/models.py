@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import tensorflow as tf
 # from tensorflow import keras
 # for tensorflow 2.7 (on Spartan)
@@ -72,7 +73,7 @@ def residual_block(x: Tensor, downsample: bool, filters: int, kernel_size: int =
     return out
 
 
-def coordinate_3d(row_size, clown_size, slice_size, batch_size):
+def coordinate_3d(batch_size, row_size, clown_size, slice_size):
     # pts (x, y, z) * 4
     # matrix_x -> x (clown), matrix_Y -> y (row), matrix_Z -> z (slice)
     base_array = np.ones(row_size * clown_size * slice_size).reshape((row_size, clown_size, slice_size))
@@ -106,6 +107,44 @@ def coordinate_3d(row_size, clown_size, slice_size, batch_size):
         batch_coordinate_xyz.append(np.copy(coordinate_xyz))
 
     return np.asarray(batch_coordinate_xyz)
+
+
+# y_true: batch_size*4*3 array
+# y_pred: [stage1_output(batch_size*4*3 array), stage2_output(batch_size*4*3 array)]
+def two_stage_wing_loss(y_true, y_pred):
+    [y_stage1, y_stage2] = y_pred
+
+    return
+
+
+def wing_fn(x, w=5, e=1):
+    if abs(x) < w:
+        y = w * math.log(1 + abs(x) / e)
+    else:
+        y = abs(x) - w + w * math.log(1 + w / e)
+
+    return y
+
+
+def wing_loss(landmarks, labels, w=10.0, epsilon=2.0):
+    """
+    Arguments:
+        landmarks, labels: float tensors with shape [batch_size, num_landmarks, 2].
+        w, epsilon: a float numbers.
+    Returns:
+        a float tensor with shape [].
+    """
+    with tf.name_scope('wing_loss'):
+        x = landmarks - labels
+        c = w * (1.0 - math.log(1.0 + w/epsilon))
+        absolute_x = tf.abs(x)
+        losses = tf.where(
+            tf.greater(w, absolute_x),
+            w * tf.math.log(1.0 + absolute_x/epsilon),
+            absolute_x - c
+        )
+        loss = tf.reduce_mean(tf.reduce_sum(losses, axis=[1, 2]), axis=0)
+        return loss
 
 
 def spine_lateral_radiograph_model(width=176, height=176, depth=48):

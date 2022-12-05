@@ -9,16 +9,16 @@ import models
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-X_train_reshape, Y_train_one, X_val_reshape, Y_val_one, X_test_reshape, Y_test_one = \
+X_train, Y_train, X_val, Y_val, X_test, Y_test = \
     support_modules.load_data("/data/gpfs/projects/punim1836/Data/17617648/", (176, 176, 48))
 
 """ *** Training Process *** """
 
 # Prepare dataset used in the training process
-train_dataset = tf.data.Dataset.from_tensor_slices((X_train_reshape, Y_train_one))
+train_dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train))
 train_dataset = train_dataset.shuffle(buffer_size=1400).batch(2)
 
-val_dataset = tf.data.Dataset.from_tensor_slices((X_val_reshape, Y_val_one))
+val_dataset = tf.data.Dataset.from_tensor_slices((X_val, Y_val))
 val_dataset = val_dataset.shuffle(buffer_size=200).batch(2)
 
 # Check these datasets
@@ -45,10 +45,10 @@ initial_learning_rate = 0.0001
 lr_schedule = keras.optimizers.schedules.ExponentialDecay(
     initial_learning_rate, decay_steps=100000, decay_rate=0.96, staircase=True
 )
-my_model.compile(
-    loss="mean_squared_error",
+slr_model.compile(
+    loss=models.two_stage_wing_loss,
     optimizer=keras.optimizers.Adam(learning_rate=lr_schedule),
-    #metrics=["acc"],
+    # metrics=["acc"],
 )
 
 # Define callbacks.
@@ -59,7 +59,7 @@ early_stopping_cb = keras.callbacks.EarlyStopping(monitor="val_acc", patience=15
 
 # Train the model, doing validation at the end of each epoch
 epochs = 100
-my_model.fit(
+slr_model.fit(
     train_dataset,
     validation_data=val_dataset,
     epochs=epochs,
