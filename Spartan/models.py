@@ -114,7 +114,7 @@ def coordinate_3d(batch_size, row_size, clown_size, slice_size):
 def two_stage_wing_loss(y_true, y_pred):
     [y_stage1, y_stage2] = y_pred
 
-    return
+    return wing_loss(y_true, y_stage1) + wing_loss(y_true, y_stage2)
 
 
 def wing_fn(x, w=5, e=1):
@@ -129,7 +129,7 @@ def wing_fn(x, w=5, e=1):
 def wing_loss(landmarks, labels, w=10.0, epsilon=2.0):
     """
     Arguments:
-        landmarks, labels: float tensors with shape [batch_size, num_landmarks, 2].
+        landmarks, labels: float tensors with shape [batch_size, num_landmarks, dimension].
         w, epsilon: a float numbers.
     Returns:
         a float tensor with shape [].

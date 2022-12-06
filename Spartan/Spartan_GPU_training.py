@@ -10,7 +10,7 @@ import models
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
 X_train, Y_train, X_val, Y_val, X_test, Y_test = \
-    support_modules.load_data("/data/gpfs/projects/punim1836/Data/17617648/", (176, 176, 48))
+    support_modules.load_data("/data/gpfs/projects/punim1836/Data/rescaled_data/17617648/", (176, 176, 48))
 
 """ *** Training Process *** """
 
@@ -43,19 +43,25 @@ slr_model.summary()
 # Compile model.
 initial_learning_rate = 0.0001
 lr_schedule = keras.optimizers.schedules.ExponentialDecay(
-    initial_learning_rate, decay_steps=100000, decay_rate=0.96, staircase=True
+    initial_learning_rate, decay_steps=10000, decay_rate=0.96, staircase=True
 )
 slr_model.compile(
     loss=models.two_stage_wing_loss,
     optimizer=keras.optimizers.Adam(learning_rate=lr_schedule),
-    # metrics=["acc"],
+    metrics={'outputs_s1': 'mse', 'outputs_s2': 'mse'},
 )
 
 # Define callbacks.
 checkpoint_cb = keras.callbacks.ModelCheckpoint(
-    "3d_image_classification.h5", save_best_only=True
+    "slr_weights.checkpoint",
+    monitor=models.two_stage_wing_loss,
+    save_best_only=True
 )
-early_stopping_cb = keras.callbacks.EarlyStopping(monitor="val_acc", patience=15)
+early_stopping_cb = keras.callbacks.EarlyStopping(
+    monitor=models.two_stage_wing_loss,
+    patience=15,
+    mode="min"
+)
 
 # Train the model, doing validation at the end of each epoch
 epochs = 100
