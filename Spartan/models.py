@@ -26,11 +26,11 @@ def first_model(width=170, height=170, depth=30):
     x_hidden = layers.BatchNormalization()(x_hidden)
 
     x_hidden = layers.Conv3D(filters=128, kernel_size=3, activation="relu")(x_hidden)
-    # x = layers.MaxPool3D(pool_size=2)(x)
+    x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
     x_hidden = layers.BatchNormalization()(x_hidden)
 
     x_hidden = layers.Conv3D(filters=256, kernel_size=3, activation="relu")(x_hidden)
-    # x = layers.MaxPool3D(pool_size=2)(x)
+    x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
     x_hidden = layers.BatchNormalization()(x_hidden)
 
     x_hidden = layers.GlobalAveragePooling3D()(x_hidden)
@@ -126,7 +126,7 @@ def wing_fn(x, w=5, e=1):
     return y
 
 
-def wing_loss(landmarks, labels, w=10.0, epsilon=2.0):
+def wing_loss(landmarks, labels):
     """
     Arguments:
         landmarks, labels: float tensors with shape [batch_size, num_landmarks, dimension].
@@ -134,13 +134,15 @@ def wing_loss(landmarks, labels, w=10.0, epsilon=2.0):
     Returns:
         a float tensor with shape [].
     """
+    w = 10.0
+    epsilon = 2.0
     with tf.name_scope('wing_loss'):
         x = landmarks - labels
-        c = w * (1.0 - math.log(1.0 + w/epsilon))
+        c = w * (1.0 - math.log(1.0 + w / epsilon))
         absolute_x = tf.abs(x)
         losses = tf.where(
             tf.greater(w, absolute_x),
-            w * tf.math.log(1.0 + absolute_x/epsilon),
+            w * tf.math.log(1.0 + absolute_x / epsilon),
             absolute_x - c
         )
         loss = tf.reduce_mean(tf.reduce_sum(losses, axis=[1, 2]), axis=0)
@@ -162,25 +164,27 @@ def spine_lateral_radiograph_model(width=176, height=176, depth=48):
     x = residual_block(x, downsample=False, filters=64)
     violet_x = residual_block(x, downsample=False, filters=64)
 
-    x = residual_block(violet_x, downsample=False, filters=128)
-    yellow_x = residual_block(x, downsample=False, filters=128)
+    # x = residual_block(violet_x, downsample=False, filters=128)
+    # yellow_x = residual_block(x, downsample=False, filters=128)
+    #
+    # x = residual_block(yellow_x, downsample=True, filters=256)
+    # blue_x = residual_block(x, downsample=False, filters=256)
+    #
+    # x = residual_block(blue_x, downsample=True, filters=512)
+    # green_x = residual_block(x, downsample=False, filters=512)
+    # green_x = residual_block(green_x, downsample=False, filters=512)
+    #
+    # x = residual_block(green_x, downsample=False, filters=256)
+    # x = layers.UpSampling3D(size=2)(x)
+    # blue_x = layers.Add()([x, blue_x])
+    #
+    # x = residual_block(blue_x, downsample=False, filters=128)
+    # x = layers.UpSampling3D(size=2)(x)
+    # yellow_x = layers.Add()([x, yellow_x])
 
-    x = residual_block(yellow_x, downsample=True, filters=256)
-    blue_x = residual_block(x, downsample=False, filters=256)
-
-    x = residual_block(blue_x, downsample=True, filters=512)
-    green_x = residual_block(x, downsample=False, filters=512)
-    green_x = residual_block(green_x, downsample=False, filters=512)
-
-    x = residual_block(green_x, downsample=False, filters=256)
-    x = layers.UpSampling3D(size=2)(x)
-    blue_x = layers.Add()([x, blue_x])
-
-    x = residual_block(blue_x, downsample=False, filters=128)
-    x = layers.UpSampling3D(size=2)(x)
-    yellow_x = layers.Add()([x, yellow_x])
-
-    x = residual_block(yellow_x, downsample=False, filters=64)
+    # change ***
+    # x = residual_block(yellow_x, downsample=False, filters=64)
+    x = residual_block(violet_x, downsample=False, filters=64)
     # x = layers.UpSampling3D(size=2)(x)
     violet_x = layers.Add()([x, violet_x])
 
@@ -193,18 +197,20 @@ def spine_lateral_radiograph_model(width=176, height=176, depth=48):
     heatmap_s1 = residual_block(x, downsample=False, filters=4)
 
     # Stage 2
-    blue_x = residual_block(blue_x, downsample=False, filters=256)
-    blue_x = residual_block(blue_x, downsample=False, filters=256)
-    blue_x = residual_block(blue_x, downsample=False, filters=256)
-
-    yellow_x = residual_block(yellow_x, downsample=False, filters=128)
-    yellow_x = residual_block(yellow_x, downsample=False, filters=128)
+    # blue_x = residual_block(blue_x, downsample=False, filters=256)
+    # blue_x = residual_block(blue_x, downsample=False, filters=256)
+    # blue_x = residual_block(blue_x, downsample=False, filters=256)
+    #
+    # yellow_x = residual_block(yellow_x, downsample=False, filters=128)
+    # yellow_x = residual_block(yellow_x, downsample=False, filters=128)
 
     violet_x = residual_block(violet_x, downsample=False, filters=64)
 
     # Upsampling & Concatenate
-    upsampling_blue_x = layers.UpSampling3D(size=2)(blue_x)
-    grey_x_s2 = layers.Concatenate(axis=4)([upsampling_blue_x, yellow_x, violet_x, grey_x_s1])
+    # upsampling_blue_x = layers.UpSampling3D(size=2)(blue_x)
+    # change ***
+    # grey_x_s2 = layers.Concatenate(axis=4)([upsampling_blue_x, yellow_x, violet_x, grey_x_s1])
+    grey_x_s2 = layers.Concatenate(axis=4)([violet_x, grey_x_s1])
 
     x = residual_block(grey_x_s2, downsample=False, filters=4)
     x = residual_block(x, downsample=False, filters=4)

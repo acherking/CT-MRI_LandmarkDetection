@@ -22,7 +22,7 @@ echo "JobId:$SLURM_JOB_ID"
 echo "******************"
 echo
 
-python3 /data/gpfs/projects/punim1836/Training/Spartan_GPU_training.py
+python3 /data/gpfs/projects/punim1836/Training/Training_GPU.py
 
 ##DO NOT ADD/EDIT BEYOND THIS LINE##
 ##Job monitor command to list the resource usage
