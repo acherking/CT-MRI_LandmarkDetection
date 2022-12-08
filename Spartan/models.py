@@ -164,27 +164,25 @@ def spine_lateral_radiograph_model(width=176, height=176, depth=48):
     x = residual_block(x, downsample=False, filters=64)
     violet_x = residual_block(x, downsample=False, filters=64)
 
-    # x = residual_block(violet_x, downsample=False, filters=128)
-    # yellow_x = residual_block(x, downsample=False, filters=128)
-    #
-    # x = residual_block(yellow_x, downsample=True, filters=256)
-    # blue_x = residual_block(x, downsample=False, filters=256)
-    #
-    # x = residual_block(blue_x, downsample=True, filters=512)
-    # green_x = residual_block(x, downsample=False, filters=512)
-    # green_x = residual_block(green_x, downsample=False, filters=512)
-    #
-    # x = residual_block(green_x, downsample=False, filters=256)
-    # x = layers.UpSampling3D(size=2)(x)
-    # blue_x = layers.Add()([x, blue_x])
-    #
-    # x = residual_block(blue_x, downsample=False, filters=128)
-    # x = layers.UpSampling3D(size=2)(x)
-    # yellow_x = layers.Add()([x, yellow_x])
+    x = residual_block(violet_x, downsample=False, filters=128)
+    yellow_x = residual_block(x, downsample=False, filters=128)
 
-    # change ***
-    # x = residual_block(yellow_x, downsample=False, filters=64)
-    x = residual_block(violet_x, downsample=False, filters=64)
+    x = residual_block(yellow_x, downsample=True, filters=256)
+    blue_x = residual_block(x, downsample=False, filters=256)
+
+    x = residual_block(blue_x, downsample=True, filters=512)
+    green_x = residual_block(x, downsample=False, filters=512)
+    green_x = residual_block(green_x, downsample=False, filters=512)
+
+    x = residual_block(green_x, downsample=False, filters=256)
+    x = layers.UpSampling3D(size=2)(x)
+    blue_x = layers.Add()([x, blue_x])
+
+    x = residual_block(blue_x, downsample=False, filters=128)
+    x = layers.UpSampling3D(size=2)(x)
+    yellow_x = layers.Add()([x, yellow_x])
+
+    x = residual_block(yellow_x, downsample=False, filters=64)
     # x = layers.UpSampling3D(size=2)(x)
     violet_x = layers.Add()([x, violet_x])
 
@@ -197,20 +195,18 @@ def spine_lateral_radiograph_model(width=176, height=176, depth=48):
     heatmap_s1 = residual_block(x, downsample=False, filters=4)
 
     # Stage 2
-    # blue_x = residual_block(blue_x, downsample=False, filters=256)
-    # blue_x = residual_block(blue_x, downsample=False, filters=256)
-    # blue_x = residual_block(blue_x, downsample=False, filters=256)
-    #
-    # yellow_x = residual_block(yellow_x, downsample=False, filters=128)
-    # yellow_x = residual_block(yellow_x, downsample=False, filters=128)
+    blue_x = residual_block(blue_x, downsample=False, filters=256)
+    blue_x = residual_block(blue_x, downsample=False, filters=256)
+    blue_x = residual_block(blue_x, downsample=False, filters=256)
+
+    yellow_x = residual_block(yellow_x, downsample=False, filters=128)
+    yellow_x = residual_block(yellow_x, downsample=False, filters=128)
 
     violet_x = residual_block(violet_x, downsample=False, filters=64)
 
     # Upsampling & Concatenate
-    # upsampling_blue_x = layers.UpSampling3D(size=2)(blue_x)
-    # change ***
-    # grey_x_s2 = layers.Concatenate(axis=4)([upsampling_blue_x, yellow_x, violet_x, grey_x_s1])
-    grey_x_s2 = layers.Concatenate(axis=4)([violet_x, grey_x_s1])
+    upsampling_blue_x = layers.UpSampling3D(size=2)(blue_x)
+    grey_x_s2 = layers.Concatenate(axis=4)([upsampling_blue_x, yellow_x, violet_x, grey_x_s1])
 
     x = residual_block(grey_x_s2, downsample=False, filters=4)
     x = residual_block(x, downsample=False, filters=4)

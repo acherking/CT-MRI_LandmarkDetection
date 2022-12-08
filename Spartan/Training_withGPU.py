@@ -69,7 +69,7 @@ model.compile(
 
 # Define callbacks.
 checkpoint_cb = keras.callbacks.ModelCheckpoint(
-    "slr_weights.checkpoint",
+    "model.checkpoint",
     save_best_only=True
 )
 early_stopping_cb = keras.callbacks.EarlyStopping(

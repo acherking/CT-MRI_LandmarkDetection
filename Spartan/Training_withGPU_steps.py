@@ -14,7 +14,7 @@ X_train, Y_train, X_val, Y_val, X_test, Y_test = \
 
 """ *** Training Process *** """
 
-batch_size = 2
+batch_size = 1
 
 # Prepare dataset used in the training process
 train_dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train))
@@ -90,3 +90,5 @@ for epoch in range(100):
 
     # Reset the metric's state at the end of an epoch
     accuracy.reset_states()
+
+slr_model.save_weights('./slr_weights')
