@@ -161,10 +161,10 @@ def spine_lateral_radiograph_model(width=176, height=176, depth=48):
     x = layers.ReLU()(x)
 
     # Stage 1
-    x = residual_block(x, downsample=False, filters=64)
+    x = residual_block(x, downsample=True, filters=64)
     violet_x = residual_block(x, downsample=False, filters=64)
 
-    x = residual_block(violet_x, downsample=False, filters=128)
+    x = residual_block(violet_x, downsample=True, filters=128)
     yellow_x = residual_block(x, downsample=False, filters=128)
 
     x = residual_block(yellow_x, downsample=True, filters=256)
@@ -183,12 +183,11 @@ def spine_lateral_radiograph_model(width=176, height=176, depth=48):
     yellow_x = layers.Add()([x, yellow_x])
 
     x = residual_block(yellow_x, downsample=False, filters=64)
-    # x = layers.UpSampling3D(size=2)(x)
+    x = layers.UpSampling3D(size=2)(x)
     violet_x = layers.Add()([x, violet_x])
 
     x = residual_block(violet_x, downsample=False, filters=64)
-    # grey_x = layers.UpSampling3D(size=2)(x)
-    grey_x_s1 = x
+    grey_x_s1 = layers.UpSampling3D(size=2)(x)
 
     x = residual_block(grey_x_s1, downsample=False, filters=4)
     x = residual_block(x, downsample=False, filters=4)
@@ -205,8 +204,10 @@ def spine_lateral_radiograph_model(width=176, height=176, depth=48):
     violet_x = residual_block(violet_x, downsample=False, filters=64)
 
     # Upsampling & Concatenate
-    upsampling_blue_x = layers.UpSampling3D(size=2)(blue_x)
-    grey_x_s2 = layers.Concatenate(axis=4)([upsampling_blue_x, yellow_x, violet_x, grey_x_s1])
+    upsampling_blue_x = layers.UpSampling3D(size=8)(blue_x)
+    upsampling_yellow_x = layers.UpSampling3D(size=4)(yellow_x)
+    upsampling_violet_x = layers.UpSampling3D(size=2)(violet_x)
+    grey_x_s2 = layers.Concatenate(axis=4)([upsampling_blue_x, upsampling_yellow_x, upsampling_violet_x, grey_x_s1])
 
     x = residual_block(grey_x_s2, downsample=False, filters=4)
     x = residual_block(x, downsample=False, filters=4)
@@ -214,12 +215,12 @@ def spine_lateral_radiograph_model(width=176, height=176, depth=48):
 
     # in our project, e.x. heatmap shape: 170*170*30*4
     pro_matrix_s1 = layers.Reshape((width, height, depth, 4, 3)) \
-        (tf.repeat(layers.Softmax(axis=[0, 1, 2])(heatmap_s1), repeats=3, axis=-1))
+        (tf.repeat(layers.Softmax(axis=[1, 2, 3], name="stage1_softmax")(heatmap_s1), repeats=3, axis=-1))
     outputs_s1 = tf.math.reduce_sum(layers.multiply([base_coordinate_xyz, pro_matrix_s1]), axis=[1, 2, 3])
     # model_s1 = keras.Model([inputs, base_coordinate_xyz], outputs_s1, name="ResStage1")
 
     pro_matrix_s2 = layers.Reshape((width, height, depth, 4, 3)) \
-        (tf.repeat(layers.Softmax(axis=[0, 1, 2])(heatmap_s2), repeats=3, axis=-1))
+        (tf.repeat(layers.Softmax(axis=[1, 2, 3], name="stage2_softmax")(heatmap_s2), repeats=3, axis=-1))
     outputs_s2 = tf.math.reduce_sum(layers.multiply([base_coordinate_xyz, pro_matrix_s2]), axis=[1, 2, 3])
     # model_s2 = keras.Model([inputs, base_coordinate_xyz], outputs_s2, name="ResStage2")
 

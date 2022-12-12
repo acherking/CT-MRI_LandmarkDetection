@@ -56,7 +56,8 @@ early_stopping_cb = keras.callbacks.EarlyStopping(
 )
 
 # Instantiate a metric object
-accuracy = keras.metrics.MeanSquaredError()
+accuracy_s1 = keras.metrics.MeanSquaredError()
+accuracy_s2 = keras.metrics.MeanSquaredError()
 
 loss_fn = models.two_stage_wing_loss
 
@@ -77,18 +78,22 @@ for epoch in range(100):
             loss_value = loss_fn(y, [y_pred_s1, y_pred_s2])
 
         # Update the state of the `accuracy` metric.
-        accuracy.update_state(y, y_pred_s2)
+        accuracy_s1.update_state(y, y_pred_s1)
+        accuracy_s2.update_state(y, y_pred_s2)
 
         # Update the weights of the model to minimize the loss value.
         gradients = tape.gradient(loss_value, slr_model.trainable_weights)
         optimizer.apply_gradients(zip(gradients, slr_model.trainable_weights))
 
         # Logging the current accuracy value so far.
-        if step % 100 == 0:
+        if step % 10 == 0:
             print("Epoch:", epoch, "Step:", step)
-            print("Total running accuracy so far: %.3f" % accuracy.result())
+            print("loss (2 stages wing-loss): %.3f" % loss_value)
+            print("Stage 1 accuracy (MSE) so far: %.3f" % accuracy_s1.result())
+            print("Stage 2 accuracy (MSE) so far: %.3f" % accuracy_s1.result())
 
     # Reset the metric's state at the end of an epoch
-    accuracy.reset_states()
+    accuracy_s1.reset_states()
+    accuracy_s2.reset_states()
 
-slr_model.save_weights('./slr_weights')
+slr_model.save("slr_model_01")
