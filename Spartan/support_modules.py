@@ -31,20 +31,14 @@ def load_data():
 
     # Reshape the data (data-size, row-size?, column-size?, slice-size, channel-size)
     x_train_reshape = np.asarray(x_train).reshape((700, 170, 170, 30, 1))
-    y_train_one = np.asarray(y_train)[:, 0, :]
     x_val_reshape = np.asarray(x_val).reshape((100, 170, 170, 30, 1))
-    y_val_one = np.asarray(y_val)[:, 0, :]
     x_test_reshape = np.asarray(x_test).reshape((200, 170, 170, 30, 1))
-    y_test_one = np.asarray(y_test)[:, 0, :]
 
     print("X_train_reshape Shape: ", np.shape(x_train))
-    print("Y_train_one Shape: ", np.shape(y_train_one))
     print("X_val_reshape Shape: ", np.shape(x_val))
-    print("Y_val_one Shape: ", np.shape(y_val_one))
     print("X_test_reshape Shape: ", np.shape(x_test))
-    print("Y_test_one Shape: ", np.shape(y_test_one))
 
-    return x_train_reshape, y_train_one, x_val_reshape, y_val_one, x_test_reshape, y_test_one
+    return x_train_reshape, y_train, x_val_reshape, y_val, x_test_reshape, y_test
 
 
 # load dataset from a single directory, each file contains both volume and pts (X & Y).

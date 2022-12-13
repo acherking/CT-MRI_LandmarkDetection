@@ -8,22 +8,14 @@ import models
 # gpus = tf.config.experimental.list_physical_devices('GPU')
 # tf.config.experimental.set_memory_growth(gpus, True)
 
-# print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-gpus = tf.config.list_physical_devices('GPU')
-if gpus:
-    try:
-        # Currently, memory growth needs to be the same across GPUs
-        for gpu in gpus:
-            tf.config.experimental.set_memory_growth(gpu, True)
-        logical_gpus = tf.config.list_logical_devices('GPU')
-        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
-    except RuntimeError as e:
-        # Memory growth must be set before GPUs have been initialized
-        print(e)
+size = (176, 176, 48)
+str_size = str(size[0]) + "_" + str(size[1]) + "_" + str(size[2])
 
 X_train, Y_train, X_val, Y_val, X_test, Y_test = \
-    support_modules.load_dataset("/data/gpfs/projects/punim1836/Data/rescaled_data/320_320_96/", (320, 320, 96))
+    support_modules.load_dataset("/data/gpfs/projects/punim1836/Data/rescaled_data/" + str_size + "/", size)
+# X_train, Y_train, X_val, Y_val, X_test, Y_test = support_modules.load_data()
 
 Y_train_one = np.asarray(Y_train)[:, 0, :]
 Y_val_one = np.asarray(Y_val)[:, 0, :]
@@ -53,7 +45,7 @@ for step, (x, y) in enumerate(val_dataset):
     break
 
 # Get model.
-model = models.first_model(width=320, height=320, depth=96)
+model = models.first_model(width=size[0], height=size[1], depth=size[2])
 model.summary()
 
 # Compile model.
@@ -63,20 +55,21 @@ lr_schedule = keras.optimizers.schedules.ExponentialDecay(
 )
 model.compile(
     loss="mean_squared_error",
+    # loss=models.wing_loss,
     optimizer=keras.optimizers.Adam(learning_rate=lr_schedule),
     metrics=["mse"],
 )
 
 # Define callbacks.
 checkpoint_cb = keras.callbacks.ModelCheckpoint(
-    "model.checkpoint",
+    "first_model.checkpoint",
     save_best_only=True
 )
-early_stopping_cb = keras.callbacks.EarlyStopping(
-    monitor="val_loss",
-    patience=15,
-    mode="min"
-)
+# early_stopping_cb = keras.callbacks.EarlyStopping(
+#     monitor="val_loss",
+#     patience=15,
+#     mode="min"
+# )
 
 # Train the model, doing validation at the end of each epoch
 epochs = 100
@@ -86,5 +79,6 @@ model.fit(
     epochs=epochs,
     shuffle=True,
     verbose=2,
-    callbacks=[checkpoint_cb, early_stopping_cb],
+    # callbacks=[checkpoint_cb, early_stopping_cb],
+    callbacks=[checkpoint_cb],
 )

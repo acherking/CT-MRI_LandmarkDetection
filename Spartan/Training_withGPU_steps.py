@@ -60,6 +60,7 @@ accuracy_s1 = keras.metrics.MeanSquaredError()
 accuracy_s2 = keras.metrics.MeanSquaredError()
 
 loss_fn = models.two_stage_wing_loss
+mse = tf.keras.losses.MeanSquaredError()
 
 optimizer = keras.optimizers.Adam(learning_rate=lr_schedule)
 
@@ -75,7 +76,8 @@ for epoch in range(100):
         with tf.GradientTape() as tape:
             [y_pred_s1, y_pred_s2] = slr_model([x, base_cor_xyz])
             # Compute the loss value for this batch.
-            loss_value = loss_fn(y, [y_pred_s1, y_pred_s2])
+            # loss_value = loss_fn(y, [y_pred_s1, y_pred_s2])
+            loss_value = (mse(y, y_pred_s1) + mse(y, y_pred_s2)) * 1/2
 
         # Update the state of the `accuracy` metric.
         accuracy_s1.update_state(y, y_pred_s1)
@@ -88,7 +90,7 @@ for epoch in range(100):
         # Logging the current accuracy value so far.
         if step % 10 == 0:
             print("Epoch:", epoch, "Step:", step)
-            print("loss (2 stages wing-loss): %.3f" % loss_value)
+            # print("loss (2 stages wing-loss): %.3f" % loss_value)
             print("Stage 1 accuracy (MSE) so far: %.3f" % accuracy_s1.result())
             print("Stage 2 accuracy (MSE) so far: %.3f" % accuracy_s1.result())
 

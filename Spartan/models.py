@@ -26,11 +26,11 @@ def first_model(width=170, height=170, depth=30):
     x_hidden = layers.BatchNormalization()(x_hidden)
 
     x_hidden = layers.Conv3D(filters=128, kernel_size=3, activation="relu")(x_hidden)
-    x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+    # x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
     x_hidden = layers.BatchNormalization()(x_hidden)
 
     x_hidden = layers.Conv3D(filters=256, kernel_size=3, activation="relu")(x_hidden)
-    x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+    # x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
     x_hidden = layers.BatchNormalization()(x_hidden)
 
     x_hidden = layers.GlobalAveragePooling3D()(x_hidden)
@@ -38,6 +38,7 @@ def first_model(width=170, height=170, depth=30):
     x_hidden = layers.Dropout(0.3)(x_hidden)
 
     outputs = layers.Dense(units=3, )(x_hidden)
+    outputs = layers.Reshape((1, 3))(outputs)
 
     # Define the model.
     model = keras.Model(inputs, outputs, name="3d-cnn")
