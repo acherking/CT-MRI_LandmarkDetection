@@ -62,17 +62,17 @@ model.compile(
 
 # Define callbacks.
 checkpoint_cb = keras.callbacks.ModelCheckpoint(
-    "first_model.checkpoint",
+    "first_model_17617648_B2.checkpoint",
     save_best_only=True
 )
-# early_stopping_cb = keras.callbacks.EarlyStopping(
-#     monitor="val_loss",
-#     patience=15,
-#     mode="min"
-# )
+early_stopping_cb = keras.callbacks.EarlyStopping(
+    monitor="val_loss",
+    patience=25,
+    mode="min"
+)
 
 # Train the model, doing validation at the end of each epoch
-epochs = 100
+epochs = 130
 model.fit(
     train_dataset,
     validation_data=val_dataset,

@@ -228,3 +228,87 @@ def spine_lateral_radiograph_model(width=176, height=176, depth=48):
     model = keras.Model([inputs, base_coordinate_xyz], [outputs_s1, outputs_s2], name="ResModel")
 
     return model
+
+
+def straight_model(width=176, height=176, depth=48):
+
+    inputs = keras.Input((width, height, depth, 1))
+
+    # layer 1
+    x_hidden = layers.Conv3D(filters=32, kernel_size=3, padding="same")(inputs)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+    x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+
+    # layer 2
+    x_hidden = layers.Conv3D(filters=64, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+    x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+
+    # layer 3
+    x_hidden = layers.Conv3D(filters=128, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+
+    # layer 4
+    x_hidden = layers.Conv3D(filters=64, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+
+    # layer 5
+    x_hidden = layers.Conv3D(filters=128, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+    x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+
+    # layer 6
+    x_hidden = layers.Conv3D(filters=256, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+
+    # layer 7
+    x_hidden = layers.Conv3D(filters=128, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+
+    # layer 8
+    x_hidden = layers.Conv3D(filters=256, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+    x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+
+    # layer 9
+    x_hidden = layers.Conv3D(filters=512, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+
+    # layer 10
+    x_hidden = layers.Conv3D(filters=256, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+
+    # layer 11
+    x_hidden = layers.Conv3D(filters=512, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+
+    # layer 12
+    x_hidden = layers.Conv3D(filters=256, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+
+    x_hidden = layers.Dropout(0.2)(x_hidden)
+
+
+
+    x_hidden = layers.GlobalAveragePooling3D()(x_hidden)
+    x_hidden = layers.Dense(units=512, activation="relu")(x_hidden)
+    x_hidden = layers.Dropout(0.3)(x_hidden)
+
+    outputs = layers.Dense(units=3, )(x_hidden)
+    outputs = layers.Reshape((1, 3))(outputs)
+
+    # Define the model.
+    model = keras.Model(inputs, outputs, name="3d-cnn")
+    return model
