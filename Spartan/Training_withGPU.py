@@ -45,7 +45,7 @@ for step, (x, y) in enumerate(val_dataset):
     break
 
 # Get model.
-model = models.first_model(width=size[0], height=size[1], depth=size[2])
+model = models.straight_model(width=size[0], height=size[1], depth=size[2])
 model.summary()
 
 # Compile model.
@@ -62,7 +62,7 @@ model.compile(
 
 # Define callbacks.
 checkpoint_cb = keras.callbacks.ModelCheckpoint(
-    "first_model_17617648_B2.checkpoint",
+    "straight_model_17617648_B2.checkpoint",
     save_best_only=True
 )
 early_stopping_cb = keras.callbacks.EarlyStopping(
@@ -72,7 +72,7 @@ early_stopping_cb = keras.callbacks.EarlyStopping(
 )
 
 # Train the model, doing validation at the end of each epoch
-epochs = 130
+epochs = 100
 model.fit(
     train_dataset,
     validation_data=val_dataset,

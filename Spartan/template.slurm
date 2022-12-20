@@ -3,7 +3,7 @@
 #SBATCH -p gpu-a100
 #SBATCH --gres=gpu:1
 #SBATCH --time 76:00:00
-#SBATCH --mem=300G
+#SBATCH --mem=100G
 #SBATCH --output ./output/slurm-%j.out
 
 module purge

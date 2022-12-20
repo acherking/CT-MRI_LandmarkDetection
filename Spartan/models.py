@@ -299,16 +299,12 @@ def straight_model(width=176, height=176, depth=48):
     x_hidden = layers.ReLU()(x_hidden)
 
     x_hidden = layers.Dropout(0.2)(x_hidden)
+    x_hidden = layers.Flatten()(x_hidden)
+    outputs = layers.Dense(units=3)(x_hidden)
 
-
-
-    x_hidden = layers.GlobalAveragePooling3D()(x_hidden)
-    x_hidden = layers.Dense(units=512, activation="relu")(x_hidden)
-    x_hidden = layers.Dropout(0.3)(x_hidden)
-
-    outputs = layers.Dense(units=3, )(x_hidden)
     outputs = layers.Reshape((1, 3))(outputs)
 
     # Define the model.
-    model = keras.Model(inputs, outputs, name="3d-cnn")
+    model = keras.Model(inputs, outputs, name="straight-3d-cnn")
+
     return model
