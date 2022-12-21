@@ -230,6 +230,67 @@ def spine_lateral_radiograph_model(width=176, height=176, depth=48):
     return model
 
 
+def simple_slr_model(width=176, height=176, depth=48):
+    """
+    This is a simplified slr model used to debug the original one.
+    """
+    inputs = keras.Input((width, height, depth, 1))
+    # e.x. batches*170*170*30*4*3, 4 type of coordinates, 3 dimensions
+    # base_coordinate_xyz = keras.Input((width, height, depth, 4, 3))
+
+    x = layers.BatchNormalization()(inputs)
+    x = layers.ReLU()(x)
+
+    # Stage 1
+    x = residual_block(x, downsample=True, filters=64)
+    violet_x = residual_block(x, downsample=False, filters=64)
+
+    x = residual_block(violet_x, downsample=True, filters=128)
+    yellow_x = residual_block(x, downsample=False, filters=128)
+
+    x = residual_block(yellow_x, downsample=True, filters=256)
+    blue_x = residual_block(x, downsample=False, filters=256)
+
+    x = residual_block(blue_x, downsample=True, filters=512)
+    green_x = residual_block(x, downsample=False, filters=512)
+    green_x = residual_block(green_x, downsample=False, filters=512)
+
+    x = residual_block(green_x, downsample=False, filters=256)
+    x = layers.UpSampling3D(size=2)(x)
+    blue_x = layers.Add()([x, blue_x])
+
+    x = residual_block(blue_x, downsample=False, filters=128)
+    x = layers.UpSampling3D(size=2)(x)
+    yellow_x = layers.Add()([x, yellow_x])
+
+    x = residual_block(yellow_x, downsample=False, filters=64)
+    x = layers.UpSampling3D(size=2)(x)
+    violet_x = layers.Add()([x, violet_x])
+
+    x = residual_block(violet_x, downsample=False, filters=64)
+    grey_x_s1 = layers.UpSampling3D(size=2)(x)
+
+    # x = residual_block(grey_x_s1, downsample=False, filters=12)
+    # x = residual_block(x, downsample=False, filters=12)
+    # heatmap_s1 = residual_block(x, downsample=False, filters=12)
+
+    # pro_matrix_s1 = layers.Reshape((width, height, depth, 4, 3)) \
+    #     (tf.repeat(layers.Softmax(axis=[1, 2, 3], name="stage1_softmax")(heatmap_s1), repeats=3, axis=-1))
+    # outputs_s1 = tf.math.reduce_sum(layers.multiply([base_coordinate_xyz, pro_matrix_s1]), axis=[1, 2, 3])
+
+    # model_s1 = keras.Model([inputs, base_coordinate_xyz], outputs_s1, name="slr_stage1")
+
+    x_hidden = layers.GlobalAveragePooling3D()(grey_x_s1)
+    x_hidden = layers.Dense(units=128, activation="relu")(x_hidden)
+    x_hidden = layers.Dropout(0.3)(x_hidden)
+
+    outputs = layers.Dense(units=3)(x_hidden)
+    outputs = layers.Reshape((1, 3))(outputs)
+    model_s1 = keras.Model(inputs, outputs, name="slr_stage1")
+
+    return model_s1
+
+
 def straight_model(width=176, height=176, depth=48):
 
     inputs = keras.Input((width, height, depth, 1))

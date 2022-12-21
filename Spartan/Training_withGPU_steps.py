@@ -9,8 +9,11 @@ import models
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
+size = (240, 240, 64)
+str_size = str(size[0]) + "_" + str(size[1]) + "_" + str(size[2])
+
 X_train, Y_train, X_val, Y_val, X_test, Y_test = \
-    support_modules.load_dataset("/data/gpfs/projects/punim1836/Data/rescaled_data/176_176_48/", (176, 176, 48))
+    support_modules.load_dataset("/data/gpfs/projects/punim1836/Data/rescaled_data/" + str_size + "/", size)
 
 """ *** Training Process *** """
 
@@ -57,35 +60,42 @@ early_stopping_cb = keras.callbacks.EarlyStopping(
 
 # Instantiate a metric object
 accuracy_s1 = keras.metrics.MeanSquaredError()
-accuracy_s2 = keras.metrics.MeanSquaredError()
+# accuracy_s2 = keras.metrics.MeanSquaredError()
 
 loss_fn = models.two_stage_wing_loss
+wing_loss = models.wing_loss
 mse = tf.keras.losses.MeanSquaredError()
 
 optimizer = keras.optimizers.Adam(learning_rate=lr_schedule)
 
 # Get model.
-slr_model = models.spine_lateral_radiograph_model(width=176, height=176, depth=48)
-slr_model.summary()
+# slr_model = models.spine_lateral_radiograph_model(width=176, height=176, depth=48)
+# slr_model.summary()
+s_slr_model = models.simple_slr_model(width=size[0], height=size[1], depth=size[2])
+s_slr_model.summary()
 
-base_cor_xyz = models.coordinate_3d(batch_size, 176, 176, 48)
+base_cor_xyz = models.coordinate_3d(batch_size, size[0], size[1], size[2])
 
 for epoch in range(100):
     # Iterate over the batches of a dataset.
     for step, (x, y) in enumerate(train_dataset):
         with tf.GradientTape() as tape:
-            [y_pred_s1, y_pred_s2] = slr_model([x, base_cor_xyz])
+            # [y_pred_s1, y_pred_s2] = slr_model([x, base_cor_xyz])
             # Compute the loss value for this batch.
             # loss_value = loss_fn(y, [y_pred_s1, y_pred_s2])
-            loss_value = (mse(y, y_pred_s1) + mse(y, y_pred_s2)) * 1/2
+            # loss_value = (mse(y, y_pred_s1) + mse(y, y_pred_s2)) * 1/2
+            # y_pred_s1 = s_slr_model([x, base_cor_xyz])
+            y_pred_s1 = s_slr_model(x)
+            loss_value = mse(y, y_pred_s1)
+            # loss_value = wing_loss(y, y_pred_s1)
 
         # Update the state of the `accuracy` metric.
         accuracy_s1.update_state(y, y_pred_s1)
-        accuracy_s2.update_state(y, y_pred_s2)
+        # accuracy_s2.update_state(y, y_pred_s2)
 
         # Update the weights of the model to minimize the loss value.
-        gradients = tape.gradient(loss_value, slr_model.trainable_weights)
-        optimizer.apply_gradients(zip(gradients, slr_model.trainable_weights))
+        gradients = tape.gradient(loss_value, s_slr_model.trainable_weights)
+        optimizer.apply_gradients(zip(gradients, s_slr_model.trainable_weights))
 
         # Logging the current accuracy value so far.
         if step % 10 == 0:
@@ -96,6 +106,6 @@ for epoch in range(100):
 
     # Reset the metric's state at the end of an epoch
     accuracy_s1.reset_states()
-    accuracy_s2.reset_states()
+    # accuracy_s2.reset_states()
 
-slr_model.save("slr_model_01")
+# slr_model.save("slr_model_01")
