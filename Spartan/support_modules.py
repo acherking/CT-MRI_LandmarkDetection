@@ -42,7 +42,7 @@ def load_data():
 
 
 # load dataset from a single directory, each file contains both volume and pts (X & Y).
-def load_dataset(dir_path, size=(176, 176, 48)):
+def load_dataset(dir_path, size=(176, 176, 48), with_res=False):
     # file name format: {name}_{size}_VolPts_{id}.mat (AH_17617648_VolPts.mat)
     pat_names = ['AH', 'AZ', 'DE', 'DM', 'DM2', 'DGL', 'FA', 'GE', 'GM', 'GP', 'HB', 'HH',
                  'JH', 'JM', 'LG', 'LP', 'MJ', 'NV', 'PH', 'SM']
@@ -54,30 +54,39 @@ def load_dataset(dir_path, size=(176, 176, 48)):
 
     x_train = []
     y_train = []
+    res_train = []
     for pt_name in name_splits[0]:
         for aug_id in range(1, 51):
             file_path = dir_path + pt_name + "_" + str_size + "_VolPts_" + str(aug_id) + ".mat"
-            volume, pts = MyDataset.load_mat_data(file_path)
+            volume, pts, res = MyDataset.load_mat_data(file_path, with_res)
             x_train.append(volume)
             y_train.append(pts)
+            if with_res:
+                res_train.append(res)
 
     x_val = []
     y_val = []
+    res_val = []
     for pt_name in name_splits[1]:
         for aug_id in range(1, 51):
             file_path = dir_path + pt_name + "_" + str_size + "_VolPts_" + str(aug_id) + ".mat"
-            volume, pts = MyDataset.load_mat_data(file_path)
+            volume, pts, res = MyDataset.load_mat_data(file_path, with_res)
             x_val.append(volume)
             y_val.append(pts)
+            if with_res:
+                res_val.append(res)
 
     x_test = []
     y_test = []
+    res_test = []
     for pt_name in name_splits[2]:
         for aug_id in range(1, 51):
             file_path = dir_path + pt_name + "_" + str_size + "_VolPts_" + str(aug_id) + ".mat"
-            volume, pts = MyDataset.load_mat_data(file_path)
+            volume, pts, res = MyDataset.load_mat_data(file_path, with_res)
             x_test.append(volume)
             y_test.append(pts)
+            if with_res:
+                res_test.append(res)
 
     # Data shape validation
     print("X_train Shape: ", np.shape(x_train))
@@ -108,4 +117,4 @@ def load_dataset(dir_path, size=(176, 176, 48)):
     # print("Y_test_one Shape: ", np.shape(y_test_one))
     print("Y_test Shape: ", np.shape(y_test))
 
-    return x_train_reshape, y_train, x_val_reshape, y_val, x_test_reshape, y_test
+    return x_train_reshape, y_train, res_train, x_val_reshape, y_val, res_val, x_test_reshape, y_test, res_test

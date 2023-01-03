@@ -7,9 +7,10 @@ from scipy.ndimage import zoom
 
 
 # Load Mat data for single patient
-def load_mat_data(volume_path, pts_path="None"):
+def load_mat_data(volume_path, pts_path="None", with_res=False):
     load_mat_vol = []
     load_mat_pts = []
+    load_vol_res = []
     if pts_path != "None":
         file_volume = h5py.File(volume_path, 'r')
         file_pts = h5py.File(pts_path, 'r')
@@ -21,13 +22,17 @@ def load_mat_data(volume_path, pts_path="None"):
         # load_mat_pts = file_data.get('augPts')
         load_mat_vol = file_data.get('rescaled_aug_vol')
         load_mat_pts = file_data.get('rescaled_aug_pts')
+        # load resolution
+        if with_res:
+            load_vol_res = file_data.get('pixel_distance')
 
     volume = np.array(load_mat_vol).T
     pts = np.array(load_mat_pts).reshape(3, 4).T
+    vol_res = np.array(load_vol_res).T
 
     # close file automatically: file_data or file_volume&file_pts
 
-    return volume, pts
+    return volume, pts, vol_res
 
 
 # Load Mat data from files in directory, X and Y in different dir
