@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow import keras
+import numpy as np
 
 import support_modules
 import models
@@ -9,22 +10,28 @@ import models
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-size = (240, 240, 64)
+size = (176, 176, 48)
+with_res = True
 str_size = str(size[0]) + "_" + str(size[1]) + "_" + str(size[2])
+if with_res:
+    str_size = str_size + "_PD"
 
 X_train, Y_train, res_train, X_val, Y_val, res_val, X_test, Y_test, res_test = \
     support_modules.load_dataset("/data/gpfs/projects/punim1836/Data/rescaled_data/" + str_size + "/",
-                                 size, with_res=True)
+                                 size, with_res=with_res)
+
+Y_train_one = np.asarray(Y_train)[:, 0, :]
+Y_val_one = np.asarray(Y_val)[:, 0, :]
 
 """ *** Training Process *** """
 
-batch_size = 1
+batch_size = 2
 
 # Prepare dataset used in the training process
-train_dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train, res_train))
+train_dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train_one, res_train))
 train_dataset = train_dataset.shuffle(buffer_size=1400, reshuffle_each_iteration=True).batch(batch_size)
 
-val_dataset = tf.data.Dataset.from_tensor_slices((X_val, Y_val, res_val))
+val_dataset = tf.data.Dataset.from_tensor_slices((X_val, Y_val_one, res_val))
 val_dataset = val_dataset.shuffle(buffer_size=200, reshuffle_each_iteration=True).batch(batch_size)
 
 # Check these datasets
@@ -65,7 +72,7 @@ accuracy = keras.metrics.MeanSquaredError()
 loss_fn = models.two_stage_wing_loss
 wing_loss = models.wing_loss
 mse = tf.keras.losses.MeanSquaredError()
-mse_with_res = models.mse_with_res()
+mse_with_res = models.mse_with_res
 
 optimizer = keras.optimizers.Adam(learning_rate=lr_schedule)
 
@@ -91,7 +98,6 @@ for epoch in range(100):
         # Logging the current accuracy value so far.
         if step % 10 == 0:
             print("Epoch:", epoch, "Step:", step)
-            # print("loss (2 stages wing-loss): %.3f" % loss_value)
             print("accuracy (MSE) so far: %.3f" % accuracy.result())
 
     # Reset the metric's state at the end of an epoch

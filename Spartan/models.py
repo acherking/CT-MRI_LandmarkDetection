@@ -150,6 +150,21 @@ def wing_loss(landmarks, labels):
         return loss
 
 
+def mse_with_res(y_true, y_pred, res):
+    """
+    :param y_true: [batch_size, num_landmarks, dimension(column, row, slice)]
+    :param y_pred: [batch_size, num_landmarks, dimension(column, row, slice)]
+    :param res: Pixel distance in mm, [batch_size, dimension(column, row, slice)]
+    :return: mean square error for batch_size * num_landmarks * dimension
+    """
+    with tf.name_scope('mse_res_loss'):
+        err_diff = y_true - y_pred
+        # change pixel distance to mm (kind of normalization I think)
+        losses = err_diff * res
+        loss = tf.reduce_mean(tf.reduce_sum(losses*losses, axis=1), axis=0)
+        return loss
+
+
 def spine_lateral_radiograph_model(width=176, height=176, depth=48):
     """
     The original model is for 2D image, our data are 3D.

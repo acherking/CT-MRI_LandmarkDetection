@@ -58,7 +58,7 @@ def load_dataset(dir_path, size=(176, 176, 48), with_res=False):
     for pt_name in name_splits[0]:
         for aug_id in range(1, 51):
             file_path = dir_path + pt_name + "_" + str_size + "_VolPts_" + str(aug_id) + ".mat"
-            volume, pts, res = MyDataset.load_mat_data(file_path, with_res)
+            volume, pts, res = MyDataset.load_mat_data(file_path, "None", with_res)
             x_train.append(volume)
             y_train.append(pts)
             if with_res:
@@ -70,7 +70,7 @@ def load_dataset(dir_path, size=(176, 176, 48), with_res=False):
     for pt_name in name_splits[1]:
         for aug_id in range(1, 51):
             file_path = dir_path + pt_name + "_" + str_size + "_VolPts_" + str(aug_id) + ".mat"
-            volume, pts, res = MyDataset.load_mat_data(file_path, with_res)
+            volume, pts, res = MyDataset.load_mat_data(file_path, "None", with_res)
             x_val.append(volume)
             y_val.append(pts)
             if with_res:
@@ -82,7 +82,7 @@ def load_dataset(dir_path, size=(176, 176, 48), with_res=False):
     for pt_name in name_splits[2]:
         for aug_id in range(1, 51):
             file_path = dir_path + pt_name + "_" + str_size + "_VolPts_" + str(aug_id) + ".mat"
-            volume, pts, res = MyDataset.load_mat_data(file_path, with_res)
+            volume, pts, res = MyDataset.load_mat_data(file_path, "None", with_res)
             x_test.append(volume)
             y_test.append(pts)
             if with_res:
@@ -100,12 +100,21 @@ def load_dataset(dir_path, size=(176, 176, 48), with_res=False):
     x_train_reshape = np.asarray(x_train).reshape((700, size[0], size[1], size[2], 1))
     # y_train_one = np.asarray(y_train)[:, 0, :]
     y_train = np.asarray(y_train).astype('float32')
+    if with_res:
+        res_train = np.asarray(res_train).astype('float32').reshape((700, 3))
+        res_train[:, [0, 1]] = res_train[:, [1, 0]]
     x_val_reshape = np.asarray(x_val).reshape((100, size[0], size[1], size[2], 1))
     # y_val_one = np.asarray(y_val)[:, 0, :]
     y_val = np.asarray(y_val).astype('float32')
+    if with_res:
+        res_val = np.asarray(res_val).astype('float32').reshape((100, 3))
+        res_val[:, [0, 1]] = res_val[:, [1, 0]]
     x_test_reshape = np.asarray(x_test).reshape((200, size[0], size[1], size[2], 1))
     # y_test_one = np.asarray(y_test)[:, 0, :]
     y_test = np.asarray(y_test).astype('float32')
+    if with_res:
+        res_test = np.asarray(res_test).astype('float32').reshape((200, 3))
+        res_test[:, [0, 1]] = res_test[:, [1, 0]]
 
     print("X_train_reshape Shape: ", np.shape(x_train_reshape))
     # print("Y_train_one Shape: ", np.shape(y_train_one))
