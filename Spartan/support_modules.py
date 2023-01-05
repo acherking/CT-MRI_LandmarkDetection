@@ -101,20 +101,20 @@ def load_dataset(dir_path, size=(176, 176, 48), with_res=False):
     # y_train_one = np.asarray(y_train)[:, 0, :]
     y_train = np.asarray(y_train).astype('float32')
     if with_res:
-        res_train = np.asarray(res_train).astype('float32').reshape((700, 3))
-        res_train[:, [0, 1]] = res_train[:, [1, 0]]
+        res_train = np.asarray(res_train).astype('float32').reshape((700, 1, 3))
+        res_train[:, :, [0, 1]] = res_train[:, :, [1, 0]]
     x_val_reshape = np.asarray(x_val).reshape((100, size[0], size[1], size[2], 1))
     # y_val_one = np.asarray(y_val)[:, 0, :]
     y_val = np.asarray(y_val).astype('float32')
     if with_res:
-        res_val = np.asarray(res_val).astype('float32').reshape((100, 3))
-        res_val[:, [0, 1]] = res_val[:, [1, 0]]
+        res_val = np.asarray(res_val).astype('float32').reshape((100, 1, 3))
+        res_val[:, :, [0, 1]] = res_val[:, :, [1, 0]]
     x_test_reshape = np.asarray(x_test).reshape((200, size[0], size[1], size[2], 1))
     # y_test_one = np.asarray(y_test)[:, 0, :]
     y_test = np.asarray(y_test).astype('float32')
     if with_res:
-        res_test = np.asarray(res_test).astype('float32').reshape((200, 3))
-        res_test[:, [0, 1]] = res_test[:, [1, 0]]
+        res_test = np.asarray(res_test).astype('float32').reshape((200, 1, 3))
+        res_test[:, :, [0, 1]] = res_test[:, :, [1, 0]]
 
     print("X_train_reshape Shape: ", np.shape(x_train_reshape))
     # print("Y_train_one Shape: ", np.shape(y_train_one))

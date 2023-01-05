@@ -20,8 +20,8 @@ X_train, Y_train, res_train, X_val, Y_val, res_val, X_test, Y_test, res_test = \
     support_modules.load_dataset("/data/gpfs/projects/punim1836/Data/rescaled_data/" + str_size + "/",
                                  size, with_res=with_res)
 
-Y_train_one = np.asarray(Y_train)[:, 0, :]
-Y_val_one = np.asarray(Y_val)[:, 0, :]
+Y_train_one = np.asarray(Y_train)[:, 0, :].reshape((700, 1, 3))
+Y_val_one = np.asarray(Y_val)[:, 0, :].reshape((100, 1, 3))
 
 """ *** Training Process *** """
 
@@ -90,15 +90,17 @@ for epoch in range(100):
 
         # Update the state of the `accuracy` metric.
         accuracy.update_state(y, y_pred)
+        loss_mse_with_res = loss_value
 
         # Update the weights of the model to minimize the loss value.
         gradients = tape.gradient(loss_value, first_model.trainable_weights)
         optimizer.apply_gradients(zip(gradients, first_model.trainable_weights))
 
         # Logging the current accuracy value so far.
-        if step % 10 == 0:
+        if step % 100 == 0:
             print("Epoch:", epoch, "Step:", step)
             print("accuracy (MSE) so far: %.3f" % accuracy.result())
+            print("accuracy (MSE with Res: %.3f)" % loss_mse_with_res.numpy())
 
     # Reset the metric's state at the end of an epoch
     accuracy.reset_states()
