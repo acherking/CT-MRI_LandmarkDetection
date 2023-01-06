@@ -155,7 +155,7 @@ def mse_with_res(y_true, y_pred, res):
     :param y_true: [batch_size, num_landmarks, dimension(column, row, slice)]
     :param y_pred: [batch_size, num_landmarks, dimension(column, row, slice)]
     :param res: Pixel distance in mm, [batch_size, 1, dimension(column, row, slice)]
-    :return: mean square error for batch_size * num_landmarks * dimension
+    :return: mean square error along batch_size
     """
     with tf.name_scope('mse_res_loss'):
         err_diff = y_true - y_pred
