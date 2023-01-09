@@ -11,7 +11,7 @@ import models
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-size = (176, 176, 48)
+size = (240, 240, 64)
 with_res = True
 
 str_size = str(size[0]) + "_" + str(size[1]) + "_" + str(size[2])
@@ -72,7 +72,8 @@ train_mse_res_metric = keras.metrics.Mean()
 val_mse_res_metric = keras.metrics.Mean()
 
 # Get model.
-model = models.first_model(width=size[0], height=size[1], depth=size[2])
+# model = models.first_model(width=size[0], height=size[1], depth=size[2])
+model = models.straight_model(width=size[0], height=size[1], depth=size[2])
 model.summary()
 
 
@@ -81,19 +82,27 @@ def train_step(x, y, res):
     with tf.GradientTape() as tape:
         # Compute the loss value for this batch.
         y_pred = model(x, training=True)
-        loss_value = mse_with_res(y, y_pred, res)
+        mse_res = mse_with_res(y, y_pred, res)
 
     # record MSE in pixel distance (without resolution)
-    loss_mse = mse(y, y_pred)
+    mse_pixel = mse(y, y_pred)
 
     # Update training metric.
-    train_mse_metric.update_state(loss_mse.numpy())
-    train_mse_res_metric.update_state(loss_value.numpy())
+    train_mse_metric.update_state(mse_pixel)
+    train_mse_res_metric.update_state(mse_res)
 
     # Update the weights of the model to minimize the loss value.
-    gradients = tape.gradient(loss_value, model.trainable_weights)
+    gradients = tape.gradient(mse_res, model.trainable_weights)
     optimizer.apply_gradients(zip(gradients, model.trainable_weights))
-    return loss_value, loss_mse
+    return mse_res, mse_pixel
+
+
+@tf.function
+def test_step(x, y, res):
+    y_pred = model(x, training=False)
+    mse_res = mse_with_res(y, y_pred, res)
+    # Update val metrics
+    val_mse_res_metric.update_state(mse_res)
 
 
 # Training loop
@@ -103,19 +112,20 @@ for epoch in range(epochs):
 
     # Iterate over the batches of a dataset.
     for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset):
-        loss_value, loss_mse = train_step()
+        loss_value, loss_mse = train_step(x_batch_train, y_batch_train, res_batch_train)
 
         # Logging every *** batches
         if step % 100 == 0:
-            print("Epoch:", epoch, "Step:", step)
+            print("********Step ", step, " ********")
             print("Training loss (MSE):             %.3f" % loss_mse.numpy())
             print("Training loss (MSE with Res):    %.3f" % loss_value.numpy())
+            print("Seen so far: %d samples" % ((step + 1) * batch_size))
 
     # Display metrics at the end of each epoch.
     train_mse = train_mse_metric.result()
     train_mse_res = train_mse_res_metric.result()
-    print("Training mse over epoch:     %.4f" % (float(train_mse),))
-    print("Training mse_res over epoch: %.4f" % (float(train_mse_res),))
+    print("Training (MSE) over epoch:       %.4f" % (float(train_mse),))
+    print("Training (MSE Res) over epoch:   %.4f" % (float(train_mse_res),))
 
     # Reset the metric's state at the end of an epoch
     train_mse_metric.reset_states()
@@ -123,13 +133,11 @@ for epoch in range(epochs):
 
     # Run a validation loop at the end of each epoch.
     for step, (x_batch_val, y_batch_val, res_batch_val) in enumerate(val_dataset):
-        y_pred_val = model(x_batch_val, training=False)
-        val_mse_res = mse_with_res(y_batch_val, y_pred_val, res_batch_val)
-        # Update val metrics
-        val_mse_res_metric.update_state(val_mse_res.numpy())
+        test_step(x_batch_val, y_batch_val, res_batch_val)
+
     val_mse_res = val_mse_res_metric.result()
     val_mse_res_metric.reset_states()
-    print("Validation acc: %.4f" % (float(val_mse_res),))
-    print("Time taken: %.2fs" % (time.time() - start_time))
+    print("Validation (MSE with Res):       %.3f" % (float(val_mse_res),))
+    print("Time taken:                      %.2fs" % (time.time() - start_time))
 
 # model.save("slr_model_01")
