@@ -11,7 +11,7 @@ import models
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-size = (240, 240, 64)
+size = (176, 176, 48)
 with_res = True
 
 str_size = str(size[0]) + "_" + str(size[1]) + "_" + str(size[2])
@@ -27,14 +27,14 @@ Y_val_one = np.asarray(Y_val)[:, 0, :].reshape((100, 1, 3))
 
 """ *** Training Process *** """
 
-batch_size = 2
+batch_size = 1
 epochs = 100
 
 # Prepare dataset used in the training process
-train_dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train_one, res_train))
+train_dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train, res_train))
 train_dataset = train_dataset.shuffle(buffer_size=1400, reshuffle_each_iteration=True).batch(batch_size)
 
-val_dataset = tf.data.Dataset.from_tensor_slices((X_val, Y_val_one, res_val))
+val_dataset = tf.data.Dataset.from_tensor_slices((X_val, Y_val, res_val))
 val_dataset = val_dataset.shuffle(buffer_size=200, reshuffle_each_iteration=True).batch(batch_size)
 
 # Check these datasets
@@ -61,7 +61,7 @@ lr_schedule = keras.optimizers.schedules.ExponentialDecay(
 optimizer = keras.optimizers.Adam(learning_rate=lr_schedule)
 
 # loss functions
-loss_fn = models.two_stage_wing_loss
+two_wing_loss = models.two_stage_wing_loss
 wing_loss = models.wing_loss
 mse = tf.keras.losses.MeanSquaredError()
 mse_with_res = models.mse_with_res
@@ -72,37 +72,39 @@ train_mse_res_metric = keras.metrics.Mean()
 val_mse_res_metric = keras.metrics.Mean()
 
 # Get model.
-# model = models.first_model(width=size[0], height=size[1], depth=size[2])
-model = models.straight_model(width=size[0], height=size[1], depth=size[2])
+model = models.spine_lateral_radiograph_model(width=176, height=176, depth=48)
 model.summary()
+
+# Prepare basic regression coordinate
+base_cor_xyz = models.coordinate_3d(batch_size, size[0], size[1], size[2])
 
 
 @tf.function
 def train_step(x, y, res):
     with tf.GradientTape() as tape:
         # Compute the loss value for this batch.
-        y_pred = model(x, training=True)
-        mse_res = mse_with_res(y, y_pred, res)
+        y_pred = model([x, base_cor_xyz], training=True)
+        wing_res = two_wing_loss(y, y_pred, res)
 
     # record MSE in pixel distance (without resolution)
-    mse_pixel = mse(y, y_pred)
+    mse_pixel = mse(y, y_pred[1])
 
     # Update training metric.
     train_mse_metric.update_state(mse_pixel)
-    train_mse_res_metric.update_state(mse_res)
+    train_mse_res_metric.update_state(wing_res)
 
     # Update the weights of the model to minimize the loss value.
-    gradients = tape.gradient(mse_res, model.trainable_weights)
+    gradients = tape.gradient(wing_res, model.trainable_weights)
     optimizer.apply_gradients(zip(gradients, model.trainable_weights))
-    return mse_res, mse_pixel
+    return wing_res, mse_pixel
 
 
 @tf.function
 def test_step(x, y, res):
-    y_pred = model(x, training=False)
-    mse_res = mse_with_res(y, y_pred, res)
+    y_pred = model([x, base_cor_xyz], training=False)
+    wing_res = two_wing_loss(y, y_pred, res)
     # Update val metrics
-    val_mse_res_metric.update_state(mse_res)
+    val_mse_res_metric.update_state(wing_res)
 
 
 # Training loop

@@ -112,22 +112,13 @@ def coordinate_3d(batch_size, row_size, clown_size, slice_size):
 
 # y_true: batch_size*4*3 array
 # y_pred: [stage1_output(batch_size*4*3 array), stage2_output(batch_size*4*3 array)]
-def two_stage_wing_loss(y_true, y_pred):
+def two_stage_wing_loss(y_true, y_pred, res):
     [y_stage1, y_stage2] = y_pred
 
-    return wing_loss(y_true, y_stage1) + wing_loss(y_true, y_stage2)
+    return (wing_loss(y_true, y_stage1, res) + wing_loss(y_true, y_stage2, res)) / y_true.shape[1]
 
 
-def wing_fn(x, w=5, e=1):
-    if abs(x) < w:
-        y = w * math.log(1 + abs(x) / e)
-    else:
-        y = abs(x) - w + w * math.log(1 + w / e)
-
-    return y
-
-
-def wing_loss(landmarks, labels):
+def wing_loss(landmarks, labels, res):
     """
     Arguments:
         landmarks, labels: float tensors with shape [batch_size, num_landmarks, dimension].
@@ -139,6 +130,11 @@ def wing_loss(landmarks, labels):
     epsilon = 2.0
     with tf.name_scope('wing_loss'):
         x = landmarks - labels
+        # repeat res to make a convenient calculation follow
+        num_landmarks = x.shape[1]
+        rep_res = tf.repeat(res, num_landmarks, axis=1)
+        # change pixel distance to mm (kind of normalization I think)
+        x = x * rep_res
         c = w * (1.0 - math.log(1.0 + w / epsilon))
         absolute_x = tf.abs(x)
         losses = tf.where(
