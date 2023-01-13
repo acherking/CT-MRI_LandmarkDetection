@@ -45,6 +45,58 @@ def first_model(width=170, height=170, depth=30):
     return model
 
 
+def dsnt_model(width=176, height=176, depth=48):
+    """Build a 3D convolutional neural network model."""
+
+    inputs = keras.Input((width, height, depth, 1))
+
+    # e.x. batches*170*170*30*4*3, 4 type of coordinates, 3 dimensions
+    base_coordinate_xyz = keras.Input((width, height, depth, 1, 3))
+
+    x_hidden = layers.Conv3D(filters=64, kernel_size=3, padding="same", activation="relu")(inputs)
+    x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+    x_hidden_1 = layers.BatchNormalization()(x_hidden)
+
+    x_hidden = layers.Conv3D(filters=64, kernel_size=3, padding="same", activation="relu")(x_hidden_1)
+    x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+
+    x_hidden = layers.Conv3D(filters=128, kernel_size=3, padding="same", activation="relu")(x_hidden)
+    x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+
+    x_hidden = layers.Conv3D(filters=256, kernel_size=3, padding="same", activation="relu")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+
+    x_hidden = layers.Conv3D(filters=128, kernel_size=3, padding="same", activation="relu")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+
+    x_hidden = layers.Conv3D(filters=64, kernel_size=3, padding="same", activation="relu")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+
+    x_hidden_1 = layers.UpSampling3D(size=2)(x_hidden_1)
+    x_hidden = layers.UpSampling3D(size=8)(x_hidden)
+    x_hidden = layers.Add()([x_hidden, x_hidden_1])
+
+    x_hidden = layers.Conv3D(filters=32, kernel_size=3, padding="same", activation="relu")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+
+    x_hidden = layers.Conv3D(filters=1, kernel_size=3, padding="same", activation="relu")(x_hidden)
+    heatmap = layers.BatchNormalization()(x_hidden)
+
+    # in our project, e.x. heatmap shape: 170*170*30*4
+    pro_matrix = layers.Reshape((width, height, depth, 1, 3)) \
+        (tf.repeat(layers.Softmax(axis=[1, 2, 3], name="softmax")(heatmap), repeats=3, axis=-1))
+    outputs = tf.math.reduce_sum(layers.multiply([base_coordinate_xyz, pro_matrix]), axis=[1, 2, 3])
+
+    # outputs = layers.Dense(units=3, )(x_hidden)
+    # outputs = layers.Reshape((1, 3))(outputs)
+
+    # Define the model.
+    model = keras.Model([inputs, base_coordinate_xyz], outputs, name="dsnt_model")
+    return model
+
+
 # inspired by: "Deep learning approach for automatic landmark detection
 # and alignment analysis in whole-spine lateral radiographs"
 # Author: Yu-Cheng Yeh, Chi-Hung Weng ...
@@ -74,7 +126,7 @@ def residual_block(x: Tensor, downsample: bool, filters: int, kernel_size: int =
     return out
 
 
-def coordinate_3d(batch_size, row_size, clown_size, slice_size):
+def coordinate_3d(batch_size, landmarks_num, row_size, clown_size, slice_size):
     # pts (x, y, z) * 4
     # matrix_x -> x (clown), matrix_Y -> y (row), matrix_Z -> z (slice)
     base_array = np.ones(row_size * clown_size * slice_size).reshape((row_size, clown_size, slice_size))
@@ -94,12 +146,12 @@ def coordinate_3d(batch_size, row_size, clown_size, slice_size):
     for i in range(slice_size):
         matrix_z[:, :, i] = matrix_z[:, :, i] * c_2_v[i]
 
-    matrix_x = tf.repeat(matrix_x.reshape((row_size, clown_size, slice_size, 1)), repeats=4, axis=-1).numpy() \
-        .reshape((row_size, clown_size, slice_size, 4, 1))
-    matrix_y = tf.repeat(matrix_y.reshape((row_size, clown_size, slice_size, 1)), repeats=4, axis=-1).numpy() \
-        .reshape((row_size, clown_size, slice_size, 4, 1))
-    matrix_z = tf.repeat(matrix_z.reshape((row_size, clown_size, slice_size, 1)), repeats=4, axis=-1).numpy() \
-        .reshape((row_size, clown_size, slice_size, 4, 1))
+    matrix_x = tf.repeat(matrix_x.reshape((row_size, clown_size, slice_size, 1)), repeats=landmarks_num, axis=-1)\
+        .numpy().reshape((row_size, clown_size, slice_size, landmarks_num, 1))
+    matrix_y = tf.repeat(matrix_y.reshape((row_size, clown_size, slice_size, 1)), repeats=landmarks_num, axis=-1)\
+        .numpy().reshape((row_size, clown_size, slice_size, landmarks_num, 1))
+    matrix_z = tf.repeat(matrix_z.reshape((row_size, clown_size, slice_size, 1)), repeats=landmarks_num, axis=-1)\
+        .numpy().reshape((row_size, clown_size, slice_size, landmarks_num, 1))
 
     coordinate_xyz = layers.Concatenate(axis=-1)([matrix_x, matrix_y, matrix_z])
 
@@ -116,6 +168,10 @@ def two_stage_wing_loss(y_true, y_pred, res):
     [y_stage1, y_stage2] = y_pred
 
     return (wing_loss(y_true, y_stage1, res) + wing_loss(y_true, y_stage2, res)) / y_true.shape[1]
+
+
+def one_stage_wing_loss(y_true, y_pred, res):
+    return wing_loss(y_true, y_pred, res) / y_true.shape[1]
 
 
 def wing_loss(landmarks, labels, res):
@@ -295,12 +351,12 @@ def simple_slr_model(width=176, height=176, depth=48):
 
     # model_s1 = keras.Model([inputs, base_coordinate_xyz], outputs_s1, name="slr_stage1")
 
-    x_hidden = layers.GlobalAveragePooling3D()(grey_x_s1)
-    x_hidden = layers.Dense(units=128, activation="relu")(x_hidden)
-    x_hidden = layers.Dropout(0.3)(x_hidden)
+    x_hidden = layers.Dropout(0.2)(grey_x_s1)
+    x_hidden = layers.Flatten()(x_hidden)
 
     outputs = layers.Dense(units=3)(x_hidden)
     outputs = layers.Reshape((1, 3))(outputs)
+
     model_s1 = keras.Model(inputs, outputs, name="slr_stage1")
 
     return model_s1
@@ -384,3 +440,4 @@ def straight_model(width=176, height=176, depth=48):
     model = keras.Model(inputs, outputs, name="straight-3d-cnn")
 
     return model
+

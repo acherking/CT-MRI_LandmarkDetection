@@ -12,6 +12,7 @@ import models
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
 size = (176, 176, 48)
+landmarks_num = 1
 with_res = True
 
 str_size = str(size[0]) + "_" + str(size[1]) + "_" + str(size[2])
@@ -62,6 +63,7 @@ optimizer = keras.optimizers.Adam(learning_rate=lr_schedule)
 
 # loss functions
 two_wing_loss = models.two_stage_wing_loss
+one_wing_loss = models.one_stage_wing_loss
 wing_loss = models.wing_loss
 mse = tf.keras.losses.MeanSquaredError()
 mse_with_res = models.mse_with_res
@@ -72,39 +74,48 @@ train_mse_res_metric = keras.metrics.Mean()
 val_mse_res_metric = keras.metrics.Mean()
 
 # Get model.
-model = models.spine_lateral_radiograph_model(width=176, height=176, depth=48)
+# model = models.spine_lateral_radiograph_model(width=size[0], height=size[1], depth=size[2])
+model = models.dsnt_model(width=size[0], height=size[1], depth=size[2])
 model.summary()
 
 # Prepare basic regression coordinate
-base_cor_xyz = models.coordinate_3d(batch_size, size[0], size[1], size[2])
+base_cor_xyz = models.coordinate_3d(batch_size, landmarks_num, size[0], size[1], size[2])
 
 
 @tf.function
 def train_step(x, y, res):
+    # unify the unit of pixel distance in base coordinate map
+    res_dup = tf.reshape(tf.repeat(res, repeats=size[0]*size[1]*size[2], axis=0),
+                         shape=(batch_size, size[0], size[1], size[2], landmarks_num, 3))
+    cor_xyz = keras.layers.multiply([base_cor_xyz, res_dup])
     with tf.GradientTape() as tape:
         # Compute the loss value for this batch.
-        y_pred = model([x, base_cor_xyz], training=True)
-        wing_res = two_wing_loss(y, y_pred, res)
+        y_pred = model([x, cor_xyz], training=True)
+        mse_res = mse_with_res(y, y_pred, res)
 
     # record MSE in pixel distance (without resolution)
-    mse_pixel = mse(y, y_pred[1])
+    mse_pixel = mse(y, y_pred)
 
     # Update training metric.
     train_mse_metric.update_state(mse_pixel)
-    train_mse_res_metric.update_state(wing_res)
+    train_mse_res_metric.update_state(mse_res)
 
     # Update the weights of the model to minimize the loss value.
-    gradients = tape.gradient(wing_res, model.trainable_weights)
+    gradients = tape.gradient(mse_res, model.trainable_weights)
     optimizer.apply_gradients(zip(gradients, model.trainable_weights))
-    return wing_res, mse_pixel
+    return mse_res, mse_pixel
 
 
 @tf.function
 def test_step(x, y, res):
-    y_pred = model([x, base_cor_xyz], training=False)
-    wing_res = two_wing_loss(y, y_pred, res)
+    # unify the unit of pixel distance in base coordinate map
+    res_dup = tf.reshape(tf.repeat(res, repeats=size[0]*size[1]*size[2], axis=0),
+                         shape=(batch_size, size[0], size[1], size[2], landmarks_num, 3))
+    cor_xyz = keras.layers.multiply([base_cor_xyz, res_dup])
+    y_pred = model([x, cor_xyz], training=False)
+    mse_res = mse_with_res(y, y_pred, res)
     # Update val metrics
-    val_mse_res_metric.update_state(wing_res)
+    val_mse_res_metric.update_state(mse_res)
 
 
 # Training loop
@@ -120,14 +131,14 @@ for epoch in range(epochs):
         if step % 100 == 0:
             print("********Step ", step, " ********")
             print("Training loss (MSE):             %.3f" % loss_mse.numpy())
-            print("Training loss (MSE with Res):    %.3f" % loss_value.numpy())
+            print("Training loss (Wing with Res):   %.3f" % loss_value.numpy())
             print("Seen so far: %d samples" % ((step + 1) * batch_size))
 
     # Display metrics at the end of each epoch.
     train_mse = train_mse_metric.result()
     train_mse_res = train_mse_res_metric.result()
     print("Training (MSE) over epoch:       %.4f" % (float(train_mse),))
-    print("Training (MSE Res) over epoch:   %.4f" % (float(train_mse_res),))
+    print("Training (Wing Res) over epoch:  %.4f" % (float(train_mse_res),))
 
     # Reset the metric's state at the end of an epoch
     train_mse_metric.reset_states()
