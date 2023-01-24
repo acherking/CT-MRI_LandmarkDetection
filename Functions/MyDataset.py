@@ -76,6 +76,34 @@ def load_mat_data_dir(base_path):
     return x_dataset, y_dataset
 
 
+# Generally load target data from a HDF5 binary file such as .mat
+def load_data(variable_list, path):
+    data_list = []
+    data_file = h5py.File(path, 'r')
+    for var in variable_list:
+        data_list.append(data_file.get(var))
+
+    return data_list
+
+
+def load_data_dir(base_path):
+    variable_list = ["augPts"]
+    files = [f for f in listdir(base_path) if isfile(join(base_path, f))]
+
+    name_list = []
+    points_set = []
+    for file in files:
+        name_list.append(file)
+        file_path = join(base_path, file)
+        [pts] = load_data(variable_list, file_path)
+        pts = np.array(pts).reshape(3, 4).T
+        points_set.append(pts)
+
+    points_set = np.asarray(points_set)
+
+    return name_list, points_set
+
+
 def rescale_3d_volume(volume, target_size=(170, 170, 30)):
     zoom_scale = np.divide(target_size, volume.shape)
     print("zoom scale is: ", zoom_scale)
