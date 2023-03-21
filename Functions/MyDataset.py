@@ -18,10 +18,12 @@ def load_mat_data(volume_path, pts_path="None", with_res=False):
         load_mat_pts = file_pts.get('rescaled_aug_pts')
     else:
         file_data = h5py.File(volume_path, 'r')
-        # load_mat_vol = file_data.get('augVol')
-        # load_mat_pts = file_data.get('augPts')
         load_mat_vol = file_data.get('rescaled_aug_vol')
         load_mat_pts = file_data.get('rescaled_aug_pts')
+        if load_mat_vol is None:
+            # Because of some Historical reasons
+            load_mat_vol = file_data.get('augVol')
+            load_mat_pts = file_data.get('augPts')
         # load resolution
         if with_res:
             load_vol_res = file_data.get('pixel_distance')
