@@ -127,3 +127,30 @@ def load_dataset(dir_path, size=(176, 176, 48), with_res=False):
     print("Y_test Shape: ", np.shape(y_test))
 
     return x_train_reshape, y_train, res_train, x_val_reshape, y_val, res_val, x_test_reshape, y_test, res_test
+
+
+# load dataset from the combination data files: X and Y
+def load_dataset(x_path, y_path):
+    x_dataset = np.load(x_path)
+    y_dataset = np.load(y_path)
+
+    idx_list = np.arange(0, 2000, 2)
+    np.random.shuffle(idx_list)
+    idx_splits = np.split(idx_list, [int(.7 * len(idx_list)), int(.8 * len(idx_list))])
+
+    train_idx = np.concatenate((idx_splits[0], idx_splits[0]+1))
+    np.random.shuffle(train_idx)
+    x_train = x_dataset[train_idx]
+    y_train = y_dataset[train_idx]
+
+    val_idx = np.concatenate((idx_splits[1], idx_splits[1]+1))
+    np.random.shuffle(val_idx)
+    x_val = x_dataset[val_idx]
+    y_val = y_dataset[val_idx]
+
+    test_idx = np.concatenate((idx_splits[2], idx_splits[2]+1))
+    np.random.shuffle(test_idx)
+    x_test = x_dataset[test_idx]
+    y_test = y_dataset[test_idx]
+
+    return x_train, y_train, x_val, y_val, x_test, y_test
