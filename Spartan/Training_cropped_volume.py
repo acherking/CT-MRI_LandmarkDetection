@@ -62,8 +62,8 @@ train_mse_metric = keras.metrics.Mean()
 val_mse_metric = keras.metrics.Mean()
 
 # Get model.
-model = models.first_model(width=size[0], height=size[1], depth=size[2])
-# model = models.straight_model(width=size[0], height=size[1], depth=size[2])
+# model = models.first_model(width=size[0], height=size[1], depth=size[2])
+model = models.straight_model(width=size[0], height=size[1], depth=size[2])
 model.summary()
 
 
