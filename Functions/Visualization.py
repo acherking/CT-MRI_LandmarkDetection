@@ -47,6 +47,9 @@ def show_pts(volume, pts, pixel_space):
     axs[1][1].add_patch(rlscc_post)
     axs[1][1].invert_yaxis()
 
+    pyplot.setp(axs[-1, :], xlabel='(mm)')
+    pyplot.setp(axs[:, 0], ylabel='(mm)')
+
     pyplot.show()
 
 
@@ -92,5 +95,8 @@ def show_two_landmarks(left_volume, left_points, right_volume, right_points, pix
                         edgecolor='r', lw=1)
     axs[1][1].add_patch(rlscc_post)
     axs[1][1].invert_yaxis()
+
+    pyplot.setp(axs[-1, :], xlabel='(mm)')
+    pyplot.setp(axs[:, 0], ylabel='(mm)')
 
     pyplot.show()
