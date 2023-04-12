@@ -130,13 +130,17 @@ def load_dataset(dir_path, size=(176, 176, 48), with_res=False):
 
 
 # load dataset from the combination data files: X and Y
-def load_dataset(x_path, y_path):
+# idx_splits: [[train_idx], [val_idx], [test_idx]], idx from 0 to 19
+def load_dataset(x_path, y_path, idx_splits=[]):
     x_dataset = np.load(x_path)
     y_dataset = np.load(y_path)
 
-    idx_list = np.arange(0, 2000, 2)
-    np.random.shuffle(idx_list)
-    idx_splits = np.split(idx_list, [int(.7 * len(idx_list)), int(.8 * len(idx_list))])
+    if not idx_splits:
+        idx_list = np.arange(0, 2000, 2)
+        np.random.shuffle(idx_list)
+        idx_splits = np.split(idx_list, [int(.7 * len(idx_list)), int(.8 * len(idx_list))])
+    else:
+        ;
 
     train_idx = np.concatenate((idx_splits[0], idx_splits[0]+1))
     np.random.shuffle(train_idx)
