@@ -42,15 +42,18 @@ def load_data():
 
 
 # load dataset from a single directory, each file contains both volume and pts (X & Y).
-def load_dataset(dir_path, size=(176, 176, 48), with_res=False):
+def load_dataset(dir_path, size=(176, 176, 48), pat_splits=[], with_res=False):
     # file name format: {name}_{size}_VolPts_{id}.mat (AH_17617648_VolPts.mat)
     pat_names = ['AH', 'AZ', 'DE', 'DM', 'DM2', 'DGL', 'FA', 'GE', 'GM', 'GP', 'HB', 'HH',
                  'JH', 'JM', 'LG', 'LP', 'MJ', 'NV', 'PH', 'SM']
     str_size = str(size[0]) + str(size[1]) + str(size[2])
 
-    pat_names = np.asarray(pat_names)
-    np.random.shuffle(pat_names)
-    name_splits = np.split(pat_names, [int(.7 * len(pat_names)), int(.8 * len(pat_names))])
+    if not pat_splits:
+        np.random.shuffle(pat_names)
+        name_splits = np.split(pat_names, [int(.7 * len(pat_names)), int(.8 * len(pat_names))])
+    else:
+        name_splits = [[pat_names[i] for i in pat_splits[0]],
+                       [pat_names[i] for i in pat_splits[1]], [pat_names[i] for i in pat_splits[2]]]
 
     x_train = []
     y_train = []
@@ -131,16 +134,20 @@ def load_dataset(dir_path, size=(176, 176, 48), with_res=False):
 
 # load dataset from the combination data files: X and Y
 # idx_splits: [[train_idx], [val_idx], [test_idx]], idx from 0 to 19
-def load_dataset(x_path, y_path, idx_splits=[]):
+def load_dataset(x_path, y_path, pat_splits=[]):
     x_dataset = np.load(x_path)
     y_dataset = np.load(y_path)
 
-    if not idx_splits:
+    if not pat_splits:
+        # attention: this division is based on augmentation, no on patients (not sure if it will cause issues)
         idx_list = np.arange(0, 2000, 2)
         np.random.shuffle(idx_list)
         idx_splits = np.split(idx_list, [int(.7 * len(idx_list)), int(.8 * len(idx_list))])
     else:
-        ;
+        idx_splits = [[list(range(i*100, i*100+100, 2)) for i in j] for j in pat_splits]
+        for i in range(0, 3):
+            idx_splits[i] = [num for sublist in idx_splits[i] for num in sublist]
+            np.random.shuffle(idx_splits[i])
 
     train_idx = np.concatenate((idx_splits[0], idx_splits[0]+1))
     np.random.shuffle(train_idx)

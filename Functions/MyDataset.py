@@ -113,3 +113,15 @@ def rescale_3d_volume(volume, target_size=(170, 170, 30)):
     zoomed_volume = zoom(volume, zoom_scale)
 
     return zoomed_volume
+
+
+def get_pat_splits(static=False):
+    pat_splits = [np.asarray([2, 4, 18, 17, 12, 10, 6, 0, 11, 16, 9, 14, 5, 19]),
+                  np.asarray([3, 13]), np.asarray([8, 7, 1, 15])]
+
+    if not static:
+        pat_idx = np.arange(0, 19)
+        np.random.shuffle(pat_idx)
+        pat_splits = np.split(pat_idx, [int(.7 * len(pat_idx)), int(.8 * len(pat_idx))])
+
+    return pat_splits
