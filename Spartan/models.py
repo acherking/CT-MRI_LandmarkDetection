@@ -37,8 +37,10 @@ def first_model(width=170, height=170, depth=30):
     x_hidden = layers.Dense(units=512, activation="relu")(x_hidden)
     x_hidden = layers.Dropout(0.3)(x_hidden)
 
-    outputs = layers.Dense(units=3, )(x_hidden)
-    outputs = layers.Reshape((1, 3))(outputs)
+    # outputs = layers.Dense(units=1*3, )(x_hidden)
+    # outputs = layers.Reshape((1, 3))(outputs)
+    outputs = layers.Dense(units=4*3, )(x_hidden)
+    outputs = layers.Reshape((4, 3))(outputs)
 
     # Define the model.
     model = keras.Model(inputs, outputs, name="3d-cnn")

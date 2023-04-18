@@ -134,7 +134,7 @@ def load_dataset(dir_path, size=(176, 176, 48), pat_splits=[], with_res=False):
 
 # load dataset from the combination data files: X and Y
 # idx_splits: [[train_idx], [val_idx], [test_idx]], idx from 0 to 19
-def load_dataset(x_path, y_path, pat_splits=[]):
+def load_dataset_crop(x_path, y_path, pat_splits=[]):
     x_dataset = np.load(x_path)
     y_dataset = np.load(y_path)
 
