@@ -5,6 +5,10 @@ import h5py
 
 from scipy.ndimage import zoom
 
+# This is the patients namelist mate
+patient_names = ['AH', 'AZ', 'DE', 'DM', 'DM2', 'DGL', 'FA', 'GE', 'GM', 'GP', 'HB', 'HH',
+                 'JH', 'JM', 'LG', 'LP', 'MJ', 'NV', 'PH', 'SM']
+
 
 # Load Mat data for single patient
 def load_mat_data(volume_path, pts_path="None", with_res=False):

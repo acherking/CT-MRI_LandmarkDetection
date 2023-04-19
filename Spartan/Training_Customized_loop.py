@@ -127,7 +127,7 @@ def my_evaluate(eva_model):
             y_test_p = test_step(x_batch_test, y_batch_test, res_batch_test)
         else:
             y_test = test_step(x_batch_test, y_batch_test, res_batch_test)
-            y_test_p = np.concatenate((y_test, y_test), axis=0)
+            y_test_p = np.concatenate((y_test_p, y_test), axis=0)
 
     test_mse_res = test_mse_res_metric.result()
     test_mse_res_metric.reset_states()
