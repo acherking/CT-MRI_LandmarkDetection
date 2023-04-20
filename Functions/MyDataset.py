@@ -129,3 +129,18 @@ def get_pat_splits(static=False):
         pat_splits = np.split(pat_idx, [int(.7 * len(pat_idx)), int(.8 * len(pat_idx))])
 
     return pat_splits
+
+
+def get_pat_names():
+    return patient_names
+
+
+# e.g. map the landmarks points from current shape (like the rescaled 176*176*48)
+# to the target shape (like before rescaled)
+def map_points(points, current_volume_shape, target_volume_shape):
+    # points: (num_points * 3)
+    # current_volume_shape: e.g. 176*176*48
+    # target_volume_shape: e.g. 1200*1100*365
+    mapped_points = []
+
+    return mapped_points

@@ -8,7 +8,7 @@ import support_modules as supporter
 
 # some configuration (make life easier?)
 has_y_test_pred = True
-file_name = "y_test_pred"
+file_name = "bestVal_first_model_y_test"
 
 
 def fun_1():
