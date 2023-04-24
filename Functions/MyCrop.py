@@ -142,3 +142,32 @@ def distance_from_border(volume_shape, points, anchor, crop_size=((50, 50), (50,
     ret = np.concatenate((points_d, points_a), axis=1)
 
     return ret
+
+
+def cut_flip_volume(volume, points):
+    """
+    lower_side: looks is left side, but actually is RLSCC ant/post
+    higher_side: looks is right side, but actually is LLSCC ant/post
+    Points: LLSCC ant/post, RLSCC ant/post
+    """
+    column_centre = volume.shape[1] / 2
+    lower_side_end = np.ceil(column_centre).astype(int)
+    higher_side_start = np.floor(column_centre).astype(int)
+
+    lower_side_volume = volume[:, 0:lower_side_end, :]
+    higher_side_volume = volume[:, higher_side_start:, :]
+
+    left_landmarks = np.copy(points[0:2])
+    left_landmarks_cut = lower_side_end - volume.shape[1] % 2
+    left_landmarks[:, 0] = left_landmarks[:, 0] - left_landmarks_cut
+    right_landmarks = np.copy(points[2:4])
+
+    # check if left/right landmarks are involved in each side volume
+    if left_landmarks[:, 0].any() < 0:
+        print("Left landmarks outside the divided volume.")
+        return
+    if right_landmarks[:, 0].any() >= lower_side_end:
+        print("Right landmarks outside the divided volume.")
+        return
+
+    return higher_side_volume, left_landmarks, lower_side_volume, right_landmarks, left_landmarks_cut
