@@ -14,8 +14,8 @@ print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 size = (100, 100, 100)
 
 X_train, Y_train, X_val, Y_val, X_test, Y_test = \
-    support_modules.load_dataset("/data/gpfs/projects/punim1836/Data/cropped/cropped_volumes_x5050y5050z5050.npy",
-                                 "/data/gpfs/projects/punim1836/Data/cropped/cropped_points_x5050y5050z5050.npy")
+    support_modules.load_dataset_crop("/data/gpfs/projects/punim1836/Data/cropped/cropped_volumes_x5050y5050z5050.npy",
+                                      "/data/gpfs/projects/punim1836/Data/cropped/cropped_points_x5050y5050z5050.npy")
 
 Y_train_one = np.asarray(Y_train)[:, 0, :].reshape((1400, 1, 3))
 Y_val_one = np.asarray(Y_val)[:, 0, :].reshape((200, 1, 3))

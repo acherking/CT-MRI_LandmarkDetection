@@ -12,19 +12,21 @@ import models
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-size = (176, 176, 48)
-with_res = True
+rescaled_size = (176, 176, 48)
+str_size = str(rescaled_size[0]) + "_" + str(rescaled_size[1]) + "_" + str(rescaled_size[2])
+dataset_dir = f"/data/gpfs/projects/punim1836/Data/divided/" \
+              f"{str(rescaled_size[0])}{str(rescaled_size[1])}{str(rescaled_size[2])}/"
 
-str_size = str(size[0]) + "_" + str(size[1]) + "_" + str(size[2])
-if with_res:
-    str_size = str_size + "_PD"
+X_train, Y_train, res_train, length_train, X_val, Y_val, res_val, length_val, X_test, Y_test, res_test, length_test = \
+    support_modules.load_dataset_divide(dataset_dir, rescaled_size, pat_splits=MyDataset.get_pat_splits(static=True))
 
-X_train, Y_train, res_train, X_val, Y_val, res_val, X_test, Y_test, res_test = \
-    support_modules.load_dataset("/data/gpfs/projects/punim1836/Data/rescaled_data/" + str_size + "/",
-                                 size, pat_splits=MyDataset.get_pat_splits(static=True), with_res=with_res)
+Y_train_one = np.asarray(Y_train)[:, 0, :].reshape((1400, 1, 3))
+Y_val_one = np.asarray(Y_val)[:, 0, :].reshape((200, 1, 3))
+Y_test_one = np.asarray(Y_test)[:, 0, :].reshape((400, 1, 3))
 
-# Y_train_one = np.asarray(Y_train)[:, 0, :].reshape((700, 1, 3))
-# Y_val_one = np.asarray(Y_val)[:, 0, :].reshape((100, 1, 3))
+Y_train_mean = np.mean(Y_train, axis=1).reshape((1400, 1, 3))
+Y_val_mean = np.mean(Y_val, axis=1).reshape((200, 1, 3))
+Y_test_mean = np.mean(Y_test, axis=1).reshape((400, 1, 3))
 
 """ *** Training Process *** """
 
@@ -33,13 +35,13 @@ epochs = 100
 min_val_mse_res = 400
 
 # Prepare dataset used in the training process
-train_dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train, res_train))
-train_dataset = train_dataset.shuffle(buffer_size=1400, reshuffle_each_iteration=True).batch(batch_size)
+train_dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train_mean, res_train))
+train_dataset = train_dataset.shuffle(buffer_size=2800, reshuffle_each_iteration=True).batch(batch_size)
 
-val_dataset = tf.data.Dataset.from_tensor_slices((X_val, Y_val, res_val))
-val_dataset = val_dataset.shuffle(buffer_size=200, reshuffle_each_iteration=True).batch(batch_size)
+val_dataset = tf.data.Dataset.from_tensor_slices((X_val, Y_val_mean, res_val))
+val_dataset = val_dataset.shuffle(buffer_size=400, reshuffle_each_iteration=True).batch(batch_size)
 
-test_dataset = tf.data.Dataset.from_tensor_slices((X_test, Y_test, res_test)).batch(batch_size)
+test_dataset = tf.data.Dataset.from_tensor_slices((X_test, Y_test_mean, res_test)).batch(batch_size)
 
 # Check these datasets
 for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset):
@@ -65,7 +67,6 @@ lr_schedule = keras.optimizers.schedules.ExponentialDecay(
 optimizer = keras.optimizers.Adam(learning_rate=lr_schedule)
 
 # loss functions
-loss_fn = models.two_stage_wing_loss
 wing_loss = models.wing_loss
 mse = tf.keras.losses.MeanSquaredError()
 mse_with_res = models.mse_with_res
@@ -77,9 +78,17 @@ val_mse_res_metric = keras.metrics.Mean()
 test_mse_res_metric = keras.metrics.Mean()
 
 # Get model.
-model = models.first_model(height=size[0], width=size[1], depth=size[2])
-# model = models.straight_model(height=size[0], width=size[1], depth=size[2])
+w = np.ceil(rescaled_size[1]/2).astype(int)
+model = models.first_model(height=rescaled_size[0], width=w, depth=rescaled_size[2], points_num=1)
+# model = models.straight_model(height=rescaled_size[0], width=w, depth=rescaled_size[2])
 model.summary()
+
+y_tag = "mean_two_landmarks"
+model_name = "first_model"
+model_tag = "divided"
+model_size = f"{rescaled_size[0]}_{w}_{rescaled_size[2]}"
+model_label = f"{model_name}_{model_tag}_{model_size}"
+save_dir = f"/data/gpfs/projects/punim1836/Training/trained_models/{model_tag}_dataset/{model_name}/{y_tag}/"
 
 
 @tf.function
@@ -128,9 +137,9 @@ def my_evaluate(eva_model):
             y_test = test_step(x_batch_test, y_batch_test, res_batch_test)
             y_test_p = np.concatenate((y_test_p, y_test), axis=0)
 
-    test_mse_res = test_mse_res_metric.result()
+    test_mse_res_f = test_mse_res_metric.result()
     test_mse_res_metric.reset_states()
-    return test_mse_res, y_test_p
+    return test_mse_res_f, y_test_p
 
 
 # Training loop
@@ -171,8 +180,8 @@ for epoch in range(epochs):
         min_val_mse_res = val_mse_res
         # Use Test Dataset to evaluate the best Val model (at the moment), and save the Test results
         test_mse_res, y_test_pred = my_evaluate(model)
-        np.save("bestVal_first_model_y_test", y_test_pred)
-        model.save("bestVal_first_model_" + str_size)
+        np.save(f"{save_dir}bestVal_{model_label}_y_test", y_test_pred)
+        model.save(f"{save_dir}bestVal_{model_label}")
         print("Validation (MSE with Res, saved):%.3f" % (float(val_mse_res),))
         print("Test (MSE with Res), bestVa      %.3f" % (float(test_mse_res),))
     else:
@@ -181,8 +190,7 @@ for epoch in range(epochs):
 
 # Use Test Dataset to evaluate the final model, and save the Test results
 test_mse_res, y_test_pred = my_evaluate(model)
-np.save("final_first_model_y_test", y_test_pred)
+np.save(f"{save_dir}final_{model_label}_y_test", y_test_pred)
 print("Test (MSE with Res), final       %.3f" % (float(test_mse_res),))
 
-model.save("first_model_" + str_size)
-model.save("trained_models/first_model_" + str_size)
+model.save(f"{save_dir}final_{model_label}")

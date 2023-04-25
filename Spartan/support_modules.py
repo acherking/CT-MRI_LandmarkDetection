@@ -156,6 +156,7 @@ def load_dataset_crop(x_path, y_path, pat_splits=[]):
         idx_splits = [[list(range(i*100, i*100+100, 2)) for i in j] for j in pat_splits]
         for i in range(0, 3):
             idx_splits[i] = [num for sublist in idx_splits[i] for num in sublist]
+            idx_splits[i] = np.asarray(idx_splits[i])
             np.random.shuffle(idx_splits[i])
 
     train_idx = np.concatenate((idx_splits[0], idx_splits[0]+1))
@@ -185,15 +186,15 @@ def load_dataset_divide(dataset_dir, rescaled_size=(176, 176, 48), pat_splits=[]
     res_dataset_path = dataset_dir + "res_array_" + size_str + ".npy"
 
     x_dataset = np.load(x_dataset_path)
-    y_dataset = np.load(y_dataset_path)
-    length_dataset = np.load(length_dataset_path)
-    res_dataset = np.load(res_dataset_path)
+    y_dataset = np.load(y_dataset_path).astype('float32')
+    length_dataset = np.load(length_dataset_path).astype('float32')
+    res_dataset = np.load(res_dataset_path).astype('float32')
 
     length_dataset_rep = np.repeat(length_dataset, 2, axis=0)
     res_dataset_rep = np.repeat(res_dataset, 2, axis=0)
 
     if not pat_splits:
-        # attention: this division is based on augmentation, no on patients (not sure if it will cause issues)
+        # attention: this division is based on augmentation, not on patients (not sure if it will cause issues)
         idx_list = np.arange(0, 2000, 2)
         np.random.shuffle(idx_list)
         idx_splits = np.split(idx_list, [int(.7 * len(idx_list)), int(.8 * len(idx_list))])
@@ -201,28 +202,29 @@ def load_dataset_divide(dataset_dir, rescaled_size=(176, 176, 48), pat_splits=[]
         idx_splits = [[list(range(i*100, i*100+100, 2)) for i in j] for j in pat_splits]
         for i in range(0, 3):
             idx_splits[i] = [num for sublist in idx_splits[i] for num in sublist]
+            idx_splits[i] = np.asarray(idx_splits[i])
             np.random.shuffle(idx_splits[i])
 
     train_idx = np.concatenate((idx_splits[0], idx_splits[0]+1))
     np.random.shuffle(train_idx)
     x_train = x_dataset[train_idx]
     y_train = y_dataset[train_idx]
-    res_train = res_dataset[train_idx]
-    length_train = length_dataset[train_idx]
+    res_train = res_dataset_rep[train_idx]
+    length_train = length_dataset_rep[train_idx]
 
     val_idx = np.concatenate((idx_splits[1], idx_splits[1]+1))
     np.random.shuffle(val_idx)
     x_val = x_dataset[val_idx]
     y_val = y_dataset[val_idx]
-    res_val = res_dataset[val_idx]
-    length_val = length_dataset[val_idx]
+    res_val = res_dataset_rep[val_idx]
+    length_val = length_dataset_rep[val_idx]
 
     test_idx = np.concatenate((idx_splits[2], idx_splits[2]+1))
     np.random.shuffle(test_idx)
     x_test = x_dataset[test_idx]
     y_test = y_dataset[test_idx]
-    res_test = res_dataset[test_idx]
-    length_test = length_dataset[test_idx]
+    res_test = res_dataset_rep[test_idx]
+    length_test = length_dataset_rep[test_idx]
 
     return x_train, y_train, res_train, length_train, \
         x_val, y_val, res_val, length_val, \

@@ -12,10 +12,10 @@ from tensorflow import Tensor
 
 
 # https://keras.io/examples/vision/3D_image_classification/
-def first_model(width=170, height=170, depth=30):
+def first_model(height=170, width=170, depth=30, points_num=4):
     """Build a 3D convolutional neural network model."""
 
-    inputs = keras.Input((width, height, depth, 1))
+    inputs = keras.Input((height, width, depth, 1))
 
     x_hidden = layers.Conv3D(filters=64, kernel_size=3, activation="relu")(inputs)
     x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
@@ -39,21 +39,21 @@ def first_model(width=170, height=170, depth=30):
 
     # outputs = layers.Dense(units=1*3, )(x_hidden)
     # outputs = layers.Reshape((1, 3))(outputs)
-    outputs = layers.Dense(units=4*3, )(x_hidden)
-    outputs = layers.Reshape((4, 3))(outputs)
+    outputs = layers.Dense(units=points_num*3, )(x_hidden)
+    outputs = layers.Reshape((points_num, 3))(outputs)
 
     # Define the model.
     model = keras.Model(inputs, outputs, name="3d-cnn")
     return model
 
 
-def dsnt_model(width=176, height=176, depth=48):
+def dsnt_model(height=176, width=176, depth=48):
     """Build a 3D convolutional neural network model."""
 
-    inputs = keras.Input((width, height, depth, 1))
+    inputs = keras.Input((height, width, depth, 1))
 
     # e.x. batches*170*170*30*4*3, 4 type of coordinates, 3 dimensions
-    base_coordinate_xyz = keras.Input((width, height, depth, 1, 3))
+    base_coordinate_xyz = keras.Input((height, width, depth, 1, 3))
 
     x_hidden = layers.Conv3D(filters=64, kernel_size=3, padding="same", activation="relu")(inputs)
     x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
@@ -223,11 +223,11 @@ def mse_with_res(y_true, y_pred, res):
         return loss
 
 
-def spine_lateral_radiograph_model(width=176, height=176, depth=48):
+def spine_lateral_radiograph_model(height=176, width=176, depth=48):
     """
     The original model is for 2D image, our data are 3D.
     Change it to a 3D convolutional neural network model."""
-    inputs = keras.Input((width, height, depth, 1))
+    inputs = keras.Input((height, width, depth, 1))
     # e.x. batches*170*170*30*4*3, 4 type of coordinates, 3 dimensions
     base_coordinate_xyz = keras.Input((width, height, depth, 4, 3))
 
@@ -303,11 +303,11 @@ def spine_lateral_radiograph_model(width=176, height=176, depth=48):
     return model
 
 
-def simple_slr_model(width=176, height=176, depth=48):
+def simple_slr_model(height=176, width=176, depth=48):
     """
     This is a simplified slr model used to debug the original one.
     """
-    inputs = keras.Input((width, height, depth, 1))
+    inputs = keras.Input((height, width, depth, 1))
     # e.x. batches*170*170*30*4*3, 4 type of coordinates, 3 dimensions
     # base_coordinate_xyz = keras.Input((width, height, depth, 4, 3))
 
@@ -364,9 +364,9 @@ def simple_slr_model(width=176, height=176, depth=48):
     return model_s1
 
 
-def straight_model(width=176, height=176, depth=48):
+def straight_model(height=176, width=176, depth=48):
 
-    inputs = keras.Input((width, height, depth, 1))
+    inputs = keras.Input((height, width, depth, 1))
 
     # layer 1
     x_hidden = layers.Conv3D(filters=32, kernel_size=3, padding="same")(inputs)
