@@ -364,7 +364,7 @@ def simple_slr_model(height=176, width=176, depth=48):
     return model_s1
 
 
-def straight_model(height=176, width=176, depth=48):
+def straight_model(height=176, width=176, depth=48, points_num=4):
 
     inputs = keras.Input((height, width, depth, 1))
 
@@ -434,9 +434,9 @@ def straight_model(height=176, width=176, depth=48):
 
     x_hidden = layers.Dropout(0.2)(x_hidden)
     x_hidden = layers.Flatten()(x_hidden)
-    outputs = layers.Dense(units=3)(x_hidden)
+    outputs = layers.Dense(units=points_num*3, )(x_hidden)
 
-    outputs = layers.Reshape((1, 3))(outputs)
+    outputs = layers.Reshape((points_num, 3))(outputs)
 
     # Define the model.
     model = keras.Model(inputs, outputs, name="straight-3d-cnn")

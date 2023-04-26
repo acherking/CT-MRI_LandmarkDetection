@@ -79,12 +79,13 @@ test_mse_res_metric = keras.metrics.Mean()
 
 # Get model.
 w = np.ceil(rescaled_size[1]/2).astype(int)
-model = models.first_model(height=rescaled_size[0], width=w, depth=rescaled_size[2], points_num=1)
-# model = models.straight_model(height=rescaled_size[0], width=w, depth=rescaled_size[2])
+# model = models.first_model(height=rescaled_size[0], width=w, depth=rescaled_size[2], points_num=1)
+model = models.straight_model(height=rescaled_size[0], width=w, depth=rescaled_size[2], points_num=1)
 model.summary()
 
+# y_tag: "one_landmark", "two_landmarks", "mean_two_landmarks"
 y_tag = "mean_two_landmarks"
-model_name = "first_model"
+model_name = "straight_model"
 model_tag = "divided"
 model_size = f"{rescaled_size[0]}_{w}_{rescaled_size[2]}"
 model_label = f"{model_name}_{model_tag}_{model_size}"
