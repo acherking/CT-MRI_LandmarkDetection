@@ -17,8 +17,9 @@ str_size = str(rescaled_size[0]) + "_" + str(rescaled_size[1]) + "_" + str(resca
 dataset_dir = f"/data/gpfs/projects/punim1836/Data/divided/" \
               f"{str(rescaled_size[0])}{str(rescaled_size[1])}{str(rescaled_size[2])}/"
 
+pat_splits = MyDataset.get_pat_splits(static=True)
 X_train, Y_train, res_train, length_train, X_val, Y_val, res_val, length_val, X_test, Y_test, res_test, length_test = \
-    support_modules.load_dataset_divide(dataset_dir, rescaled_size, pat_splits=MyDataset.get_pat_splits(static=True))
+    support_modules.load_dataset_divide(dataset_dir, rescaled_size, pat_splits)
 
 Y_train_one = np.asarray(Y_train)[:, 0, :].reshape((1400, 1, 3))
 Y_val_one = np.asarray(Y_val)[:, 0, :].reshape((200, 1, 3))
