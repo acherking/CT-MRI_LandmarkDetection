@@ -135,6 +135,44 @@ def get_pat_names():
     return patient_names
 
 
+def get_pat_from_idx(idx, split=False):
+    if not split:
+        if idx >= 1000:
+            print("get_pat_from_test_idx: error idx!", idx)
+            return
+        pt_idx = np.floor(idx / 50).astype(int)
+        pt_aug_id = idx % 50 + 1
+    else:
+        if idx >= 2000:
+            print("get_pat_from_test_idx: error idx!", idx)
+            return
+        pt_idx = np.floor(idx / 100).astype(int)
+        pt_aug_id = np.floor(idx % 100 / 2).astype(int) + 1
+
+    return patient_names[pt_idx], pt_aug_id
+
+
+def get_pat_from_test_idx(idx, split=False):
+    test_pat_idx = get_pat_splits(static=True)[2]  # 0: train, 1: val, 2: test
+
+    if not split:
+        if idx >= 200:
+            print("get_pat_from_test_idx: error idx!", idx)
+            return
+        pt_idx = np.floor(idx / 50).astype(int)
+        pt_aug_id = idx % 50 + 1
+    else:
+        if idx >= 400:
+            print("get_pat_from_test_idx: error idx!", idx)
+            return
+        pt_idx = np.floor(idx / 100).astype(int)
+        pt_aug_id = np.floor(idx % 100 / 2).astype(int) + 1
+
+    pt_name = patient_names[test_pat_idx[pt_idx]]
+
+    return pt_name, pt_aug_id
+
+
 # e.g. map the landmarks points from current shape (like the rescaled 176*176*48)
 # to the target shape (like before rescaled)
 def map_points(points, current_volume_shape, target_volume_shape):

@@ -7,6 +7,7 @@ def find_borders(volume_shape, anchor, crop_size):
         x_d is the length from the centre of the given points to the descending direction of axis x, include the given points
         x_a is the length from the centre of the given points to the ascending direction of axis x
         ...
+    anchor: (num of dimensions)
     """
     ((x_d, x_a), (y_d, y_a), (z_d, z_a)) = crop_size
 
@@ -105,6 +106,7 @@ def crop_volume(volume, points, crop_size=((50, 50), (50, 50), (50, 50))):
     return left_area, left_landmarks, left_cropped_length, right_area, right_landmarks, right_cropped_length
 
 
+# points: (num of points, num of dimensions)
 def flip_volume(volume, points):
     volume_s = volume.shape
     flip_v = np.fliplr(volume)
@@ -121,6 +123,7 @@ def distance_from_border(volume_shape, points, anchor, crop_size=((50, 50), (50,
         x_a is the length from the centre of the given points to the ascending direction of axis x
         ...
     points: two 3D points (2*3)
+    anchor: (num of dimensions,)
     :return
     (2*2*3) --> (2 points, descending&ascending, x&y&z)
     """
@@ -171,3 +174,13 @@ def cut_flip_volume(volume, points):
         return
 
     return higher_side_volume, left_landmarks, lower_side_volume, right_landmarks, left_landmarks_cut
+
+
+def cut_flip_volume_shape(volume_shape):
+    column_centre = volume_shape[1] / 2
+    lower_side_end = np.ceil(column_centre).astype(int)
+
+    new_shape = (volume_shape[0], lower_side_end, volume_shape[1])
+    left_landmarks_cut = lower_side_end - volume_shape[1] % 2
+
+    return new_shape, left_landmarks_cut

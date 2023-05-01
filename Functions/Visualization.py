@@ -100,3 +100,68 @@ def show_two_landmarks(left_volume, left_points, right_volume, right_points, pix
     pyplot.setp(axs[:, 0], ylabel='(mm)')
 
     pyplot.show()
+
+
+def show_two_centres(volume, centres, pixel_space):
+    y_row = numpy.arange(0.0, volume.shape[0] * pixel_space[0], pixel_space[0])
+    x_column = numpy.arange(0.0, volume.shape[1] * pixel_space[1], pixel_space[1])
+    z_slice = numpy.arange(0.0, volume.shape[2] * pixel_space[2], pixel_space[2])
+
+    landmark_radius = volume.shape[1] * pixel_space[1] * 0.016
+
+    fig, axs = pyplot.subplots(1, 2, sharex=True)
+    fig.set_dpi(300)
+
+    axs[0].set_title("Left Centre")
+    axs[0].set_aspect('equal', 'datalim')
+    axs[0].pcolormesh(x_column[:], y_row[:], volume[:, :, int(centres[0, 2])], cmap=pyplot.gray())
+    llscc_ant = Circle((centres[0, 0] * pixel_space[1], centres[0, 1] * pixel_space[0]), landmark_radius,
+                       facecolor='None', edgecolor='r', lw=1)
+    axs[0].add_patch(llscc_ant)
+    axs[0].invert_yaxis()
+
+    axs[1].set_title("Right Centre")
+    axs[1].set_aspect('equal', 'datalim')
+    axs[1].pcolormesh(x_column[:], y_row[:], volume[:, :, int(centres[1, 2])], cmap=pyplot.gray())
+    llscc_post = Circle((centres[1, 0] * pixel_space[1], centres[1, 1] * pixel_space[0]), landmark_radius,
+                        facecolor='None', edgecolor='r', lw=1)
+    axs[1].add_patch(llscc_post)
+    axs[1].invert_yaxis()
+
+    pyplot.setp(axs[-1], xlabel='(mm)')
+    pyplot.setp(axs[0], ylabel='(mm)')
+
+    pyplot.show()
+
+
+def show_two_centres_cropped(left_volume, right_volume, centres, pixel_space):
+    y_row = numpy.arange(0.0, left_volume.shape[0] * pixel_space[0], pixel_space[0])
+    x_column = numpy.arange(0.0, left_volume.shape[1] * pixel_space[1], pixel_space[1])
+    z_slice = numpy.arange(0.0, left_volume.shape[2] * pixel_space[2], pixel_space[2])
+
+    landmark_radius = left_volume.shape[1] * pixel_space[1] * 0.016
+
+    fig, axs = pyplot.subplots(1, 2, sharex=True)
+    fig.set_dpi(300)
+
+    axs[0].set_title("Left Centre")
+    axs[0].set_aspect('equal', 'datalim')
+    axs[0].pcolormesh(x_column[:], y_row[:], left_volume[:, :, int(centres[0, 2])], cmap=pyplot.gray())
+    llscc_ant = Circle((centres[0, 0] * pixel_space[1], centres[0, 1] * pixel_space[0]), landmark_radius,
+                       facecolor='None', edgecolor='r', lw=1)
+    axs[0].add_patch(llscc_ant)
+    axs[0].invert_yaxis()
+
+    axs[1].set_title("Right Centre")
+    axs[1].set_aspect('equal', 'datalim')
+    axs[1].pcolormesh(x_column[:], y_row[:], right_volume[:, :, int(centres[1, 2])], cmap=pyplot.gray())
+    llscc_post = Circle((centres[1, 0] * pixel_space[1], centres[1, 1] * pixel_space[0]), landmark_radius,
+                        facecolor='None', edgecolor='r', lw=1)
+    axs[1].add_patch(llscc_post)
+    axs[1].invert_yaxis()
+
+    pyplot.setp(axs[-1], xlabel='(mm)')
+    pyplot.setp(axs[0], ylabel='(mm)')
+
+    pyplot.show()
+

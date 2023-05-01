@@ -147,24 +147,24 @@ def load_dataset_crop(x_path, y_path, pat_splits):
     x_dataset = np.load(x_path)
     y_dataset = np.load(y_path)
 
-    idx_splits = [[list(range(i*100, i*100+100, 2)) for i in j] for j in pat_splits]
+    idx_splits = [[list(range(i*100, i*100+100)) for i in j] for j in pat_splits]
     for i in range(0, 3):
         idx_splits[i] = [num for sublist in idx_splits[i] for num in sublist]
         idx_splits[i] = np.asarray(idx_splits[i])
         # np.random.shuffle(idx_splits[i])
 
-    train_idx = np.concatenate((idx_splits[0], idx_splits[0]+1))
+    train_idx = idx_splits[0]
     np.random.shuffle(train_idx)
     x_train = x_dataset[train_idx]
     y_train = y_dataset[train_idx]
 
-    val_idx = np.concatenate((idx_splits[1], idx_splits[1]+1))
+    val_idx = idx_splits[1]
     np.random.shuffle(val_idx)
     x_val = x_dataset[val_idx]
     y_val = y_dataset[val_idx]
 
-    test_idx = np.concatenate((idx_splits[2], idx_splits[2]+1))
-    np.random.shuffle(test_idx)
+    test_idx = idx_splits[2]
+    # np.random.shuffle(test_idx)
     x_test = x_dataset[test_idx]
     y_test = y_dataset[test_idx]
 
@@ -189,28 +189,28 @@ def load_dataset_divide(dataset_dir, rescaled_size, pat_splits):
     right_length = np.zeros(length_dataset.shape)
     length_dataset = np.concatenate((length_dataset, right_length), axis=1).reshape((length_dataset.shape[0]*2, 1))
 
-    idx_splits = [[list(range(i*100, i*100+100, 2)) for i in j] for j in pat_splits]
+    idx_splits = [[list(range(i*100, i*100+100)) for i in j] for j in pat_splits]
     for i in range(0, 3):
         idx_splits[i] = [num for sublist in idx_splits[i] for num in sublist]
         idx_splits[i] = np.asarray(idx_splits[i])
         # np.random.shuffle(idx_splits[i])
 
-    train_idx = np.concatenate((idx_splits[0], idx_splits[0]+1))
+    train_idx = idx_splits[0]
     np.random.shuffle(train_idx)
     x_train = x_dataset[train_idx]
     y_train = y_dataset[train_idx]
     res_train = res_dataset_rep[train_idx]
     length_train = length_dataset[train_idx]
 
-    val_idx = np.concatenate((idx_splits[1], idx_splits[1]+1))
+    val_idx = idx_splits[1]
     np.random.shuffle(val_idx)
     x_val = x_dataset[val_idx]
     y_val = y_dataset[val_idx]
     res_val = res_dataset_rep[val_idx]
     length_val = length_dataset[val_idx]
 
-    test_idx = np.concatenate((idx_splits[2], idx_splits[2]+1))
-    np.random.shuffle(test_idx)
+    test_idx = idx_splits[2]
+    # np.random.shuffle(test_idx)
     x_test = x_dataset[test_idx]
     y_test = y_dataset[test_idx]
     res_test = res_dataset_rep[test_idx]
