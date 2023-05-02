@@ -53,6 +53,53 @@ def find_borders(volume_shape, anchor, crop_size):
     return x_start, x_length, x_idx_min, y_start, y_length, y_idx_min, z_start, z_length, z_idx_min
 
 
+def crop_shape(volume_shape, points, crop_size):
+    """
+    crop_size: ((x_d, x_a), (y_d, y_a), (z_d, z_a))
+        x_d is the length from the centre of the given points to the descending direction of axis x, include the given points
+        x_a is the length from the centre of the given points to the ascending direction of axis x
+        ...
+    """
+    ((x_d, x_a), (y_d, y_a), (z_d, z_a)) = crop_size
+
+    centre = np.average(points, axis=0).astype(int)
+
+    x_start, x_length, x_idx_min, \
+        y_start, y_length, y_idx_min, \
+        z_start, z_length, z_idx_min = find_borders(volume_shape, centre, crop_size)
+
+    # cropped length, used to relocate the cropped points & find the point from the original whole volume
+    cropped_length = np.ones(points.shape) * np.array([x_idx_min, y_idx_min, z_idx_min]) - \
+                     np.ones(points.shape) * np.array([x_start, y_start, z_start])
+    # relocate the points
+    cropped_points = points - cropped_length
+
+    return cropped_points, cropped_length
+
+
+def crop_volume_shape(volume_shape, points, crop_size=((50, 50), (50, 50), (50, 50))):
+    """
+    Crop the landmark areas for left and right ears separately
+    The outputs are two cubic volume 100*100*100 (may change in the future).
+    Input:  1. Volume_shape: the original volume's shape
+            2. Points: LLSCC ant/post, RLSCC ant/post
+
+    Output: 1. left_landmark_points, left_cropped_length
+            2. right_landmark_points, right_cropped_length
+    """
+    # crop_size = ((50, 50), (50, 50), (50, 50))
+    # points coordinate is (x, y, z), swap to (y, x, z) to cooperate the volume (row, clown, slice)
+    points = points[:, [1, 0, 2]]
+    left_landmarks, left_cropped_length = crop_shape(volume_shape, points[0:2], crop_size)
+    left_landmarks = left_landmarks[:, [1, 0, 2]]
+    left_cropped_length = left_cropped_length[:, [1, 0, 2]]
+    right_landmarks, right_cropped_length = crop_shape(volume_shape, points[2:4], crop_size)
+    right_landmarks = right_landmarks[:, [1, 0, 2]]
+    right_cropped_length = right_cropped_length[:, [1, 0, 2]]
+
+    return left_landmarks, left_cropped_length, right_landmarks, right_cropped_length
+
+
 def crop(volume, points, crop_size):
     """
     crop_size: ((x_d, x_a), (y_d, y_a), (z_d, z_a))
@@ -114,6 +161,13 @@ def flip_volume(volume, points):
     flip_p[:, [0]] = np.ones(flip_p[:, [0]].shape) * (volume_s[1] - 1) - flip_p[:, [0]]
 
     return flip_v, flip_p
+
+
+def flip_volume_shape(volume_shape, points):
+    flip_p = np.copy(points)
+    flip_p[:, [0]] = np.ones(flip_p[:, [0]].shape) * (volume_shape[1] - 1) - flip_p[:, [0]]
+
+    return flip_p
 
 
 def distance_from_border(volume_shape, points, anchor, crop_size=((50, 50), (50, 50), (50, 50))):
