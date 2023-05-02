@@ -8,10 +8,6 @@ import Functions.MyCrop as MyCrop
 import support_modules as supporter
 
 
-def fun_1():
-    return
-
-
 @tf.function
 def predict(x, model_f):
     y_pred_f = model_f(x, training=False)

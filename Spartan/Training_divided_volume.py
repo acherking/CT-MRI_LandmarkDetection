@@ -125,7 +125,7 @@ def val_step(x, y, res):
 def test_step(x, y, res):
     y_pred = model(x, training=False)
     mse_res = mse_with_res(y, y_pred, res)
-    # Update val metrics
+    # Update test metrics
     test_mse_res_metric.update_state(mse_res)
     return y_pred
 

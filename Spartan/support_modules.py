@@ -143,9 +143,10 @@ def load_dataset(dir_path, size=(176, 176, 48), pat_splits=[], with_res=False, o
 
 # load dataset from the combination data files: X and Y
 # idx_splits: [[train_idx], [val_idx], [test_idx]], idx from 0 to 19
-def load_dataset_crop(x_path, y_path, pat_splits):
+def load_dataset_crop(x_path, y_path, length_path, pat_splits):
     x_dataset = np.load(x_path)
     y_dataset = np.load(y_path)
+    length_dataset = np.load(length_path)
 
     idx_splits = [[list(range(i*100, i*100+100)) for i in j] for j in pat_splits]
     for i in range(0, 3):
@@ -157,18 +158,21 @@ def load_dataset_crop(x_path, y_path, pat_splits):
     np.random.shuffle(train_idx)
     x_train = x_dataset[train_idx]
     y_train = y_dataset[train_idx]
+    length_train = length_dataset[train_idx]
 
     val_idx = idx_splits[1]
     np.random.shuffle(val_idx)
     x_val = x_dataset[val_idx]
     y_val = y_dataset[val_idx]
+    length_val = length_dataset[val_idx]
 
     test_idx = idx_splits[2]
     # np.random.shuffle(test_idx)
     x_test = x_dataset[test_idx]
     y_test = y_dataset[test_idx]
+    length_test = length_dataset[test_idx]
 
-    return x_train, y_train, x_val, y_val, x_test, y_test
+    return x_train, y_train, length_train, x_val, y_val, length_val, x_test, y_test, length_test
 
 
 def load_dataset_divide(dataset_dir, rescaled_size, pat_splits):

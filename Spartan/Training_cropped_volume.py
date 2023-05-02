@@ -12,28 +12,34 @@ import models
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-size = (100, 100, 100)
+crop_size = (100, 100, 100)
 
+X_path = "/data/gpfs/projects/punim1836/Data/cropped/cropped_volumes_x5050y5050z5050.npy"
+Y_path = "/data/gpfs/projects/punim1836/Data/cropped/cropped_points_x5050y5050z5050.npy"
+Cropped_length_path = "/data/gpfs/projects/punim1836/Data/cropped/cropped_length_x5050y5050z5050.npy"
 pat_splits = MyDataset.get_pat_splits(static=True)
-X_train, Y_train, X_val, Y_val, X_test, Y_test = \
-    support_modules.load_dataset_crop("/data/gpfs/projects/punim1836/Data/cropped/cropped_volumes_x5050y5050z5050.npy",
-                                      "/data/gpfs/projects/punim1836/Data/cropped/cropped_points_x5050y5050z5050.npy",
-                                      pat_splits)
+X_train, Y_train, length_train, X_val, Y_val, length_val, X_test, Y_test, length_test = \
+    support_modules.load_dataset_crop(X_path, Y_path, Cropped_length_path, pat_splits)
 
 Y_train_one = np.asarray(Y_train)[:, 0, :].reshape((1400, 1, 3))
 Y_val_one = np.asarray(Y_val)[:, 0, :].reshape((200, 1, 3))
+Y_test_one = np.asarray(Y_test)[:, 0, :].reshape((400, 1, 3))
 
 """ *** Training Process *** """
 
 batch_size = 2
 epochs = 100
+min_val_mse = 400
 
+# Set
 # Prepare dataset used in the training process
 train_dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train_one))
 train_dataset = train_dataset.shuffle(buffer_size=2800, reshuffle_each_iteration=True).batch(batch_size)
 
 val_dataset = tf.data.Dataset.from_tensor_slices((X_val, Y_val_one))
 val_dataset = val_dataset.shuffle(buffer_size=400, reshuffle_each_iteration=True).batch(batch_size)
+
+test_dataset = tf.data.Dataset.from_tensor_slices((X_test, Y_test_one)).batch(batch_size)
 
 # Check these datasets
 for step, (x_batch_train, y_batch_train) in enumerate(train_dataset):
@@ -63,11 +69,21 @@ mse = tf.keras.losses.MeanSquaredError()
 # Instantiate a metric object
 train_mse_metric = keras.metrics.Mean()
 val_mse_metric = keras.metrics.Mean()
+test_mse_metric = keras.metrics.Mean()
 
+# Set
 # Get model.
 # model = models.first_model(width=size[0], height=size[1], depth=size[2])
-model = models.straight_model(width=size[0], height=size[1], depth=size[2])
+model = models.straight_model(height=crop_size[0], width=crop_size[1], depth=crop_size[2], points_num=1)
 model.summary()
+
+# y_tag: "one_landmark", "two_landmarks", "mean_two_landmarks"
+y_tag = "one_landmark"
+model_name = "straight_model"
+model_tag = "cropped"
+model_size = f"{crop_size[0]}_{crop_size[1]}_{crop_size[2]}"
+model_label = f"{model_name}_{model_tag}_{model_size}"
+save_dir = f"/data/gpfs/projects/punim1836/Training/trained_models/{model_tag}_dataset/{model_name}/{y_tag}/"
 
 
 @tf.function
@@ -87,11 +103,34 @@ def train_step(x, y):
 
 
 @tf.function
-def test_step(x, y):
+def val_step(x, y):
     y_pred = model(x, training=False)
     mse_pixel = mse(y, y_pred)
     # Update val metrics
     val_mse_metric.update_state(mse_pixel)
+
+
+@tf.function
+def test_step(x, y):
+    y_pred = model(x, training=False)
+    mse_pixel = mse(y, y_pred)
+    # Update test metrics
+    test_mse_metric.update_state(mse_pixel)
+    return y_pred
+
+
+def my_evaluate(eva_model):
+    # Run a test loop when meet the best val result.
+    for s, (x_batch_test, y_batch_test) in enumerate(test_dataset):
+        if s == 0:
+            y_test_p = test_step(x_batch_test, y_batch_test)
+        else:
+            y_test = test_step(x_batch_test, y_batch_test)
+            y_test_p = np.concatenate((y_test_p, y_test), axis=0)
+
+    test_mse_res_f = test_mse_metric.result()
+    test_mse_metric.reset_states()
+    return test_mse_res_f, y_test_p
 
 
 # Training loop
@@ -118,11 +157,28 @@ for epoch in range(epochs):
 
     # Run a validation loop at the end of each epoch.
     for step, (x_batch_val, y_batch_val) in enumerate(val_dataset):
-        test_step(x_batch_val, y_batch_val)
+        val_step(x_batch_val, y_batch_val)
 
-    val_mse_res = val_mse_metric.result()
+    val_mse = val_mse_metric.result()
     val_mse_metric.reset_states()
-    print("Validation (MSE):                %.3f" % (float(val_mse_res),))
-    print("Time taken:                      %.2fs" % (time.time() - start_time))
 
-# model.save("slr_model_01")
+    # Try to save the Trained Model with the best Val results
+    if val_mse < min_val_mse:
+        min_val_mse = val_mse
+        # Use Test Dataset to evaluate the best Val model (at the moment), and save the Test results
+        test_mse, y_test_pred = my_evaluate(model)
+        np.save(f"{save_dir}bestVal_{model_label}_y_test", y_test_pred)
+        model.save(f"{save_dir}bestVal_{model_label}")
+        print("Validation (MSE, saved):%.3f" % (float(val_mse),))
+        print("Test (MSE), bestVa      %.3f" % (float(test_mse),))
+    else:
+        print("Validation (MSE):       %.3f" % (float(val_mse),))
+
+    print("Time taken:             %.2fs" % (time.time() - start_time))
+
+# Use Test Dataset to evaluate the final model, and save the Test results
+test_mse, y_test_pred = my_evaluate(model)
+np.save(f"{save_dir}final_{model_label}_y_test", y_test_pred)
+print("Test (MSE), final       %.3f" % (float(test_mse),))
+
+model.save(f"{save_dir}final_{model_label}")
