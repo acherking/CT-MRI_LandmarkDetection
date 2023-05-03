@@ -145,8 +145,8 @@ def load_dataset(dir_path, size=(176, 176, 48), pat_splits=[], with_res=False, o
 # idx_splits: [[train_idx], [val_idx], [test_idx]], idx from 0 to 19
 def load_dataset_crop(x_path, y_path, length_path, pat_splits):
     x_dataset = np.load(x_path)
-    y_dataset = np.load(y_path)
-    length_dataset = np.load(length_path)
+    y_dataset = np.load(y_path).astype('float32')
+    length_dataset = np.load(length_path).astype('float32')
 
     idx_splits = [[list(range(i*100, i*100+100)) for i in j] for j in pat_splits]
     for i in range(0, 3):
