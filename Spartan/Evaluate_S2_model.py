@@ -2,7 +2,6 @@ import tensorflow as tf
 from tensorflow import keras
 import numpy as np
 
-import Functions.Visualization as Visualization
 import Functions.MyDataset as MyDataset
 import Functions.MyCrop as MyCrop
 import support_modules as supporter
@@ -65,7 +64,7 @@ base_dir = "/data/gpfs/projects/punim1836/Training/trained_models"
 model_dir = f"{base_dir}/{model_tag}_dataset/{model_name}/{y_tag}"
 save_dir = f"{model_dir}/corroding_test"
 
-err_array_file = f"{save_dir}/err_corrode3x25"
+err_array_file = f"{save_dir}/err_corrode51*51*51"
 
 # some configuration (make life easier?)
 model_path = f"{model_dir}/bestVal_{model_label}"
@@ -76,26 +75,32 @@ Y_dataset = np.copy(Y_test_one)
 res_dataset = np.copy(res_test)
 
 err_list = []
+err_array = np.ones((15, 15, 15)) * -1
 fill_val = np.min(X_dataset)
 # cut layers, Shape e.g. (n, 100, 100, 100, 1)
-for cut_layers_num in range(0, 50):
-    X_dataset_corroded = np.ones(X_dataset.shape) * fill_val
-    l_idx = cut_layers_num
-    h_idx = crop_size[0] - cut_layers_num
-    X_dataset_corroded[:, l_idx:h_idx, l_idx:h_idx, l_idx:h_idx, :] = \
-        X_dataset[:, l_idx:h_idx, l_idx:h_idx, l_idx:h_idx, :]
+for cut_row_num in range(0, 15):
+    for cut_column_num in range(0, 15):
+        for cut_slice_num in range(0, 15):
+            X_dataset_corroded = np.ones(X_dataset.shape) * fill_val
+            X_dataset_corroded[:,
+                cut_column_num:(100-cut_column_num),
+                cut_column_num:(100-cut_column_num),
+                cut_slice_num:(100-cut_slice_num), :] \
+                = X_dataset[:,
+                  cut_column_num:(100-cut_column_num),
+                  cut_column_num:(100-cut_column_num),
+                  cut_slice_num:(100-cut_slice_num), :]
 
-    # double-check the corroded data
-    # print("fill val: ", fill_val)
-    # print("row&slice, centre like:", X_dataset_corroded[0, 49, :, 49, 0])
-    # print("column&slice, centre like:", X_dataset_corroded[0, :, 49, 49, 0])
-    # print("row&column, centre like:", X_dataset_corroded[0, 49, 49, :, 0])
+            # double-check the corroded data
+            # print("fill val: ", fill_val)
+            # print("row&slice, centre like:", X_dataset_corroded[0, 49, :, 49, 0])
+            # print("column&slice, centre like:", X_dataset_corroded[0, :, 49, 49, 0])
+            # print("row&column, centre like:", X_dataset_corroded[0, 49, 49, :, 0])
 
-    dataset = tf.data.Dataset.from_tensor_slices((X_dataset_corroded, Y_dataset, res_dataset)).batch(2)
-    err, _ = my_evaluate(model, dataset)
-    err_list.append(err)
-    print("MSE with res (mm^2 per 1/2 points): ", err)
+            dataset = tf.data.Dataset.from_tensor_slices((X_dataset_corroded, Y_dataset, res_dataset)).batch(2)
+            err, _ = my_evaluate(model, dataset)
+            err_array[cut_row_num, cut_column_num, cut_slice_num] = err
+            print(f"({cut_row_num}{cut_column_num}{cut_slice_num}), MSE with res (mm^2 per 1/2 points): ", err)
 
-err_array = np.asarray(err_list)
 np.save(err_array_file, err_array)
 print("Saved: ", err_array_file)

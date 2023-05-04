@@ -174,7 +174,7 @@ for epoch in range(epochs):
         test_mse, y_test_pred = my_evaluate(model)
         np.save(f"{save_dir}bestVal_{model_label}_y_test", y_test_pred)
         model.save(f"{save_dir}bestVal_{model_label}")
-        print("Validation (MSE, saved):%.3f" % (float(val_mse),))
+        print("Validation (MSE with res, saved):%.3f" % (float(val_mse),))
         print("Test (MSE with res), bestVa      %.3f" % (float(test_mse),))
     else:
         print("Validation (MSE with res):       %.3f" % (float(val_mse),))
