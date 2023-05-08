@@ -100,7 +100,7 @@ for cut_row_num in range(0, 15):
             dataset = tf.data.Dataset.from_tensor_slices((X_dataset_corroded, Y_dataset, res_dataset)).batch(2)
             err, _ = my_evaluate(model, dataset)
             err_array[cut_row_num, cut_column_num, cut_slice_num] = err
-            print(f"({cut_row_num}{cut_column_num}{cut_slice_num}), MSE with res (mm^2 per 1/2 points): ", err)
+            print(f"({cut_row_num}:{cut_column_num}:{cut_slice_num}), MSE with res (mm^2 per 1/2 points): ", err)
 
 np.save(err_array_file, err_array)
 print("Saved: ", err_array_file)
