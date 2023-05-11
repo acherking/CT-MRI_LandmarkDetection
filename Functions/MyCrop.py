@@ -100,7 +100,7 @@ def crop_volume_shape(volume_shape, points, crop_size=((50, 50), (50, 50), (50, 
     return left_landmarks, left_cropped_length, right_landmarks, right_cropped_length
 
 
-def crop(volume, points, crop_size):
+def crop(volume, points, anchor, crop_size):
     """
     crop_size: ((x_d, x_a), (y_d, y_a), (z_d, z_a))
         x_d is the length from the centre of the given points to the descending direction of axis x, include the given points
@@ -112,7 +112,10 @@ def crop(volume, points, crop_size):
     # initialize the cropped_volume with the minimal value in the volume
     cropped_volume = np.ones((x_d + x_a, y_d + y_a, z_d + z_a)) * fill_value
 
-    centre = np.average(points, axis=0).astype(int)
+    if anchor is not None:
+        centre = anchor.astype(int)
+    else:
+        centre = np.average(points, axis=0).astype(int)
 
     x_start, x_length, x_idx_min, \
         y_start, y_length, y_idx_min, \
@@ -147,6 +150,36 @@ def crop_volume(volume, points, crop_size=((50, 50), (50, 50), (50, 50))):
     left_landmarks = left_landmarks[:, [1, 0, 2]]
     left_cropped_length = left_cropped_length[:, [1, 0, 2]]
     right_area, right_landmarks, right_cropped_length = crop(volume, points[2:4], crop_size)
+    right_landmarks = right_landmarks[:, [1, 0, 2]]
+    right_cropped_length = right_cropped_length[:, [1, 0, 2]]
+
+    return left_area, left_landmarks, left_cropped_length, right_area, right_landmarks, right_cropped_length
+
+
+def crop_volume_anchor(volume, points, anchor=None, crop_size=((50, 50), (50, 50), (50, 50))):
+    """
+    Crop the landmark areas for left and right ears separately
+    The outputs are two cubic volume 100*100*100 (may change in the future).
+    Input:  1. Volume: the original volume
+            2. Points: LLSCC ant/post, RLSCC ant/post
+            3. anchors: Left centre & Right centre, (2*3)
+
+    Output: 1. left_area_volume, left_landmark_points, left_cropped_length
+            2. right_area_volume, right_landmark_points, right_cropped_length
+    """
+    if anchor is not None:
+        left_anchor = anchor[0, [1, 0, 2]]
+        right_anchor = anchor[1, [1, 0, 2]]
+    else:
+        left_anchor = None
+        right_anchor = None
+    # crop_size = ((50, 50), (50, 50), (50, 50))
+    # points coordinate is (x, y, z), swap to (y, x, z) to cooperate the volume (row, clown, slice)
+    points = points[:, [1, 0, 2]]
+    left_area, left_landmarks, left_cropped_length = crop(volume, points[0:2], left_anchor, crop_size)
+    left_landmarks = left_landmarks[:, [1, 0, 2]]
+    left_cropped_length = left_cropped_length[:, [1, 0, 2]]
+    right_area, right_landmarks, right_cropped_length = crop(volume, points[2:4], right_anchor, crop_size)
     right_landmarks = right_landmarks[:, [1, 0, 2]]
     right_cropped_length = right_cropped_length[:, [1, 0, 2]]
 
