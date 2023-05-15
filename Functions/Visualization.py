@@ -65,7 +65,7 @@ def show_two_landmarks(left_volume, left_points, right_volume, right_points, pix
     fig.set_dpi(300)
 
     axs[0][0].set_title("LLSCC ant")
-    axs[0][0].set_aspect('equal', 'datalim')
+    axs[0][0].set_aspect('auto', 'box')
     axs[0][0].pcolormesh(x_column[:], y_row[:], left_volume[:, :, int(left_points[0, 2])], cmap=pyplot.gray())
     llscc_ant = Circle((left_points[0, 0] * pixel_space[1], left_points[0, 1] * pixel_space[0]), landmark_radius, facecolor='None',
                        edgecolor='r', lw=1)
@@ -73,7 +73,7 @@ def show_two_landmarks(left_volume, left_points, right_volume, right_points, pix
     axs[0][0].invert_yaxis()
 
     axs[0][1].set_title("LLSCC post")
-    axs[0][1].set_aspect('equal', 'datalim')
+    axs[0][1].set_aspect('auto', 'box')
     axs[0][1].pcolormesh(x_column[:], y_row[:], left_volume[:, :, int(left_points[1, 2])], cmap=pyplot.gray())
     llscc_post = Circle((left_points[1, 0] * pixel_space[1], left_points[1, 1] * pixel_space[0]), landmark_radius, facecolor='None',
                         edgecolor='r', lw=1)
@@ -81,7 +81,7 @@ def show_two_landmarks(left_volume, left_points, right_volume, right_points, pix
     axs[0][1].invert_yaxis()
 
     axs[1][0].set_title("RLSCC ant")
-    axs[1][0].set_aspect('equal', 'datalim')
+    axs[1][0].set_aspect('auto', 'box')
     axs[1][0].pcolormesh(x_column[:], y_row[:], right_volume[:, :, int(right_points[0, 2])], cmap=pyplot.gray())
     rlscc_ant = Circle((right_points[0, 0] * pixel_space[1], right_points[0, 1] * pixel_space[0]), landmark_radius, facecolor='None',
                        edgecolor='r', lw=1)
@@ -89,7 +89,7 @@ def show_two_landmarks(left_volume, left_points, right_volume, right_points, pix
     axs[1][0].invert_yaxis()
 
     axs[1][1].set_title("RLSCC post")
-    axs[1][1].set_aspect('equal', 'datalim')
+    axs[1][1].set_aspect('auto', 'box')
     axs[1][1].pcolormesh(x_column[:], y_row[:], right_volume[:, :, int(right_points[1, 2])], cmap=pyplot.gray())
     rlscc_post = Circle((right_points[1, 0] * pixel_space[1], right_points[1, 1] * pixel_space[0]), landmark_radius, facecolor='None',
                         edgecolor='r', lw=1)

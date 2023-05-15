@@ -143,7 +143,7 @@ def load_dataset(dir_path, size=(176, 176, 48), pat_splits=[], with_res=False, o
 
 # load dataset from the combination data files: X and Y
 # idx_splits: [[train_idx], [val_idx], [test_idx]], idx from 0 to 19
-# crop_layers: ndarray shape(3*2), [[row_ascending, row_ascending], [column_a, column_d], [slice_a, slice_d]]
+# crop_layers: ndarray shape(3*2), [[row_ascending, row_descending], [column_a, column_d], [slice_a, slice_d]]
 def load_dataset_crop(x_path, y_path, length_path, pat_splits, crop_layers):
     x_dataset = np.load(x_path)
     y_dataset = np.load(y_path).astype('float32')
@@ -151,9 +151,9 @@ def load_dataset_crop(x_path, y_path, length_path, pat_splits, crop_layers):
 
     if not np.all(crop_layers == 0):
         x_dataset = x_dataset[:,
-                    crop_layers[0][0]:(100-crop_layers[0][1]),
-                    crop_layers[1][0]:(100-crop_layers[1][1]),
-                    crop_layers[2][0]:(100-crop_layers[2][1]), :]
+                    crop_layers[0][0]:(100 - crop_layers[0][1]),
+                    crop_layers[1][0]:(100 - crop_layers[1][1]),
+                    crop_layers[2][0]:(100 - crop_layers[2][1]), :]
         y_dataset = y_dataset - [crop_layers[1, 0], crop_layers[0, 0], crop_layers[2, 0]]
         y_dataset = y_dataset.astype('float32')
         # left ear
@@ -161,10 +161,10 @@ def load_dataset_crop(x_path, y_path, length_path, pat_splits, crop_layers):
             length_dataset[range(0, 2000, 2)] + [crop_layers[1, 0], crop_layers[0, 0], crop_layers[2, 0]]
         # right ear, because of the flip
         length_dataset[range(1, 2000, 2)] = \
-            length_dataset[range(0, 2000, 2)] + [-crop_layers[1, 0], crop_layers[0, 0], crop_layers[2, 0]]
+            length_dataset[range(1, 2000, 2)] + [crop_layers[1, 1], crop_layers[0, 0], crop_layers[2, 0]]
         length_dataset = length_dataset.astype('float32')
 
-    idx_splits = [[list(range(i*100, i*100+100)) for i in j] for j in pat_splits]
+    idx_splits = [[list(range(i * 100, i * 100 + 100)) for i in j] for j in pat_splits]
     for i in range(0, 3):
         idx_splits[i] = [num for sublist in idx_splits[i] for num in sublist]
         idx_splits[i] = np.asarray(idx_splits[i])
@@ -207,9 +207,9 @@ def load_dataset_divide(dataset_dir, rescaled_size, pat_splits):
     res_dataset_rep = np.repeat(res_dataset, 2, axis=1).reshape(2000, 1, 3)
 
     right_length = np.zeros(length_dataset.shape)
-    length_dataset = np.concatenate((length_dataset, right_length), axis=1).reshape((length_dataset.shape[0]*2, 1))
+    length_dataset = np.concatenate((length_dataset, right_length), axis=1).reshape((length_dataset.shape[0] * 2, 1))
 
-    idx_splits = [[list(range(i*100, i*100+100)) for i in j] for j in pat_splits]
+    idx_splits = [[list(range(i * 100, i * 100 + 100)) for i in j] for j in pat_splits]
     for i in range(0, 3):
         idx_splits[i] = [num for sublist in idx_splits[i] for num in sublist]
         idx_splits[i] = np.asarray(idx_splits[i])

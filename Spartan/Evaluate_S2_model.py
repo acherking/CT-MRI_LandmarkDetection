@@ -105,77 +105,135 @@ def corrode_asym_rcs(x_dataset, y_dataset, res_dataset, model_f, err_array_file_
     np.save(err_array_file_f, err_array)
     print("Saved: ", err_array_file_f)
 
-    err_array_ind = np.ones((6, 50)) * -1
-    # cut row ascending
-    for cut_row_a in range(0, 50):
-        x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
-        x_dataset_corroded[:, cut_row_a:, :, :, :] = x_dataset[:, cut_row_a:, :, :, :]
-        dataset = tf.data.Dataset.from_tensor_slices((x_dataset_corroded, y_dataset, res_dataset)).batch(2)
-        err, _ = my_evaluate(model_f, dataset)
-        err_array_ind[0, cut_row_a] = err
-        print(f"Cut row ascending: {cut_row_a}, MSE with res (mm^2 per 1/2 points): ", err)
-    cut_row_a_max = np.argmin(err_array_ind, axis=1)[0].astype('int')
-    # cut row descending
-    for cut_row_d in range(0, 50):
-        x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
-        x_dataset_corroded[:, cut_row_a_max:(100-cut_row_d), :, :, :] = x_dataset[:, cut_row_a_max:(100-cut_row_d), :, :, :]
-        dataset = tf.data.Dataset.from_tensor_slices((x_dataset_corroded, y_dataset, res_dataset)).batch(2)
-        err, _ = my_evaluate(model_f, dataset)
-        err_array_ind[1, cut_row_d] = err
-        print(f"Cut row descending: {cut_row_d}, MSE with res (mm^2 per 1/2 points): ", err)
-    cut_row_d_max = np.argmin(err_array_ind, axis=1)[1].astype('int')
-    # cut column ascending
-    for cut_column_a in range(0, 50):
-        x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
-        x_dataset_corroded[:, cut_row_a_max:(100-cut_row_d_max), cut_column_a:, :, :] = \
-            x_dataset[:, cut_row_a_max:(100-cut_row_d_max), cut_column_a:, :, :]
-        dataset = tf.data.Dataset.from_tensor_slices((x_dataset_corroded, y_dataset, res_dataset)).batch(2)
-        err, _ = my_evaluate(model_f, dataset)
-        err_array_ind[2, cut_column_a] = err
-        print(f"Cut column ascending: {cut_column_a}, MSE with res (mm^2 per 1/2 points): ", err)
-    cut_column_a_max = np.argmin(err_array_ind, axis=1)[2].astype('int')
-    # cut column descending
-    for cut_column_d in range(0, 50):
-        x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
-        x_dataset_corroded[:, cut_row_a_max:(100-cut_row_d_max), cut_column_a_max:(1-cut_column_d), :, :] = \
-            x_dataset[:, cut_row_a_max:(100-cut_row_d_max), cut_column_a_max:(1-cut_column_d), :, :]
-        dataset = tf.data.Dataset.from_tensor_slices((x_dataset_corroded, y_dataset, res_dataset)).batch(2)
-        err, _ = my_evaluate(model_f, dataset)
-        err_array_ind[3, cut_column_d] = err
-        print(f"Cut column descending: {cut_column_d}, MSE with res (mm^2 per 1/2 points): ", err)
-    cut_column_d_max = np.argmin(err_array_ind, axis=1)[3].astype('int')
-    # cut slice ascending
-    for cut_slice_a in range(0, 50):
-        x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
-        x_dataset_corroded[:, cut_row_a_max:(100-cut_row_d_max), cut_column_a_max:(1-cut_column_d_max), cut_slice_a:, :] = \
-            x_dataset[:, cut_row_a_max:(100-cut_row_d_max), cut_column_a_max:(1-cut_column_d_max), cut_slice_a:, :]
-        dataset = tf.data.Dataset.from_tensor_slices((x_dataset_corroded, y_dataset, res_dataset)).batch(2)
-        err, _ = my_evaluate(model_f, dataset)
-        err_array_ind[4, cut_slice_a] = err
-        print(f"Cut slice ascending: {cut_slice_a}, MSE with res (mm^2 per 1/2 points): ", err)
-    cut_slice_a_max = np.argmin(err_array_ind, axis=1)[4].astype('int')
-    # cut slice ascending
-    for cut_slice_d in range(0, 50):
-        x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
-        x_dataset_corroded[:, cut_row_a_max:(100-cut_row_d_max), cut_column_a_max:(1-cut_column_d_max), cut_slice_a_max:(100-cut_slice_d), :] = \
-            x_dataset[:, cut_row_a_max:(100-cut_row_d_max), cut_column_a_max:(1-cut_column_d_max), cut_slice_a_max:(100-cut_slice_d), :]
-        dataset = tf.data.Dataset.from_tensor_slices((x_dataset_corroded, y_dataset, res_dataset)).batch(2)
-        err, _ = my_evaluate(model_f, dataset)
-        err_array_ind[5, cut_slice_d] = err
-        print(f"Cut slice descending: {cut_slice_d}, MSE with res (mm^2 per 1/2 points): ", err)
-    cut_slice_d_max = np.argmin(err_array_ind, axis=1)[4].astype('int')
+    # err_array_ind = np.ones((6, 50)) * -1
+    # # cut row ascending
+    # for cut_row_a in range(0, 50):
+    #     x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
+    #     x_dataset_corroded[:, cut_row_a:, :, :, :] = x_dataset[:, cut_row_a:, :, :, :]
+    #     dataset = tf.data.Dataset.from_tensor_slices((x_dataset_corroded, y_dataset, res_dataset)).batch(2)
+    #     err, _ = my_evaluate(model_f, dataset)
+    #     err_array_ind[0, cut_row_a] = err
+    #     print(f"Cut row ascending: {cut_row_a}, MSE with res (mm^2 per 1/2 points): ", err)
+    # cut_row_a_max = np.argmin(err_array_ind, axis=1)[0].astype('int')
+    # # cut row descending
+    # for cut_row_d in range(0, 50):
+    #     x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
+    #     x_dataset_corroded[:, cut_row_a_max:(100-cut_row_d), :, :, :] = x_dataset[:, cut_row_a_max:(100-cut_row_d), :, :, :]
+    #     dataset = tf.data.Dataset.from_tensor_slices((x_dataset_corroded, y_dataset, res_dataset)).batch(2)
+    #     err, _ = my_evaluate(model_f, dataset)
+    #     err_array_ind[1, cut_row_d] = err
+    #     print(f"Cut row descending: {cut_row_d}, MSE with res (mm^2 per 1/2 points): ", err)
+    # cut_row_d_max = np.argmin(err_array_ind, axis=1)[1].astype('int')
+    # # cut column ascending
+    # for cut_column_a in range(0, 50):
+    #     x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
+    #     x_dataset_corroded[:, cut_row_a_max:(100-cut_row_d_max), cut_column_a:, :, :] = \
+    #         x_dataset[:, cut_row_a_max:(100-cut_row_d_max), cut_column_a:, :, :]
+    #     dataset = tf.data.Dataset.from_tensor_slices((x_dataset_corroded, y_dataset, res_dataset)).batch(2)
+    #     err, _ = my_evaluate(model_f, dataset)
+    #     err_array_ind[2, cut_column_a] = err
+    #     print(f"Cut column ascending: {cut_column_a}, MSE with res (mm^2 per 1/2 points): ", err)
+    # cut_column_a_max = np.argmin(err_array_ind, axis=1)[2].astype('int')
+    # # cut column descending
+    # for cut_column_d in range(0, 50):
+    #     x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
+    #     x_dataset_corroded[:, cut_row_a_max:(100-cut_row_d_max), cut_column_a_max:(1-cut_column_d), :, :] = \
+    #         x_dataset[:, cut_row_a_max:(100-cut_row_d_max), cut_column_a_max:(1-cut_column_d), :, :]
+    #     dataset = tf.data.Dataset.from_tensor_slices((x_dataset_corroded, y_dataset, res_dataset)).batch(2)
+    #     err, _ = my_evaluate(model_f, dataset)
+    #     err_array_ind[3, cut_column_d] = err
+    #     print(f"Cut column descending: {cut_column_d}, MSE with res (mm^2 per 1/2 points): ", err)
+    # cut_column_d_max = np.argmin(err_array_ind, axis=1)[3].astype('int')
+    # # cut slice ascending
+    # for cut_slice_a in range(0, 50):
+    #     x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
+    #     x_dataset_corroded[:, cut_row_a_max:(100-cut_row_d_max), cut_column_a_max:(1-cut_column_d_max), cut_slice_a:, :] = \
+    #         x_dataset[:, cut_row_a_max:(100-cut_row_d_max), cut_column_a_max:(1-cut_column_d_max), cut_slice_a:, :]
+    #     dataset = tf.data.Dataset.from_tensor_slices((x_dataset_corroded, y_dataset, res_dataset)).batch(2)
+    #     err, _ = my_evaluate(model_f, dataset)
+    #     err_array_ind[4, cut_slice_a] = err
+    #     print(f"Cut slice ascending: {cut_slice_a}, MSE with res (mm^2 per 1/2 points): ", err)
+    # cut_slice_a_max = np.argmin(err_array_ind, axis=1)[4].astype('int')
+    # # cut slice ascending
+    # for cut_slice_d in range(0, 50):
+    #     x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
+    #     x_dataset_corroded[:, cut_row_a_max:(100-cut_row_d_max), cut_column_a_max:(1-cut_column_d_max), cut_slice_a_max:(100-cut_slice_d), :] = \
+    #         x_dataset[:, cut_row_a_max:(100-cut_row_d_max), cut_column_a_max:(1-cut_column_d_max), cut_slice_a_max:(100-cut_slice_d), :]
+    #     dataset = tf.data.Dataset.from_tensor_slices((x_dataset_corroded, y_dataset, res_dataset)).batch(2)
+    #     err, _ = my_evaluate(model_f, dataset)
+    #     err_array_ind[5, cut_slice_d] = err
+    #     print(f"Cut slice descending: {cut_slice_d}, MSE with res (mm^2 per 1/2 points): ", err)
+    # cut_slice_d_max = np.argmin(err_array_ind, axis=1)[4].astype('int')
+    #
+    # err_array_ind_idx = np.asarray([cut_row_a_max, cut_row_d_max, cut_column_a_max, cut_column_d_max,
+    #                                 cut_slice_a_max, cut_slice_d_max])
+    #
+    # err_array_ind_f = f"{err_array_file_f}_ind"
+    # err_array_ind_idx_f = f"{err_array_file_f}_ind_idx"
+    # np.save(err_array_ind_f, err_array_ind)
+    # np.save(err_array_ind_idx_f, err_array_ind_idx)
+    # print("Saved: ", err_array_ind_f)
+    # print("Saved: ", err_array_ind_idx_f)
 
-    err_array_ind_idx = np.asarray([cut_row_a_max, cut_row_d_max, cut_column_a_max, cut_column_d_max,
-                                    cut_slice_a_max, cut_slice_d_max])
-
-    err_array_ind_f = f"{err_array_file_f}_ind"
-    err_array_ind_idx_f = f"{err_array_file_f}_ind_idx"
-    np.save(err_array_ind_f, err_array_ind)
-    np.save(err_array_ind_idx_f, err_array_ind_idx)
-    print("Saved: ", err_array_ind_f)
-    print("Saved: ", err_array_ind_idx_f)
+###########################################################################
+# end def corrode_asym_rcs(x_dataset, y_dataset, res_dataset, model_f, err_array_file_f):
+###########################################################################
 
 
+# crop_layers: (3, 2) --> row_ascending, row_descending, column_a, column_d, slice_a, slice_d
+def corrode_baseline(x_dataset, y_dataset, res_dataset, model_f, crop_layers):
+    """
+    Check other area's contribution
+    1. only target area (after corroding)
+    2. only the corroded area (exclude the target area)
+    3. remove all the value in the volume
+    """
+    fill_val = np.min(x_dataset)
+
+    x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
+    x_dataset_corroded[:,
+        crop_layers[0][0]:(100 - crop_layers[0][1]),
+        crop_layers[1][0]:(100 - crop_layers[1][1]),
+        crop_layers[2][0]:(100 - crop_layers[2][1]), :] = \
+        x_dataset[:,
+        crop_layers[0][0]:(100 - crop_layers[0][1]),
+        crop_layers[1][0]:(100 - crop_layers[1][1]),
+        crop_layers[2][0]:(100 - crop_layers[2][1]), :]
+
+    dataset_corroded = tf.data.Dataset.from_tensor_slices((x_dataset_corroded, y_dataset, res_dataset)).batch(2)
+    err_corroded, pred_corroded = my_evaluate(model_f, dataset_corroded)
+    print("Only target area, MSE with res (mm^2 per 1/2 points): ", err_corroded)
+    print("pred list: ", pred_corroded[0:5])
+
+    x_dataset_surrounding = np.copy(x_dataset)
+    x_dataset_surrounding[:,
+        crop_layers[0][0]:(100 - crop_layers[0][1]),
+        crop_layers[1][0]:(100 - crop_layers[1][1]),
+        crop_layers[2][0]:(100 - crop_layers[2][1]), :] = fill_val
+
+    # double-check the corroded data
+    print("fill val: ", fill_val)
+    print("row&slice, centre like:", x_dataset_surrounding[0, 49, :, 49, 0])
+    print("column&slice, centre like:", x_dataset_surrounding[0, :, 49, 49, 0])
+    print("row&column, centre like:", x_dataset_surrounding[0, 49, 49, :, 0])
+
+    dataset_sur = tf.data.Dataset.from_tensor_slices((x_dataset_surrounding, y_dataset, res_dataset)).batch(2)
+    err_sur, pred_sur = my_evaluate(model_f, dataset_sur)
+    print("Only surrounding area, MSE with res (mm^2 per 1/2 points): ", err_sur)
+    print("pred list: ", pred_sur[0:5])
+
+    x_dataset_empty = np.ones(x_dataset.shape) * fill_val
+
+    dataset_emp = tf.data.Dataset.from_tensor_slices((x_dataset_empty, y_dataset, res_dataset)).batch(2)
+    err_emp, pred_emp = my_evaluate(model_f, dataset_emp)
+    print("Blank Volume, MSE with res (mm^2 per 1/2 points): ", err_emp)
+    print("pred list: ", pred_emp[0:5])
+
+
+###
+# Start main process
+###
+crop_layers = np.asarray([[0, 0], [0, 0], [0, 0]])
 crop_size = (100, 100, 100)
 
 X_path = "/data/gpfs/projects/punim1836/Data/cropped/cropped_volumes_x5050y5050z5050.npy"
@@ -183,7 +241,7 @@ Y_path = "/data/gpfs/projects/punim1836/Data/cropped/cropped_points_x5050y5050z5
 Cropped_length_path = "/data/gpfs/projects/punim1836/Data/cropped/cropped_length_x5050y5050z5050.npy"
 pat_splits = MyDataset.get_pat_splits(static=True)
 X_train, Y_train, length_train, X_val, Y_val, length_val, X_test, Y_test, length_test = \
-    supporter.load_dataset_crop(X_path, Y_path, Cropped_length_path, pat_splits)
+    supporter.load_dataset_crop(X_path, Y_path, Cropped_length_path, pat_splits, crop_layers)
 
 Y_train_one = np.asarray(Y_train)[:, 0, :].reshape((1400, 1, 3))
 Y_val_one = np.asarray(Y_val)[:, 0, :].reshape((200, 1, 3))
@@ -194,13 +252,13 @@ res_val = (np.ones((200, 1, 3)) * 0.15).astype('float32')
 res_test = (np.ones((400, 1, 3)) * 0.15).astype('float32')
 
 # y_tag: "one_landmark" -> OL, "two_landmarks" -> TL, "mean_two_landmarks" -> MTL
-y_tag = "one_landmark"
+y_tag = "one_landmark_res"
 model_name = "straight_model"
 model_tag = "cropped"
 model_size = f"{crop_size[0]}_{crop_size[1]}_{crop_size[2]}"
 model_label = f"{model_name}_{model_tag}_{model_size}"
 base_dir = "/data/gpfs/projects/punim1836/Training/trained_models"
-model_dir = f"{base_dir}/{model_tag}_dataset/{model_name}/{y_tag}"
+model_dir = f"{base_dir}/{model_tag}_dataset/{model_name}/{y_tag}/100x100x100"
 save_dir = f"{model_dir}/corroding_test"
 
 err_array_file = f"{save_dir}/err_corrode50x6"
@@ -209,4 +267,12 @@ err_array_file = f"{save_dir}/err_corrode50x6"
 model_path = f"{model_dir}/bestVal_{model_label}"
 model = keras.models.load_model(model_path)
 
-corrode_asym_rcs(X_train, Y_train_one, res_train, model, err_array_file)
+# corrode_asym_rcs(X_train, Y_train_one, res_train, model, err_array_file)
+
+crop_layers = np.asarray([[20, 10], [0, 20], [25, 18]])
+
+#print("Train Dataset")
+#corrode_baseline(X_train, Y_train_one, res_train, model, crop_layers)
+
+print("Test Dataset")
+corrode_baseline(X_test, Y_test_one, res_test, model, crop_layers)
