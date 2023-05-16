@@ -188,46 +188,51 @@ def corrode_baseline(x_dataset, y_dataset, res_dataset, model_f, crop_layers):
     2. only the corroded area (exclude the target area)
     3. remove all the value in the volume
     """
+    dataset_org = tf.data.Dataset.from_tensor_slices((x_dataset, y_dataset, res_dataset)).batch(2)
+    err_org, pred_org = my_evaluate(model_f, dataset_org)
+    print("original Volume, MSE with res (mm^2 per 1/2 points): ", err_org)
+    print("pred list: ", pred_org[0:5])
+
     fill_val = np.min(x_dataset)
 
-    x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
-    x_dataset_corroded[:,
-        crop_layers[0][0]:(100 - crop_layers[0][1]),
-        crop_layers[1][0]:(100 - crop_layers[1][1]),
-        crop_layers[2][0]:(100 - crop_layers[2][1]), :] = \
-        x_dataset[:,
-        crop_layers[0][0]:(100 - crop_layers[0][1]),
-        crop_layers[1][0]:(100 - crop_layers[1][1]),
-        crop_layers[2][0]:(100 - crop_layers[2][1]), :]
-
-    dataset_corroded = tf.data.Dataset.from_tensor_slices((x_dataset_corroded, y_dataset, res_dataset)).batch(2)
-    err_corroded, pred_corroded = my_evaluate(model_f, dataset_corroded)
-    print("Only target area, MSE with res (mm^2 per 1/2 points): ", err_corroded)
-    print("pred list: ", pred_corroded[0:5])
-
-    x_dataset_surrounding = np.copy(x_dataset)
-    x_dataset_surrounding[:,
-        crop_layers[0][0]:(100 - crop_layers[0][1]),
-        crop_layers[1][0]:(100 - crop_layers[1][1]),
-        crop_layers[2][0]:(100 - crop_layers[2][1]), :] = fill_val
-
-    # double-check the corroded data
-    print("fill val: ", fill_val)
-    print("row&slice, centre like:", x_dataset_surrounding[0, 49, :, 49, 0])
-    print("column&slice, centre like:", x_dataset_surrounding[0, :, 49, 49, 0])
-    print("row&column, centre like:", x_dataset_surrounding[0, 49, 49, :, 0])
-
-    dataset_sur = tf.data.Dataset.from_tensor_slices((x_dataset_surrounding, y_dataset, res_dataset)).batch(2)
-    err_sur, pred_sur = my_evaluate(model_f, dataset_sur)
-    print("Only surrounding area, MSE with res (mm^2 per 1/2 points): ", err_sur)
-    print("pred list: ", pred_sur[0:5])
-
-    x_dataset_empty = np.ones(x_dataset.shape) * fill_val
-
-    dataset_emp = tf.data.Dataset.from_tensor_slices((x_dataset_empty, y_dataset, res_dataset)).batch(2)
-    err_emp, pred_emp = my_evaluate(model_f, dataset_emp)
-    print("Blank Volume, MSE with res (mm^2 per 1/2 points): ", err_emp)
-    print("pred list: ", pred_emp[0:5])
+    # x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
+    # x_dataset_corroded[:,
+    #     crop_layers[0][0]:(100 - crop_layers[0][1]),
+    #     crop_layers[1][0]:(100 - crop_layers[1][1]),
+    #     crop_layers[2][0]:(100 - crop_layers[2][1]), :] = \
+    #     x_dataset[:,
+    #     crop_layers[0][0]:(100 - crop_layers[0][1]),
+    #     crop_layers[1][0]:(100 - crop_layers[1][1]),
+    #     crop_layers[2][0]:(100 - crop_layers[2][1]), :]
+    #
+    # dataset_corroded = tf.data.Dataset.from_tensor_slices((x_dataset_corroded, y_dataset, res_dataset)).batch(2)
+    # err_corroded, pred_corroded = my_evaluate(model_f, dataset_corroded)
+    # print("Only target area, MSE with res (mm^2 per 1/2 points): ", err_corroded)
+    # print("pred list: ", pred_corroded[0:5])
+    #
+    # x_dataset_surrounding = np.copy(x_dataset)
+    # x_dataset_surrounding[:,
+    #     crop_layers[0][0]:(100 - crop_layers[0][1]),
+    #     crop_layers[1][0]:(100 - crop_layers[1][1]),
+    #     crop_layers[2][0]:(100 - crop_layers[2][1]), :] = fill_val
+    #
+    # # double-check the corroded data
+    # print("fill val: ", fill_val)
+    # print("row&slice, centre like:", x_dataset_surrounding[0, 49, :, 49, 0])
+    # print("column&slice, centre like:", x_dataset_surrounding[0, :, 49, 49, 0])
+    # print("row&column, centre like:", x_dataset_surrounding[0, 49, 49, :, 0])
+    #
+    # dataset_sur = tf.data.Dataset.from_tensor_slices((x_dataset_surrounding, y_dataset, res_dataset)).batch(2)
+    # err_sur, pred_sur = my_evaluate(model_f, dataset_sur)
+    # print("Only surrounding area, MSE with res (mm^2 per 1/2 points): ", err_sur)
+    # print("pred list: ", pred_sur[0:5])
+    #
+    # x_dataset_empty = np.ones(x_dataset.shape) * fill_val
+    #
+    # dataset_emp = tf.data.Dataset.from_tensor_slices((x_dataset_empty, y_dataset, res_dataset)).batch(2)
+    # err_emp, pred_emp = my_evaluate(model_f, dataset_emp)
+    # print("Blank Volume, MSE with res (mm^2 per 1/2 points): ", err_emp)
+    # print("pred list: ", pred_emp[0:5])
 
 
 ###
@@ -270,9 +275,8 @@ model = keras.models.load_model(model_path)
 # corrode_asym_rcs(X_train, Y_train_one, res_train, model, err_array_file)
 
 crop_layers = np.asarray([[20, 10], [0, 20], [25, 18]])
-
-#print("Train Dataset")
-#corrode_baseline(X_train, Y_train_one, res_train, model, crop_layers)
-
+print("Train Dataset")
+corrode_baseline(X_train, Y_train_one, res_train, model, crop_layers)
 print("Test Dataset")
 corrode_baseline(X_test, Y_test_one, res_test, model, crop_layers)
+
