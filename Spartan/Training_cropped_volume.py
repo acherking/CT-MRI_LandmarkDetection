@@ -12,14 +12,20 @@ import models
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-crop_layers = np.asarray([[20, 10], [0, 20], [25, 18]])
-crop_size = (100-crop_layers[0, 0]-crop_layers[0, 1],
-             100-crop_layers[1, 0]-crop_layers[1, 1],
-             100-crop_layers[2, 0]-crop_layers[2, 1])
+volume_shape = (200, 200, 100)
+crop_layers = np.asarray([[0, 0], [0, 0], [0, 0]])
+crop_size = (volume_shape[0]-crop_layers[0, 0]-crop_layers[0, 1],
+             volume_shape[1]-crop_layers[1, 0]-crop_layers[1, 1],
+             volume_shape[2]-crop_layers[2, 0]-crop_layers[2, 1])
 
-X_path = "/data/gpfs/projects/punim1836/Data/cropped/cropped_volumes_x5050y5050z5050.npy"
-Y_path = "/data/gpfs/projects/punim1836/Data/cropped/cropped_points_x5050y5050z5050.npy"
-Cropped_length_path = "/data/gpfs/projects/punim1836/Data/cropped/cropped_length_x5050y5050z5050.npy"
+# crop_tag = "x5050y5050z5050"
+crop_tag = "x100100y100100z5050"
+base_dir = "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth"
+
+X_path = f"{base_dir}/{crop_tag}/cropped_volumes_{crop_tag}_truth.npy"
+Y_path = f"{base_dir}/{crop_tag}/cropped_points_{crop_tag}_truth.npy"
+Cropped_length_path = f"{base_dir}/{crop_tag}/cropped_length_{crop_tag}_truth.npy"
+
 pat_splits = MyDataset.get_pat_splits(static=True)
 X_train, Y_train, length_train, X_val, Y_val, length_val, X_test, Y_test, length_test = \
     support_modules.load_dataset_crop(X_path, Y_path, Cropped_length_path, pat_splits, crop_layers)
@@ -40,13 +46,13 @@ min_val_mse = 400
 
 # Set
 # Prepare dataset used in the training process
-train_dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train_one, res_train))
+train_dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train, res_train))
 train_dataset = train_dataset.shuffle(buffer_size=2800, reshuffle_each_iteration=True).batch(batch_size)
 
-val_dataset = tf.data.Dataset.from_tensor_slices((X_val, Y_val_one, res_val))
+val_dataset = tf.data.Dataset.from_tensor_slices((X_val, Y_val, res_val))
 val_dataset = val_dataset.shuffle(buffer_size=400, reshuffle_each_iteration=True).batch(batch_size)
 
-test_dataset = tf.data.Dataset.from_tensor_slices((X_test, Y_test_one, res_test)).batch(batch_size)
+test_dataset = tf.data.Dataset.from_tensor_slices((X_test, Y_test, res_test)).batch(batch_size)
 
 # Check these datasets
 for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset):
@@ -82,11 +88,11 @@ test_mse_metric = keras.metrics.Mean()
 # Set
 # Get model.
 # model = models.first_model(width=size[0], height=size[1], depth=size[2])
-model = models.straight_model(height=crop_size[0], width=crop_size[1], depth=crop_size[2], points_num=1)
+model = models.straight_model(height=crop_size[0], width=crop_size[1], depth=crop_size[2], points_num=2)
 model.summary()
 
 # y_tag: "one_landmark", "two_landmarks", "mean_two_landmarks"
-y_tag = "one_landmark_res"
+y_tag = "two_landmarks_res"
 model_name = "straight_model"
 model_tag = "cropped"
 model_size = f"{crop_size[0]}x{crop_size[1]}x{crop_size[2]}"

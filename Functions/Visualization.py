@@ -62,44 +62,50 @@ def show_two_landmarks(left_volume, left_points, right_volume, right_points, pix
     landmark_radius = left_volume.shape[1] * pixel_space[1] * 0.016
 
     fig, axs = pyplot.subplots(2, 2, sharex=True)
-    fig.set_dpi(300)
+    fig.set_dpi(400)
 
     axs[0][0].set_title("LLSCC ant")
-    axs[0][0].set_aspect('auto', 'box')
-    axs[0][0].pcolormesh(x_column[:], y_row[:], left_volume[:, :, int(left_points[0, 2])], cmap=pyplot.gray())
+    axs[0][0].set_aspect('equal', 'box')
+    im00 = axs[0][0].pcolormesh(x_column[:], y_row[:], left_volume[:, :, int(left_points[0, 2])], cmap=pyplot.gray())
     llscc_ant = Circle((left_points[0, 0] * pixel_space[1], left_points[0, 1] * pixel_space[0]), landmark_radius, facecolor='None',
                        edgecolor='r', lw=1)
     axs[0][0].add_patch(llscc_ant)
     axs[0][0].invert_yaxis()
 
+    fig.colorbar(im00, ax=axs[0][0])
+
     axs[0][1].set_title("LLSCC post")
-    axs[0][1].set_aspect('auto', 'box')
-    axs[0][1].pcolormesh(x_column[:], y_row[:], left_volume[:, :, int(left_points[1, 2])], cmap=pyplot.gray())
+    axs[0][1].set_aspect('equal', 'box')
+    im01 = axs[0][1].pcolormesh(x_column[:], y_row[:], left_volume[:, :, int(left_points[1, 2])], cmap=pyplot.gray())
     llscc_post = Circle((left_points[1, 0] * pixel_space[1], left_points[1, 1] * pixel_space[0]), landmark_radius, facecolor='None',
                         edgecolor='r', lw=1)
     axs[0][1].add_patch(llscc_post)
     axs[0][1].invert_yaxis()
 
+    fig.colorbar(im01, ax=axs[0][1])
+
     axs[1][0].set_title("RLSCC ant")
-    axs[1][0].set_aspect('auto', 'box')
-    axs[1][0].pcolormesh(x_column[:], y_row[:], right_volume[:, :, int(right_points[0, 2])], cmap=pyplot.gray())
+    axs[1][0].set_aspect('equal', 'box')
+    im10 = axs[1][0].pcolormesh(x_column[:], y_row[:], right_volume[:, :, int(right_points[0, 2])], cmap=pyplot.gray())
     rlscc_ant = Circle((right_points[0, 0] * pixel_space[1], right_points[0, 1] * pixel_space[0]), landmark_radius, facecolor='None',
                        edgecolor='r', lw=1)
     axs[1][0].add_patch(rlscc_ant)
     axs[1][0].invert_yaxis()
 
+    fig.colorbar(im10, ax=axs[1][0])
+
     axs[1][1].set_title("RLSCC post")
-    axs[1][1].set_aspect('auto', 'box')
-    axs[1][1].pcolormesh(x_column[:], y_row[:], right_volume[:, :, int(right_points[1, 2])], cmap=pyplot.gray())
+    axs[1][1].set_aspect('equal', 'box')
+    im11 = axs[1][1].pcolormesh(x_column[:], y_row[:], right_volume[:, :, int(right_points[1, 2])], cmap=pyplot.gray())
     rlscc_post = Circle((right_points[1, 0] * pixel_space[1], right_points[1, 1] * pixel_space[0]), landmark_radius, facecolor='None',
                         edgecolor='r', lw=1)
     axs[1][1].add_patch(rlscc_post)
     axs[1][1].invert_yaxis()
 
+    fig.colorbar(im11, ax=axs[1][1])
+
     pyplot.setp(axs[-1, :], xlabel='(mm)')
     pyplot.setp(axs[:, 0], ylabel='(mm)')
-
-    pyplot.colorbar()
 
     pyplot.show()
 
