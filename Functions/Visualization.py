@@ -99,6 +99,8 @@ def show_two_landmarks(left_volume, left_points, right_volume, right_points, pix
     pyplot.setp(axs[-1, :], xlabel='(mm)')
     pyplot.setp(axs[:, 0], ylabel='(mm)')
 
+    pyplot.colorbar()
+
     pyplot.show()
 
 
