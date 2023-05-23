@@ -61,7 +61,7 @@ def show_two_landmarks(left_volume, left_points, right_volume, right_points, pix
 
     landmark_radius = left_volume.shape[1] * pixel_space[1] * 0.016
 
-    fig, axs = pyplot.subplots(2, 2, sharex=True)
+    fig, axs = pyplot.subplots(2, 2, sharex=True, constrained_layout=True)
     fig.set_dpi(400)
 
     axs[0][0].set_title("LLSCC ant")

@@ -104,12 +104,12 @@ def corrode_asym_rcs(x_dataset, y_dataset, res_dataset, volume_shape, cut_nums, 
                 corrode_info = "cut slice num from ascending order"
                 # x_dataset_corroded[:, :, :, cut_num:, :] = x_dataset[:, :, :, cut_num:, :]
                 if cut_num > 0:
-                    x_dataset_corroded[:, :, :, cut_num-1:, :] = fill_val
+                    x_dataset_corroded[:, :, :, cut_num-1, :] = fill_val
             elif surf_id == 5:
                 corrode_info = "cut slice num from descending order"
                 # x_dataset_corroded[:, :, :, 0:(volume_shape[2]-cut_num), :] = x_dataset[:, :, :, 0:(volume_shape[2]-cut_num), :]
                 if cut_num > 0:
-                    x_dataset_corroded[:, :, :, -cut_num:, :] = fill_val
+                    x_dataset_corroded[:, :, :, -cut_num, :] = fill_val
 
             dataset = tf.data.Dataset.from_tensor_slices((x_dataset_corroded, y_dataset, res_dataset)).batch(2)
 
@@ -120,9 +120,11 @@ def corrode_asym_rcs(x_dataset, y_dataset, res_dataset, volume_shape, cut_nums, 
             print(f"{corrode_info}: {cut_num}, MSE with res (mm^2 per 1/2 points): ", err)
 
         del x_dataset_corroded
+        np.save(err_array_file_f, err_array)
+        print("Partially Saved: ", err_array_file_f)
 
     np.save(err_array_file_f, err_array)
-    print("Saved: ", err_array_file_f)
+    print("Final Saved: ", err_array_file_f)
 
     # err_array_ind = np.ones((6, 50)) * -1
     # # cut row ascending

@@ -1,6 +1,7 @@
 import numpy as np
 
 import Functions.MyDataset as MyDataset
+import Functions.MyCrop as MyCrop
 
 
 # load dataset from various directories (train, val, test), volume and pts are separated.
@@ -149,11 +150,15 @@ def load_dataset_crop(x_path, y_path, length_path, pat_splits, crop_layers):
     y_dataset = np.load(y_path).astype('float32')
     length_dataset = np.load(length_path).astype('float32')
 
+    row_num = x_dataset.shape[1]
+    column_num = x_dataset.shape[2]
+    slice_num = x_dataset.shape[3]
+
     if not np.all(crop_layers == 0):
         x_dataset = x_dataset[:,
-                    crop_layers[0][0]:(100 - crop_layers[0][1]),
-                    crop_layers[1][0]:(100 - crop_layers[1][1]),
-                    crop_layers[2][0]:(100 - crop_layers[2][1]), :]
+                    crop_layers[0][0]:(row_num - crop_layers[0][1]),
+                    crop_layers[1][0]:(column_num - crop_layers[1][1]),
+                    crop_layers[2][0]:(slice_num - crop_layers[2][1]), :]
         y_dataset = y_dataset - [crop_layers[1, 0], crop_layers[0, 0], crop_layers[2, 0]]
         y_dataset = y_dataset.astype('float32')
         # left ear
@@ -232,7 +237,12 @@ def load_dataset_crop_dir(x_dir, y_dir, length_dir):
     cropped_points = np.asarray(cropped_points).reshape((2000, 2, 3))
     cropped_length = np.asarray(cropped_length).reshape((2000, 2, 3))
 
-    crop_size = "x100100y100100z5050"
+    crop_layers = np.asarray([[25, 25], [25, 25], [0, 0]])
+
+    cropped_volumes, cropped_points, cropped_length = \
+        MyCrop.crop_outside_layers(cropped_volumes, cropped_points, cropped_length, crop_layers, keep_blank=False)
+
+    crop_size = "x7575y7575z5050"
     comb_tag = "truth"
     save_comb_dir = f"/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/{crop_size}"
     save_volume_path = f"{save_comb_dir}/cropped_volumes_{crop_size}_{comb_tag}.npy"
