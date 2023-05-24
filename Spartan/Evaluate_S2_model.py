@@ -259,8 +259,8 @@ def corrode_baseline(x_dataset, y_dataset, res_dataset, model_f, crop_layers):
 ###
 # Start main process
 ###
-crop_layers = np.asarray([[0, 0], [0, 0], [0, 0]])
-crop_size = (200, 200, 100)
+crop_layers = np.asarray([[25, 25], [25, 25], [0, 0]])
+crop_size = (150, 150, 100)
 
 # crop_tag = "x5050y5050z5050"
 crop_tag = "x100100y100100z5050"
@@ -293,13 +293,13 @@ base_dir = "/data/gpfs/projects/punim1836/Training/trained_models"
 model_dir = f"{base_dir}/{model_tag}_dataset/{model_name}/{y_tag}/{model_size}"
 save_dir = f"{model_dir}/corroding_test"
 
-err_array_file = f"{save_dir}/err_corrode100x4and50x2"
+err_array_file = f"{save_dir}/err_corrode100x4and50x2_bestVal"
 
 # some configuration (make life easier?)
 model_path = f"{model_dir}/bestVal_{model_label}"
 model = keras.models.load_model(model_path)
 
-corrode_layers = np.asarray([100, 100, 100, 100, 50, 50])
+corrode_layers = np.asarray([120, 120, 120, 120, 80, 80])
 corrode_asym_rcs(X_train, Y_train_one, res_train, crop_size, corrode_layers, model, err_array_file)
 
 # crop_layers = np.asarray([[20, 10], [0, 20], [25, 18]])
