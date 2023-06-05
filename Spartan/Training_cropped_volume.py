@@ -46,13 +46,13 @@ min_val_mse = 400
 
 # Set
 # Prepare dataset used in the training process
-train_dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train, res_train))
+train_dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train_one, res_train))
 train_dataset = train_dataset.shuffle(buffer_size=2800, reshuffle_each_iteration=True).batch(batch_size)
 
-val_dataset = tf.data.Dataset.from_tensor_slices((X_val, Y_val, res_val))
+val_dataset = tf.data.Dataset.from_tensor_slices((X_val, Y_val_one, res_val))
 val_dataset = val_dataset.shuffle(buffer_size=400, reshuffle_each_iteration=True).batch(batch_size)
 
-test_dataset = tf.data.Dataset.from_tensor_slices((X_test, Y_test, res_test)).batch(batch_size)
+test_dataset = tf.data.Dataset.from_tensor_slices((X_test, Y_test_one, res_test)).batch(batch_size)
 
 # Check these datasets
 for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset):
@@ -88,12 +88,12 @@ test_mse_metric = keras.metrics.Mean()
 # Set
 # Get model.
 # model = models.first_model(width=size[0], height=size[1], depth=size[2])
-model = models.straight_model(height=crop_size[0], width=crop_size[1], depth=crop_size[2], points_num=2)
+model = models.straight_model(height=crop_size[0], width=crop_size[1], depth=crop_size[2], points_num=1)
 model.summary()
 
 # y_tag: "one_landmark", "two_landmarks", "mean_two_landmarks"
-y_tag = "two_landmarks_res"
-model_name = "straight_model"
+y_tag = "one_landmark_res"
+model_name = "straight_model_bn_a"
 model_tag = "cropped"
 model_size = f"{crop_size[0]}x{crop_size[1]}x{crop_size[2]}"
 model_label = f"{model_name}_{model_tag}_{model_size}"
