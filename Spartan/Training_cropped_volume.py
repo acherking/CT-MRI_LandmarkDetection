@@ -88,12 +88,12 @@ test_mse_metric = keras.metrics.Mean()
 # Set
 # Get model.
 # model = models.first_model(width=size[0], height=size[1], depth=size[2])
-model = models.straight_model(height=crop_size[0], width=crop_size[1], depth=crop_size[2], points_num=1)
+model = models.straight_model_no_bn(height=crop_size[0], width=crop_size[1], depth=crop_size[2], points_num=1)
 model.summary()
 
 # y_tag: "one_landmark", "two_landmarks", "mean_two_landmarks"
 y_tag = "one_landmark_res"
-model_name = "straight_model_bn_a"
+model_name = "straight_model_no_bn"
 model_tag = "cropped"
 model_size = f"{crop_size[0]}x{crop_size[1]}x{crop_size[2]}"
 model_label = f"{model_name}_{model_tag}_{model_size}"
