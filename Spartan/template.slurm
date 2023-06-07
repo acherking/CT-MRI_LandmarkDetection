@@ -2,7 +2,7 @@
 #SBATCH --nodes 1
 #SBATCH -p gpu-a100
 #SBATCH --gres=gpu:1
-#SBATCH --time 76:00:00
+#SBATCH --time 15:00:00
 #SBATCH --mem=200G
 #SBATCH --output ./output/slurm-%j.out
 
@@ -22,7 +22,7 @@ echo "JobId:$SLURM_JOB_ID"
 echo "******************"
 echo
 
-python3 /data/gpfs/projects/punim1836/Training/Training_withGPU.py
+python3 /data/gpfs/projects/punim1836/Training/Training_cropped_volume.py
 
 ##DO NOT ADD/EDIT BEYOND THIS LINE##
 ##Job monitor command to list the resource usage

@@ -483,8 +483,8 @@ def straight_model_bn_a(height=176, width=176, depth=48, points_num=4):
 
     # layer 7
     x_hidden = layers.Conv3D(filters=128, kernel_size=3, padding="same")(x_hidden)
-    x_hidden = layers.BatchNormalization()(x_hidden)
     x_hidden = layers.ReLU()(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
 
     # layer 8
     x_hidden = layers.Conv3D(filters=256, kernel_size=3, padding="same")(x_hidden)
@@ -541,7 +541,6 @@ def straight_model_no_bn(height=176, width=176, depth=48, points_num=4):
     # layer 3
     x_hidden = layers.Conv3D(filters=128, kernel_size=3, padding="same")(x_hidden)
     x_hidden = layers.ReLU()(x_hidden)
-    x_hidden = layers.BatchNormalization()(x_hidden)
 
     # layer 4
     x_hidden = layers.Conv3D(filters=64, kernel_size=3, padding="same")(x_hidden)
