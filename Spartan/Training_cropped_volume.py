@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow import keras
 import numpy as np
 import time
+import os
 
 import Functions.MyDataset as MyDataset
 import support_modules
@@ -13,7 +14,8 @@ import models
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
 volume_shape = (200, 200, 100)
-crop_layers = np.asarray([[25, 25], [25, 25], [0, 0]])
+cut_base = [25, 25, 25, 25, 0, 0]
+crop_layers = np.asarray([[cut_base[0]+47, cut_base[1]+22], [cut_base[2]+57, cut_base[3]+61], [cut_base[4]+26, cut_base[5]+29]])
 crop_size = (volume_shape[0]-crop_layers[0, 0]-crop_layers[0, 1],
              volume_shape[1]-crop_layers[1, 0]-crop_layers[1, 1],
              volume_shape[2]-crop_layers[2, 0]-crop_layers[2, 1])
@@ -46,13 +48,13 @@ min_val_mse = 400
 
 # Set
 # Prepare dataset used in the training process
-train_dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train, res_train))
+train_dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train_one, res_train))
 train_dataset = train_dataset.shuffle(buffer_size=2800, reshuffle_each_iteration=True).batch(batch_size)
 
-val_dataset = tf.data.Dataset.from_tensor_slices((X_val, Y_val, res_val))
+val_dataset = tf.data.Dataset.from_tensor_slices((X_val, Y_val_one, res_val))
 val_dataset = val_dataset.shuffle(buffer_size=400, reshuffle_each_iteration=True).batch(batch_size)
 
-test_dataset = tf.data.Dataset.from_tensor_slices((X_test, Y_test, res_test)).batch(batch_size)
+test_dataset = tf.data.Dataset.from_tensor_slices((X_test, Y_test_one, res_test)).batch(batch_size)
 
 # Check these datasets
 for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset):
@@ -88,16 +90,23 @@ test_mse_metric = keras.metrics.Mean()
 # Set
 # Get model.
 # model = models.first_model(width=size[0], height=size[1], depth=size[2])
-model = models.straight_model_no_bn(height=crop_size[0], width=crop_size[1], depth=crop_size[2], points_num=2)
+model = models.straight_model(height=crop_size[0], width=crop_size[1], depth=crop_size[2], points_num=1)
 model.summary()
 
 # y_tag: "one_landmark", "two_landmarks", "mean_two_landmarks"
-y_tag = "two_landmarks_res"
-model_name = "straight_model_no_bn"
+y_tag = "one_landmark_res"
+model_name = "straight_model"
 model_tag = "cropped"
 model_size = f"{crop_size[0]}x{crop_size[1]}x{crop_size[2]}"
 model_label = f"{model_name}_{model_tag}_{model_size}"
 save_dir = f"/data/gpfs/projects/punim1836/Training/trained_models/{model_tag}_dataset/{model_name}/{y_tag}/{model_size}/"
+
+# create the dir if not exist
+if os.path.exists(save_dir):
+    print("Save model to: ", save_dir)
+else:
+    os.makedirs(save_dir)
+    print("Create dir and save model in it: ", save_dir)
 
 
 @tf.function
