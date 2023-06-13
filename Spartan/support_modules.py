@@ -196,6 +196,33 @@ def load_dataset_crop(x_path, y_path, length_path, pat_splits, crop_layers):
     return x_train, y_train, length_train, x_val, y_val, length_val, x_test, y_test, length_test
 
 
+def load_dataset_crop_test_only(x_path, y_path, length_path, pat_splits, crop_layers):
+    x_dataset = np.load(x_path)
+    y_dataset = np.load(y_path).astype('float32')
+    length_dataset = np.load(length_path).astype('float32')
+
+    row_num = x_dataset.shape[1]
+    column_num = x_dataset.shape[2]
+    slice_num = x_dataset.shape[3]
+
+    if not np.all(crop_layers == 0):
+        x_dataset = x_dataset[:,
+                    crop_layers[0][0]:(row_num - crop_layers[0][1]),
+                    crop_layers[1][0]:(column_num - crop_layers[1][1]),
+                    crop_layers[2][0]:(slice_num - crop_layers[2][1]), :]
+        y_dataset = y_dataset - [crop_layers[1, 0], crop_layers[0, 0], crop_layers[2, 0]]
+        y_dataset = y_dataset.astype('float32')
+        # left ear
+        length_dataset[range(0, 2000, 2)] = \
+            length_dataset[range(0, 2000, 2)] + [crop_layers[1, 0], crop_layers[0, 0], crop_layers[2, 0]]
+        # right ear, because of the flip
+        length_dataset[range(1, 2000, 2)] = \
+            length_dataset[range(1, 2000, 2)] + [crop_layers[1, 1], crop_layers[0, 0], crop_layers[2, 0]]
+        length_dataset = length_dataset.astype('float32')
+
+    return x_dataset, y_dataset, length_dataset
+
+
 # load dataset from the separate files: X_dir, Y_dir, Length_dir
 # idx_splits: [[train_idx], [val_idx], [test_idx]], idx from 0 to 19
 # crop_layers: ndarray shape(3*2), [[row_ascending, row_descending], [column_a, column_d], [slice_a, slice_d]]
