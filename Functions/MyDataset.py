@@ -124,7 +124,7 @@ def get_pat_splits(static=False):
                   np.asarray([3, 13]), np.asarray([8, 7, 1, 15])]
 
     if not static:
-        pat_idx = np.arange(0, 19)
+        pat_idx = np.arange(0, 20)
         np.random.shuffle(pat_idx)
         pat_splits = np.split(pat_idx, [int(.7 * len(pat_idx)), int(.8 * len(pat_idx))])
 
