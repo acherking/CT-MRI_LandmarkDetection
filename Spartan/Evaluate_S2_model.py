@@ -68,42 +68,63 @@ def corrode_sym_rcs(x_dataset, y_dataset, res_dataset, model_f, err_array_file_f
     print("Saved: ", err_array_file_f)
 
 
-def corrode_asym_rcs(x_dataset, y_dataset, res_dataset, model_f, err_array_file_f):
+def corrode_asym_rcs(x_dataset, y_dataset, res_dataset, volume_shape, cut_nums, model_f, err_array_file_f):
     """
-
+    volume_shape: (row, column, slice)
+    cut_nums: (row_ascending, row_descending, column_a, column_d, slice_a, slice_d)
     """
-    err_array = np.ones((6, 50)) * -1
+    err_array = np.ones((6, np.max(cut_nums)+1)) * -1
     fill_val = np.min(x_dataset)
     # cut layers, Shape e.g. (n, 100, 100, 100, 1)
     for surf_id in range(0, 6):
-        for cut_num in range(0, 50):
-            x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
+        x_dataset_corroded = np.copy(x_dataset)
+        for cut_num in range(0, cut_nums[surf_id]+1):
+            # x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
             if surf_id == 0:
                 corrode_info = "cut row num from ascending order"
-                x_dataset_corroded[:, cut_num:, :, :, :] = x_dataset[:, cut_num:, :, :, :]
+                # x_dataset_corroded[:, cut_num:, :, :, :] = x_dataset[:, cut_num:, :, :, :]
+                if cut_num > 0:
+                    x_dataset_corroded[:, cut_num-1, :, :, :] = fill_val
             elif surf_id == 1:
                 corrode_info = "cut row num from descending order"
-                x_dataset_corroded[:, 0:(100-cut_num), :, :, :] = x_dataset[:, 0:(100-cut_num), :, :, :]
+                # x_dataset_corroded[:, 0:(volume_shape[0]-cut_num), :, :, :] = x_dataset[:, 0:(volume_shape[0]-cut_num), :, :, :]
+                if cut_num > 0:
+                    x_dataset_corroded[:, -cut_num, :, :, :] = fill_val
             elif surf_id == 2:
                 corrode_info = "cut column num from ascending order"
-                x_dataset_corroded[:, :, cut_num:, :, :] = x_dataset[:, :, cut_num:, :, :]
+                # x_dataset_corroded[:, :, cut_num:, :, :] = x_dataset[:, :, cut_num:, :, :]
+                if cut_num > 0:
+                    x_dataset_corroded[:, :, cut_num-1, :, :] = fill_val
             elif surf_id == 3:
                 corrode_info = "cut column num from descending order"
-                x_dataset_corroded[:, :, 0:(100-cut_num), :, :] = x_dataset[:, :, 0:(100-cut_num), :, :]
+                # x_dataset_corroded[:, :, 0:(volume_shape[1]-cut_num), :, :] = x_dataset[:, :, 0:(volume_shape[1]-cut_num), :, :]
+                if cut_num > 0:
+                    x_dataset_corroded[:, :, -cut_num, :, :] = fill_val
             elif surf_id == 4:
                 corrode_info = "cut slice num from ascending order"
-                x_dataset_corroded[:, :, :, cut_num:, :] = x_dataset[:, :, :, cut_num:, :]
+                # x_dataset_corroded[:, :, :, cut_num:, :] = x_dataset[:, :, :, cut_num:, :]
+                if cut_num > 0:
+                    x_dataset_corroded[:, :, :, cut_num-1, :] = fill_val
             elif surf_id == 5:
                 corrode_info = "cut slice num from descending order"
-                x_dataset_corroded[:, :, :, 0:(100-cut_num), :] = x_dataset[:, :, :, 0:(100-cut_num), :]
+                # x_dataset_corroded[:, :, :, 0:(volume_shape[2]-cut_num), :] = x_dataset[:, :, :, 0:(volume_shape[2]-cut_num), :]
+                if cut_num > 0:
+                    x_dataset_corroded[:, :, :, -cut_num, :] = fill_val
+
             dataset = tf.data.Dataset.from_tensor_slices((x_dataset_corroded, y_dataset, res_dataset)).batch(2)
 
             err, _ = my_evaluate(model_f, dataset)
+            del dataset
+
             err_array[surf_id, cut_num] = err
             print(f"{corrode_info}: {cut_num}, MSE with res (mm^2 per 1/2 points): ", err)
 
+        del x_dataset_corroded
+        np.save(err_array_file_f, err_array)
+        print("Partially Saved: ", err_array_file_f)
+
     np.save(err_array_file_f, err_array)
-    print("Saved: ", err_array_file_f)
+    print("Final Saved: ", err_array_file_f)
 
     # err_array_ind = np.ones((6, 50)) * -1
     # # cut row ascending
@@ -238,13 +259,19 @@ def corrode_baseline(x_dataset, y_dataset, res_dataset, model_f, crop_layers):
 ###
 # Start main process
 ###
-crop_layers = np.asarray([[0, 0], [0, 0], [0, 0]])
-crop_size = (100, 100, 100)
+crop_layers = np.asarray([[25, 25], [25, 25], [0, 0]])
+crop_size = (150, 150, 100)
 
-X_path = "/data/gpfs/projects/punim1836/Data/cropped/cropped_volumes_x5050y5050z5050.npy"
-Y_path = "/data/gpfs/projects/punim1836/Data/cropped/cropped_points_x5050y5050z5050.npy"
-Cropped_length_path = "/data/gpfs/projects/punim1836/Data/cropped/cropped_length_x5050y5050z5050.npy"
+# crop_tag = "x5050y5050z5050"
+crop_tag = "x100100y100100z5050"
+base_dir = "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth"
+
+X_path = f"{base_dir}/{crop_tag}/cropped_volumes_{crop_tag}_truth.npy"
+Y_path = f"{base_dir}/{crop_tag}/cropped_points_{crop_tag}_truth.npy"
+Cropped_length_path = f"{base_dir}/{crop_tag}/cropped_length_{crop_tag}_truth.npy"
+
 pat_splits = MyDataset.get_pat_splits(static=True)
+
 X_train, Y_train, length_train, X_val, Y_val, length_val, X_test, Y_test, length_test = \
     supporter.load_dataset_crop(X_path, Y_path, Cropped_length_path, pat_splits, crop_layers)
 
@@ -260,23 +287,24 @@ res_test = (np.ones((400, 1, 3)) * 0.15).astype('float32')
 y_tag = "one_landmark_res"
 model_name = "straight_model"
 model_tag = "cropped"
-model_size = f"{crop_size[0]}_{crop_size[1]}_{crop_size[2]}"
+model_size = f"{crop_size[0]}x{crop_size[1]}x{crop_size[2]}"
 model_label = f"{model_name}_{model_tag}_{model_size}"
 base_dir = "/data/gpfs/projects/punim1836/Training/trained_models"
-model_dir = f"{base_dir}/{model_tag}_dataset/{model_name}/{y_tag}/100x100x100"
+model_dir = f"{base_dir}/{model_tag}_dataset/{model_name}/{y_tag}/{model_size}"
 save_dir = f"{model_dir}/corroding_test"
 
-err_array_file = f"{save_dir}/err_corrode50x6"
+err_array_file = f"{save_dir}/err_corrode100x4and50x2_bestVal"
 
 # some configuration (make life easier?)
 model_path = f"{model_dir}/bestVal_{model_label}"
 model = keras.models.load_model(model_path)
 
-# corrode_asym_rcs(X_train, Y_train_one, res_train, model, err_array_file)
+corrode_layers = np.asarray([120, 120, 120, 120, 80, 80])
+corrode_asym_rcs(X_train, Y_train_one, res_train, crop_size, corrode_layers, model, err_array_file)
 
-crop_layers = np.asarray([[20, 10], [0, 20], [25, 18]])
-print("Train Dataset")
-corrode_baseline(X_train, Y_train_one, res_train, model, crop_layers)
-print("Test Dataset")
-corrode_baseline(X_test, Y_test_one, res_test, model, crop_layers)
+# crop_layers = np.asarray([[20, 10], [0, 20], [25, 18]])
+# print("Train Dataset")
+# corrode_baseline(X_train, Y_train_one, res_train, model, crop_layers)
+# print("Test Dataset")
+# corrode_baseline(X_test, Y_test_one, res_test, model, crop_layers)
 

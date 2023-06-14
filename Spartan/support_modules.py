@@ -1,6 +1,7 @@
 import numpy as np
 
 import Functions.MyDataset as MyDataset
+import Functions.MyCrop as MyCrop
 
 
 # load dataset from various directories (train, val, test), volume and pts are separated.
@@ -149,11 +150,15 @@ def load_dataset_crop(x_path, y_path, length_path, pat_splits, crop_layers):
     y_dataset = np.load(y_path).astype('float32')
     length_dataset = np.load(length_path).astype('float32')
 
+    row_num = x_dataset.shape[1]
+    column_num = x_dataset.shape[2]
+    slice_num = x_dataset.shape[3]
+
     if not np.all(crop_layers == 0):
         x_dataset = x_dataset[:,
-                    crop_layers[0][0]:(100 - crop_layers[0][1]),
-                    crop_layers[1][0]:(100 - crop_layers[1][1]),
-                    crop_layers[2][0]:(100 - crop_layers[2][1]), :]
+                    crop_layers[0][0]:(row_num - crop_layers[0][1]),
+                    crop_layers[1][0]:(column_num - crop_layers[1][1]),
+                    crop_layers[2][0]:(slice_num - crop_layers[2][1]), :]
         y_dataset = y_dataset - [crop_layers[1, 0], crop_layers[0, 0], crop_layers[2, 0]]
         y_dataset = y_dataset.astype('float32')
         # left ear
@@ -189,6 +194,95 @@ def load_dataset_crop(x_path, y_path, length_path, pat_splits, crop_layers):
     length_test = length_dataset[test_idx]
 
     return x_train, y_train, length_train, x_val, y_val, length_val, x_test, y_test, length_test
+
+
+def load_dataset_crop_test_only(x_path, y_path, length_path, pat_splits, crop_layers):
+    x_dataset = np.load(x_path)
+    y_dataset = np.load(y_path).astype('float32')
+    length_dataset = np.load(length_path).astype('float32')
+
+    row_num = x_dataset.shape[1]
+    column_num = x_dataset.shape[2]
+    slice_num = x_dataset.shape[3]
+
+    if not np.all(crop_layers == 0):
+        x_dataset = x_dataset[:,
+                    crop_layers[0][0]:(row_num - crop_layers[0][1]),
+                    crop_layers[1][0]:(column_num - crop_layers[1][1]),
+                    crop_layers[2][0]:(slice_num - crop_layers[2][1]), :]
+        y_dataset = y_dataset - [crop_layers[1, 0], crop_layers[0, 0], crop_layers[2, 0]]
+        y_dataset = y_dataset.astype('float32')
+        # left ear
+        length_dataset[range(0, 2000, 2)] = \
+            length_dataset[range(0, 2000, 2)] + [crop_layers[1, 0], crop_layers[0, 0], crop_layers[2, 0]]
+        # right ear, because of the flip
+        length_dataset[range(1, 2000, 2)] = \
+            length_dataset[range(1, 2000, 2)] + [crop_layers[1, 1], crop_layers[0, 0], crop_layers[2, 0]]
+        length_dataset = length_dataset.astype('float32')
+
+    return x_dataset, y_dataset, length_dataset
+
+
+# load dataset from the separate files: X_dir, Y_dir, Length_dir
+# idx_splits: [[train_idx], [val_idx], [test_idx]], idx from 0 to 19
+# crop_layers: ndarray shape(3*2), [[row_ascending, row_descending], [column_a, column_d], [slice_a, slice_d]]
+def load_dataset_crop_dir(x_dir, y_dir, length_dir):
+    pat_names = MyDataset.get_pat_names()
+
+    # Combine cropped volumes
+    cropped_volumes = []
+    cropped_points = []
+    cropped_length = []
+
+    for pat_name in pat_names:
+        for aug_id in range(1, 51):
+            print("**************" + pat_name + "__" + str(aug_id) + "***************")
+            cropped_volume_left_path = x_dir + pat_name + "_augVolume_" + str(aug_id) + "_cropped_left.npy"
+            cropped_volume_right_path = x_dir + pat_name + "_augVolume_" + str(aug_id) + "_cropped_right.npy"
+            cropped_points_left_path = y_dir + pat_name + "_augPoints_" + str(aug_id) + "_cropped_left.npy"
+            cropped_length_left_path = length_dir + pat_name + "_augLength_" + str(aug_id) + "_cropped_left.npy"
+            cropped_points_right_path = y_dir + pat_name + "_augPoints_" + str(aug_id) + "_cropped_right.npy"
+            cropped_length_right_path = length_dir + pat_name + "_augLength_" + str(aug_id) + "_cropped_right.npy"
+            cropped_volume_left = np.load(cropped_volume_left_path)
+            cropped_volume_right = np.load(cropped_volume_right_path)
+            cropped_points_left = np.load(cropped_points_left_path)
+            cropped_length_left = np.load(cropped_length_left_path)
+            cropped_points_right = np.load(cropped_points_right_path)
+            cropped_length_right = np.load(cropped_length_right_path)
+            cropped_volumes.append(cropped_volume_left)
+            cropped_volumes.append(cropped_volume_right)
+            cropped_points.append(cropped_points_left)
+            cropped_points.append(cropped_points_right)
+            cropped_length.append(cropped_length_left)
+            cropped_length.append(cropped_length_right)
+
+    print(len(cropped_volumes))
+    print(len(cropped_points))
+    print(len(cropped_length))
+
+    cropped_volumes = np.asarray(cropped_volumes).reshape((2000, 200, 200, 100, 1))
+    cropped_points = np.asarray(cropped_points).reshape((2000, 2, 3))
+    cropped_length = np.asarray(cropped_length).reshape((2000, 2, 3))
+
+    crop_layers = np.asarray([[25, 25], [25, 25], [0, 0]])
+
+    cropped_volumes, cropped_points, cropped_length = \
+        MyCrop.crop_outside_layers(cropped_volumes, cropped_points, cropped_length, crop_layers, keep_blank=False)
+
+    crop_size = "x7575y7575z5050"
+    comb_tag = "truth"
+    save_comb_dir = f"/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/{crop_size}"
+    save_volume_path = f"{save_comb_dir}/cropped_volumes_{crop_size}_{comb_tag}.npy"
+    save_points_path = f"{save_comb_dir}/cropped_points_{crop_size}_{comb_tag}.npy"
+    save_length_path = f"{save_comb_dir}/cropped_length_{crop_size}_{comb_tag}.npy"
+    np.save(save_volume_path, cropped_volumes)
+    print("saved: ", save_volume_path)
+    np.save(save_points_path, cropped_points)
+    print("saved: ", save_points_path)
+    np.save(save_length_path, cropped_length)
+    print("saved: ", save_length_path)
+
+    return 1
 
 
 def load_dataset_divide(dataset_dir, rescaled_size, pat_splits):

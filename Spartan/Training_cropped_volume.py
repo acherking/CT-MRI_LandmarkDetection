@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow import keras
 import numpy as np
 import time
+import os
 
 import Functions.MyDataset as MyDataset
 import support_modules
@@ -12,14 +13,21 @@ import models
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-crop_layers = np.asarray([[20, 10], [0, 20], [25, 18]])
-crop_size = (100-crop_layers[0, 0]-crop_layers[0, 1],
-             100-crop_layers[1, 0]-crop_layers[1, 1],
-             100-crop_layers[2, 0]-crop_layers[2, 1])
+volume_shape = (200, 200, 100)
+cut_base = [25, 25, 25, 25, 0, 0]
+crop_layers = np.asarray([[cut_base[0]+47, cut_base[1]+22], [cut_base[2]+57, cut_base[3]+61], [cut_base[4]+26, cut_base[5]+29]])
+crop_size = (volume_shape[0]-crop_layers[0, 0]-crop_layers[0, 1],
+             volume_shape[1]-crop_layers[1, 0]-crop_layers[1, 1],
+             volume_shape[2]-crop_layers[2, 0]-crop_layers[2, 1])
 
-X_path = "/data/gpfs/projects/punim1836/Data/cropped/cropped_volumes_x5050y5050z5050.npy"
-Y_path = "/data/gpfs/projects/punim1836/Data/cropped/cropped_points_x5050y5050z5050.npy"
-Cropped_length_path = "/data/gpfs/projects/punim1836/Data/cropped/cropped_length_x5050y5050z5050.npy"
+# crop_tag = "x5050y5050z5050"
+crop_tag = "x100100y100100z5050"
+base_dir = "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth"
+
+X_path = f"{base_dir}/{crop_tag}/cropped_volumes_{crop_tag}_truth.npy"
+Y_path = f"{base_dir}/{crop_tag}/cropped_points_{crop_tag}_truth.npy"
+Cropped_length_path = f"{base_dir}/{crop_tag}/cropped_length_{crop_tag}_truth.npy"
+
 pat_splits = MyDataset.get_pat_splits(static=True)
 X_train, Y_train, length_train, X_val, Y_val, length_val, X_test, Y_test, length_test = \
     support_modules.load_dataset_crop(X_path, Y_path, Cropped_length_path, pat_splits, crop_layers)
@@ -92,6 +100,13 @@ model_tag = "cropped"
 model_size = f"{crop_size[0]}x{crop_size[1]}x{crop_size[2]}"
 model_label = f"{model_name}_{model_tag}_{model_size}"
 save_dir = f"/data/gpfs/projects/punim1836/Training/trained_models/{model_tag}_dataset/{model_name}/{y_tag}/{model_size}/"
+
+# create the dir if not exist
+if os.path.exists(save_dir):
+    print("Save model to: ", save_dir)
+else:
+    os.makedirs(save_dir)
+    print("Create dir and save model in it: ", save_dir)
 
 
 @tf.function
