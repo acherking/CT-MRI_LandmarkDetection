@@ -264,22 +264,55 @@ def load_dataset_crop_dir(x_dir, y_dir, length_dir):
     cropped_points = np.asarray(cropped_points).reshape((2000, 2, 3))
     cropped_length = np.asarray(cropped_length).reshape((2000, 2, 3))
 
-    crop_layers = np.asarray([[25, 25], [25, 25], [0, 0]])
+    crop_layers_150x150x100 = np.asarray([[25, 25], [25, 25], [0, 0]])
+    crop_layers_100x100x100 = np.asarray([[50, 50], [50, 50], [0, 0]])
 
-    cropped_volumes, cropped_points, cropped_length = \
-        MyCrop.crop_outside_layers(cropped_volumes, cropped_points, cropped_length, crop_layers, keep_blank=False)
+    cropped_volumes_150x150x100, cropped_points_150x150x100, cropped_length_150x150x100 = \
+        MyCrop.crop_outside_layers(cropped_volumes, cropped_points, cropped_length, crop_layers_150x150x100, keep_blank=False)
+
+    cropped_volumes_100x100x100, cropped_points_100x100x100, cropped_length_100x100x100 = \
+        MyCrop.crop_outside_layers(cropped_volumes, cropped_points, cropped_length, crop_layers_100x100x100, keep_blank=False)
+
+    # crop_size = "x100100y100100z5050"
+    # has_trans = "_trans"  # or ""
+    # comb_tag = "truth"
+    # save_comb_dir = f"/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/{crop_size}{has_trans}"
+    # save_volume_path = f"{save_comb_dir}/cropped_volumes_{crop_size}{has_trans}_{comb_tag}.npy"
+    # save_points_path = f"{save_comb_dir}/cropped_points_{crop_size}{has_trans}_{comb_tag}.npy"
+    # save_length_path = f"{save_comb_dir}/cropped_length_{crop_size}{has_trans}_{comb_tag}.npy"
+    # np.save(save_volume_path, cropped_volumes)
+    # print("saved: ", save_volume_path)
+    # np.save(save_points_path, cropped_points)
+    # print("saved: ", save_points_path)
+    # np.save(save_length_path, cropped_length)
+    # print("saved: ", save_length_path)
 
     crop_size = "x7575y7575z5050"
+    has_trans = "_trans"  # or ""
     comb_tag = "truth"
-    save_comb_dir = f"/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/{crop_size}"
-    save_volume_path = f"{save_comb_dir}/cropped_volumes_{crop_size}_{comb_tag}.npy"
-    save_points_path = f"{save_comb_dir}/cropped_points_{crop_size}_{comb_tag}.npy"
-    save_length_path = f"{save_comb_dir}/cropped_length_{crop_size}_{comb_tag}.npy"
-    np.save(save_volume_path, cropped_volumes)
+    save_comb_dir = f"/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/{crop_size}{has_trans}"
+    save_volume_path = f"{save_comb_dir}/cropped_volumes_{crop_size}{has_trans}_{comb_tag}.npy"
+    save_points_path = f"{save_comb_dir}/cropped_points_{crop_size}{has_trans}_{comb_tag}.npy"
+    save_length_path = f"{save_comb_dir}/cropped_length_{crop_size}{has_trans}_{comb_tag}.npy"
+    np.save(save_volume_path, cropped_volumes_150x150x100)
     print("saved: ", save_volume_path)
-    np.save(save_points_path, cropped_points)
+    np.save(save_points_path, cropped_points_150x150x100)
     print("saved: ", save_points_path)
-    np.save(save_length_path, cropped_length)
+    np.save(save_length_path, cropped_length_150x150x100)
+    print("saved: ", save_length_path)
+
+    crop_size = "x5050y5050z5050"
+    has_trans = "_trans"  # or ""
+    comb_tag = "truth"
+    save_comb_dir = f"/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/{crop_size}{has_trans}"
+    save_volume_path = f"{save_comb_dir}/cropped_volumes_{crop_size}{has_trans}_{comb_tag}.npy"
+    save_points_path = f"{save_comb_dir}/cropped_points_{crop_size}{has_trans}_{comb_tag}.npy"
+    save_length_path = f"{save_comb_dir}/cropped_length_{crop_size}{has_trans}_{comb_tag}.npy"
+    np.save(save_volume_path, cropped_volumes_100x100x100)
+    print("saved: ", save_volume_path)
+    np.save(save_points_path, cropped_points_100x100x100)
+    print("saved: ", save_points_path)
+    np.save(save_length_path, cropped_length_100x100x100)
     print("saved: ", save_length_path)
 
     return 1

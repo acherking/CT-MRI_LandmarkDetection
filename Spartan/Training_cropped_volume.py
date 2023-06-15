@@ -13,22 +13,25 @@ import models
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-volume_shape = (200, 200, 100)
-cut_base = [25, 25, 25, 25, 0, 0]
-crop_layers = np.asarray([[cut_base[0]+47, cut_base[1]+22], [cut_base[2]+57, cut_base[3]+61], [cut_base[4]+26, cut_base[5]+29]])
+volume_shape = (100, 100, 100)
+# cut_base = [25, 25, 25, 25, 0, 0]
+cut_base = [0, 0, 0, 0, 0, 0]
+# crop_layers = \
+#   np.asarray([[cut_base[0]+47, cut_base[1]+22], [cut_base[2]+57, cut_base[3]+61], [cut_base[4]+26, cut_base[5]+29]])
+crop_layers = np.asarray([[cut_base[0], cut_base[1]], [cut_base[2], cut_base[3]], [cut_base[4], cut_base[5]]])
 crop_size = (volume_shape[0]-crop_layers[0, 0]-crop_layers[0, 1],
              volume_shape[1]-crop_layers[1, 0]-crop_layers[1, 1],
              volume_shape[2]-crop_layers[2, 0]-crop_layers[2, 1])
 
-# crop_tag = "x5050y5050z5050"
-crop_tag = "x100100y100100z5050"
+crop_tag = "x5050y5050z5050_trans"
+# crop_tag = "x100100y100100z5050"
 base_dir = "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth"
 
 X_path = f"{base_dir}/{crop_tag}/cropped_volumes_{crop_tag}_truth.npy"
 Y_path = f"{base_dir}/{crop_tag}/cropped_points_{crop_tag}_truth.npy"
 Cropped_length_path = f"{base_dir}/{crop_tag}/cropped_length_{crop_tag}_truth.npy"
 
-pat_splits = MyDataset.get_pat_splits(static=False)
+pat_splits = MyDataset.get_pat_splits(static=True)
 X_train, Y_train, length_train, X_val, Y_val, length_val, X_test, Y_test, length_test = \
     support_modules.load_dataset_crop(X_path, Y_path, Cropped_length_path, pat_splits, crop_layers)
 
@@ -43,7 +46,7 @@ res_test = (np.ones((400, 1, 3)) * 0.15).astype('float32')
 """ *** Training Process *** """
 
 batch_size = 2
-epochs = 35
+epochs = 100
 min_val_mse = 400
 
 # Set
@@ -90,13 +93,13 @@ test_mse_metric = keras.metrics.Mean()
 # Set
 # Get model.
 # model = models.first_model(width=size[0], height=size[1], depth=size[2])
-model = models.straight_model_short(height=crop_size[0], width=crop_size[1], depth=crop_size[2], points_num=1)
+model = models.straight_model(height=crop_size[0], width=crop_size[1], depth=crop_size[2], points_num=1)
 model.summary()
 
 # y_tag: "one_landmark", "two_landmarks", "mean_two_landmarks"
 y_tag = "one_landmark_res"
-model_name = "straight_model_short"
-model_tag = "cropped"
+model_name = "straight_model"
+model_tag = "cropped_trans"
 model_size = f"{crop_size[0]}x{crop_size[1]}x{crop_size[2]}"
 model_label = f"{model_name}_{model_tag}_{model_size}"
 save_dir = f"/data/gpfs/projects/punim1836/Training/trained_models/{model_tag}_dataset/{model_name}/{y_tag}/{model_size}/"

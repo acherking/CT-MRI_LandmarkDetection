@@ -62,8 +62,8 @@ res_test = (np.ones((400, 1, 3)) * 0.15).astype('float32')
 
 # y_tag: "one_landmark" -> OL, "two_landmarks" -> TL, "mean_two_landmarks" -> MTL
 y_tag = "one_landmark_res"
-model_name = "straight_model"
-model_tag = "cropped"
+model_name = "straight_model_short"
+model_tag = "cropped_trans"
 model_size = f"{crop_size[0]}x{crop_size[1]}x{crop_size[2]}"
 model_label = f"{model_name}_{model_tag}_{model_size}"
 base_dir = "/data/gpfs/projects/punim1836/Training/trained_models"

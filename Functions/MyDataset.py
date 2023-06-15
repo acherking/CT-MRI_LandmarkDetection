@@ -135,6 +135,16 @@ def get_pat_names():
     return patient_names
 
 
+def get_idx_from_pat(pat_name, aug_id, split=False):
+    pat_idx = patient_names.index(pat_name)
+    if not split:
+        idx = pat_idx * 50 + (aug_id - 1)
+    else:
+        idx = pat_idx * 100 + (aug_id - 1) * 2
+
+    return idx
+
+
 def get_pat_from_idx(idx, split=False):
     if not split:
         if idx >= 1000:
