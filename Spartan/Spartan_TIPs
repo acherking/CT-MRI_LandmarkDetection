@@ -1,6 +1,6 @@
 sinteractive -p gpu-a100 --gres=gpu:1 -A ***
 # sinteractive -p gpu-a100 --gres=gpu:1 --mem=30G --time=(01:30:00?)
-sinteractive -p gpu-a100 --gres=gpu:1 --mem=50G --time=02:30:00
+
 
 -p: partition
 --gres: generic resources
@@ -11,6 +11,7 @@ sinteractive -p gpu-a100 --gres=gpu:1 --mem=50G --time=02:30:00
 module purge
 module load cuda/11.1.1
 module load tensorflow/2.6.0-python-3.8.6
+ 
 
 # It seems this version was not compiled to use GPU
 module load tensorflow/2.7.1
@@ -34,3 +35,20 @@ tf.debugging.set_log_device_placement(True)
 *** Conda 
 # activate Env
 . /Users/achs/opt/anaconda3/bin/activate && conda activate /Users/achs/opt/anaconda3/envs/test;
+
+*** Python crop and combine
+base_dir = "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/x100100y100100z8080"
+
+x_dir = base_dir + "/volumes/"
+
+y_dir = base_dir + "/points/"
+
+length_dir = base_dir + "/length/"
+
+import support_modules
+
+support_modules.load_dataset_crop_dir(x_dir,y_dir,length_dir)
+
+import importlib
+
+importlib.reload(support_modules)

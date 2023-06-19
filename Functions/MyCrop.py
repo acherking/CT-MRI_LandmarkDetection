@@ -233,24 +233,71 @@ def crop_outside_layers(x_volumes_org, y_landmarks_org, length_org, crop_layers,
 # x_volumes_org: (instance_num, row_num, column_num, slice_num, 1)
 # y_landmarks_org: (instance_num, landmarks_num ,dimensions_num)
 # length_org: (instance_num, landmarks_num, dimensions_num)
-# centre_shift: (instance_num, dimensions_num); in mm; '+' --> shift in descending order, '-'
+# centre_shift: (instance_num, 1, dimensions_num); in mm; '+' --> shift in descending order, '-' opposite
 def crop_outside_layers_trans(x_volumes_org, y_landmarks_org, length_org,
-                              centre_shift, target_shape=(150, 150, 100), keep_blank=True):
+                              centre_shift, target_shape=(150, 150, 100)):
     x_dataset = x_volumes_org
     y_dataset = y_landmarks_org
     length_dataset = length_org
 
-    row_num = x_dataset.shape[1]
-    column_num = x_dataset.shape[2]
-    slice_num = x_dataset.shape[3]
+    # for convenience
+    # centre_shift = centre_shift.reshape(centre_shift.shape[0], 1, centre_shift.shape[1])
+    centre_shift = np.repeat(centre_shift, 2, axis=1)
 
-    if keep_blank:
-        fill_val = np.min(x_dataset)
-        x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
+    # swap x and y
+    y_dataset = y_dataset[:, :, [1, 0, 2]]
+    length_dataset = length_dataset[:, :, [1, 0, 2]]
+    centre_shift = centre_shift[:, :, [1, 0, 2]]
 
-    else:
+    # debug
+    print("***********Original Y **********")
+    print(y_dataset[0:10])
+    print("***********Original length **********")
+    print(length_dataset[0:10])
+    print("***********Centre Shift **********")
+    print(centre_shift[0:10])
 
-    return x_dataset, y_dataset, length_dataset
+    # calculate the crop parameters
+    row_start_base = np.ceil((x_dataset.shape[1] - target_shape[0]) / 2)
+    column_start_base = np.ceil((x_dataset.shape[2] - target_shape[1]) / 2)
+    slice_start_base = np.ceil((x_dataset.shape[3] - target_shape[2]) / 2)
+    crop_start_array = np.ones(y_dataset.shape) * [row_start_base, column_start_base, slice_start_base]
+    crop_start_array = (crop_start_array - centre_shift / 0.15).astype(int)
+    crop_start_array = np.where(crop_start_array < 0, 0, crop_start_array)
+
+    # calculate new y_dataset and length_dataset (after crop)
+    y_dataset = y_dataset - crop_start_array
+    ## left ear
+    length_dataset[range(0, 2000, 2)] = length_dataset[range(0, 2000, 2)] + crop_start_array[range(0, 2000, 2)]
+    ## right ear, because of the flip
+    right_ear_length_shift = np.copy(crop_start_array[range(1, 2000, 2)])
+    right_ear_length_shift[:, :, 1] = np.ones(right_ear_length_shift[:, :, 1].shape) * \
+                                      (x_dataset.shape[2] - target_shape[1]) - right_ear_length_shift[:, :, 1]
+    length_dataset[range(1, 2000, 2)] = length_dataset[range(1, 2000, 2)] + right_ear_length_shift
+
+    # debug
+    print("***********New Y **********")
+    print(y_dataset[0:10])
+    print("***********New Length **********")
+    print(length_dataset[0:10])
+
+    # swap back x and y; for Y_dataset, length_dataset
+    y_dataset = y_dataset[:, :, [1, 0, 2]]
+    length_dataset = length_dataset[:, :, [1, 0, 2]]
+
+    # calculate the cropped volume
+    fill_val = np.min(x_dataset)
+    x_dataset_corroded = np.ones((x_dataset.shape[0], 150, 150, 100, 1)) * fill_val
+
+    for idx in range(0, x_dataset.shape[0]):
+        if idx % 100 == 0:
+            print("Crop volume: ", idx)
+        x_dataset_corroded[idx] = x_dataset[idx,
+                                  crop_start_array[idx, 0, 0]:(crop_start_array[idx, 0, 0]+target_shape[0]),
+                                  crop_start_array[idx, 0, 1]:(crop_start_array[idx, 0, 1]+target_shape[1]),
+                                  crop_start_array[idx, 0, 2]:(crop_start_array[idx, 0, 2]+target_shape[2]), :]
+
+    return x_dataset_corroded, y_dataset, length_dataset
 
 
 # points: (num of points, num of dimensions)

@@ -1,3 +1,5 @@
+import os
+
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
@@ -69,6 +71,13 @@ model_label = f"{model_name}_{model_tag}_{model_size}"
 base_dir = "/data/gpfs/projects/punim1836/Training/trained_models"
 model_dir = f"{base_dir}/{model_tag}_dataset/{model_name}/{y_tag}/{model_size}"
 save_dir = f"{model_dir}/final_results"
+
+# create the dir if not exist
+if os.path.exists(save_dir):
+    print("Save final results to: ", save_dir)
+else:
+    os.makedirs(save_dir)
+    print("Create dir and save final results in it: ", save_dir)
 
 pred_file_path = f"{save_dir}/{model_label}_{y_tag}_Ytest_pred"
 

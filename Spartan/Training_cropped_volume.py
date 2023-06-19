@@ -13,9 +13,9 @@ import models
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-volume_shape = (100, 100, 100)
-# cut_base = [25, 25, 25, 25, 0, 0]
-cut_base = [0, 0, 0, 0, 0, 0]
+volume_shape = (150, 150, 100)
+cut_base = [25, 25, 25, 25, 0, 0]
+# cut_base = [0, 0, 0, 0, 0, 0]
 # crop_layers = \
 #   np.asarray([[cut_base[0]+47, cut_base[1]+22], [cut_base[2]+57, cut_base[3]+61], [cut_base[4]+26, cut_base[5]+29]])
 crop_layers = np.asarray([[cut_base[0], cut_base[1]], [cut_base[2], cut_base[3]], [cut_base[4], cut_base[5]]])
@@ -23,13 +23,14 @@ crop_size = (volume_shape[0]-crop_layers[0, 0]-crop_layers[0, 1],
              volume_shape[1]-crop_layers[1, 0]-crop_layers[1, 1],
              volume_shape[2]-crop_layers[2, 0]-crop_layers[2, 1])
 
-crop_tag = "x5050y5050z5050_trans"
-# crop_tag = "x100100y100100z5050"
+crop_tag = "x7575y7575z5050"
+has_trans = "_trans"
+trans_tag = "_expand_s1_test"
 base_dir = "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth"
 
-X_path = f"{base_dir}/{crop_tag}/cropped_volumes_{crop_tag}_truth.npy"
-Y_path = f"{base_dir}/{crop_tag}/cropped_points_{crop_tag}_truth.npy"
-Cropped_length_path = f"{base_dir}/{crop_tag}/cropped_length_{crop_tag}_truth.npy"
+X_path = f"{base_dir}/{crop_tag}{has_trans}/cropped_volumes_{crop_tag}_truth{trans_tag}.npy"
+Y_path = f"{base_dir}/{crop_tag}{has_trans}/cropped_points_{crop_tag}_truth{trans_tag}.npy"
+Cropped_length_path = f"{base_dir}/{crop_tag}{has_trans}/cropped_length_{crop_tag}_truth{trans_tag}.npy"
 
 pat_splits = MyDataset.get_pat_splits(static=True)
 X_train, Y_train, length_train, X_val, Y_val, length_val, X_test, Y_test, length_test = \
