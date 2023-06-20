@@ -131,6 +131,23 @@ def get_pat_splits(static=False):
     return pat_splits
 
 
+def get_data_splits(static=False, split=False):
+    pat_splits = get_pat_splits(static)
+
+    if split:
+        idx_splits = [[list(range(i * 100, i * 100 + 100)) for i in j] for j in pat_splits]
+        for i in range(0, 3):
+            idx_splits[i] = [num for sublist in idx_splits[i] for num in sublist]
+            idx_splits[i] = np.asarray(idx_splits[i])
+    else:
+        idx_splits = [[list(range(i * 50, i * 50 + 50)) for i in j] for j in pat_splits]
+        for i in range(0, 3):
+            idx_splits[i] = [num for sublist in idx_splits[i] for num in sublist]
+            idx_splits[i] = np.asarray(idx_splits[i])
+
+    return idx_splits
+
+
 def get_pat_names():
     return patient_names
 

@@ -24,13 +24,17 @@ crop_size = (volume_shape[0]-crop_layers[0, 0]-crop_layers[0, 1],
              volume_shape[2]-crop_layers[2, 0]-crop_layers[2, 1])
 
 crop_tag = "x7575y7575z5050"
-has_trans = "_trans"
-trans_tag = "_expand_s1_test"
+has_trans = "trans"
+trans_tag = "s1_all"
 base_dir = "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth"
 
-X_path = f"{base_dir}/{crop_tag}{has_trans}/cropped_volumes_{crop_tag}_truth{trans_tag}.npy"
-Y_path = f"{base_dir}/{crop_tag}{has_trans}/cropped_points_{crop_tag}_truth{trans_tag}.npy"
-Cropped_length_path = f"{base_dir}/{crop_tag}{has_trans}/cropped_length_{crop_tag}_truth{trans_tag}.npy"
+X_path = f"{base_dir}/{crop_tag}_{has_trans}/cropped_volumes_{crop_tag}_truth_{trans_tag}.npy"
+Y_path = f"{base_dir}/{crop_tag}_{has_trans}/cropped_points_{crop_tag}_truth_{trans_tag}.npy"
+Cropped_length_path = f"{base_dir}/{crop_tag}_{has_trans}/cropped_length_{crop_tag}_truth_{trans_tag}.npy"
+
+print("Read Volumes from:   ", X_path)
+print("Read Points from:    ", Y_path)
+print("Read Length from:    ", Cropped_length_path)
 
 pat_splits = MyDataset.get_pat_splits(static=True)
 X_train, Y_train, length_train, X_val, Y_val, length_val, X_test, Y_test, length_test = \
@@ -103,7 +107,8 @@ model_name = "straight_model"
 model_tag = "cropped_trans"
 model_size = f"{crop_size[0]}x{crop_size[1]}x{crop_size[2]}"
 model_label = f"{model_name}_{model_tag}_{model_size}"
-save_dir = f"/data/gpfs/projects/punim1836/Training/trained_models/{model_tag}_dataset/{model_name}/{y_tag}/{model_size}/"
+save_dir = f"/data/gpfs/projects/punim1836/Training/trained_models/" \
+           f"{model_tag}_dataset/{model_name}/{y_tag}/{model_size}/{trans_tag}/"
 
 # create the dir if not exist
 if os.path.exists(save_dir):

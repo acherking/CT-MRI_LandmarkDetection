@@ -264,6 +264,7 @@ def crop_outside_layers_trans(x_volumes_org, y_landmarks_org, length_org,
     crop_start_array = np.ones(y_dataset.shape) * [row_start_base, column_start_base, slice_start_base]
     crop_start_array = (crop_start_array - centre_shift / 0.15).astype(int)
     crop_start_array = np.where(crop_start_array < 0, 0, crop_start_array)
+    crop_start_array = np.where(crop_start_array > 50, 50, crop_start_array)
 
     # calculate new y_dataset and length_dataset (after crop)
     y_dataset = y_dataset - crop_start_array

@@ -265,14 +265,14 @@ def load_dataset_crop_dir(x_dir, y_dir, length_dir):
     cropped_length = np.asarray(cropped_length).reshape((2000, 2, 3))
 
     # read centre shift
-    centre_shift = np.load("res/crop_normal_bias_array.npy")
+    centre_shift = np.load("res/noises_s1_pred_all.npy")
 
     cropped_volumes, cropped_points, cropped_length = \
         MyCrop.crop_outside_layers_trans(cropped_volumes, cropped_points, cropped_length, centre_shift)
 
     crop_size = "x7575y7575z5050"
     has_trans = "_trans"  # or ""
-    trans_tag = "expand_s1_test"
+    trans_tag = "s1_all"
     comb_tag = "truth"
     save_comb_dir = f"/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/{crop_size}{has_trans}"
     save_volume_path = f"{save_comb_dir}/cropped_volumes_{crop_size}_{comb_tag}_{trans_tag}.npy"
@@ -288,7 +288,7 @@ def load_dataset_crop_dir(x_dir, y_dir, length_dir):
     return 1
 
 
-def load_dataset_divide(dataset_dir, rescaled_size, pat_splits):
+def load_dataset_divide(dataset_dir, rescaled_size, pat_splits, no_split=False):
     size_str = f"{rescaled_size[0]}{rescaled_size[1]}{rescaled_size[2]}"
 
     x_dataset_path = dataset_dir + "divided_volumes_" + size_str + ".npy"
@@ -305,6 +305,10 @@ def load_dataset_divide(dataset_dir, rescaled_size, pat_splits):
 
     right_length = np.zeros(length_dataset.shape)
     length_dataset = np.concatenate((length_dataset, right_length), axis=1).reshape((length_dataset.shape[0] * 2, 1))
+
+    # without splitting to Train, Val and Test
+    if no_split:
+        return x_dataset, y_dataset, res_dataset_rep, length_dataset
 
     idx_splits = [[list(range(i * 100, i * 100 + 100)) for i in j] for j in pat_splits]
     for i in range(0, 3):
