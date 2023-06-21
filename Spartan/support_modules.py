@@ -265,14 +265,15 @@ def load_dataset_crop_dir(x_dir, y_dir, length_dir):
     cropped_length = np.asarray(cropped_length).reshape((2000, 2, 3))
 
     # read centre shift
-    centre_shift = np.load("res/noises_s1_pred_all.npy")
+    centre_shift = np.load("res/noises_s1_pred_test_expand.npy")
+    centre_shift = centre_shift * 2
 
     cropped_volumes, cropped_points, cropped_length = \
         MyCrop.crop_outside_layers_trans(cropped_volumes, cropped_points, cropped_length, centre_shift)
 
     crop_size = "x7575y7575z5050"
     has_trans = "_trans"  # or ""
-    trans_tag = "s1_all"
+    trans_tag = "s1_test_expand_x2"
     comb_tag = "truth"
     save_comb_dir = f"/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/{crop_size}{has_trans}"
     save_volume_path = f"{save_comb_dir}/cropped_volumes_{crop_size}_{comb_tag}_{trans_tag}.npy"

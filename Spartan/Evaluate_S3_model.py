@@ -66,11 +66,11 @@ res_test = (np.ones((400, 1, 3)) * 0.15).astype('float32')
 y_tag = "one_landmark_res"
 model_name = "straight_model"
 model_tag = "cropped_trans"
-trans_tag = "expand_s1_test"
+trans_tag = "/s1_all_x2"  # /s1_all
 model_size = f"{crop_size[0]}x{crop_size[1]}x{crop_size[2]}"
 model_label = f"{model_name}_{model_tag}_{model_size}"
 base_dir = "/data/gpfs/projects/punim1836/Training/trained_models"
-model_dir = f"{base_dir}/{model_tag}_dataset/{model_name}/{y_tag}/{model_size}/{trans_tag}"
+model_dir = f"{base_dir}/{model_tag}_dataset/{model_name}/{y_tag}/{model_size}{trans_tag}"
 save_dir = f"{model_dir}/final_results"
 
 # create the dir if not exist

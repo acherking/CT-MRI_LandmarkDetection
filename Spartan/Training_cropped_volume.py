@@ -25,7 +25,7 @@ crop_size = (volume_shape[0]-crop_layers[0, 0]-crop_layers[0, 1],
 
 crop_tag = "x7575y7575z5050"
 has_trans = "trans"
-trans_tag = "s1_all"
+trans_tag = "s1_test_expand_x2"
 base_dir = "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth"
 
 X_path = f"{base_dir}/{crop_tag}_{has_trans}/cropped_volumes_{crop_tag}_truth_{trans_tag}.npy"
