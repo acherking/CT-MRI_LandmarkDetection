@@ -66,7 +66,7 @@ res_test = (np.ones((400, 1, 3)) * 0.15).astype('float32')
 y_tag = "one_landmark_res"
 model_name = "straight_model"
 model_tag = "cropped_trans"
-trans_tag = "/s1_all_x2"  # /s1_all
+trans_tag = "/s1_test_dis"  # /s1_all
 model_size = f"{crop_size[0]}x{crop_size[1]}x{crop_size[2]}"
 model_label = f"{model_name}_{model_tag}_{model_size}"
 base_dir = "/data/gpfs/projects/punim1836/Training/trained_models"
@@ -83,7 +83,7 @@ else:
 pred_file_path = f"{save_dir}/{model_label}_{y_tag}_Ytest_pred"
 
 # some configuration (make life easier?)
-model_path = f"{model_dir}/bestVal_{model_label}"
+model_path = f"{model_dir}/final_{model_label}"
 model = keras.models.load_model(model_path)
 
 dataset = tf.data.Dataset.from_tensor_slices((X_test, Y_test_one, res_test)).batch(2)
