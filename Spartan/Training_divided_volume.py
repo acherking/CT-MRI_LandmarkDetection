@@ -22,10 +22,6 @@ pat_splits = MyDataset.get_pat_splits(static=True)
 X_train, Y_train, res_train, length_train, X_val, Y_val, res_val, length_val, X_test, Y_test, res_test, length_test = \
     support_modules.load_dataset_divide(dataset_dir, rescaled_size, pat_splits)
 
-Y_train = Y_train - 1
-Y_val = Y_val - 1
-Y_test = Y_test - 1
-
 Y_train_one = np.asarray(Y_train)[:, 0, :].reshape((1400, 1, 3))
 Y_val_one = np.asarray(Y_val)[:, 0, :].reshape((200, 1, 3))
 Y_test_one = np.asarray(Y_test)[:, 0, :].reshape((400, 1, 3))
@@ -92,7 +88,7 @@ model.summary()
 # y_tag: "one_landmark", "two_landmarks", "mean_two_landmarks"
 y_tag = "mean_two_landmarks"
 model_name = "straight_model"
-model_tag = "divided_y_shift_one"
+model_tag = "divided_y_right_ear_x_shift_two"
 model_size = f"{rescaled_size[0]}_{w}_{rescaled_size[2]}"
 model_label = f"{model_name}_{model_tag}_{model_size}"
 save_dir = f"/data/gpfs/projects/punim1836/Training/trained_models/{model_tag}_dataset/{model_name}/{y_tag}/"

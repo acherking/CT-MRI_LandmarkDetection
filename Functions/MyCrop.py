@@ -306,14 +306,14 @@ def flip_volume(volume, points):
     volume_s = volume.shape
     flip_v = np.fliplr(volume)
     flip_p = np.copy(points)
-    flip_p[:, [0]] = np.ones(flip_p[:, [0]].shape) * (volume_s[1] - 1) - flip_p[:, [0]]
+    flip_p[:, [0]] = np.ones(flip_p[:, [0]].shape) * (volume_s[1] + 1) - flip_p[:, [0]]
 
     return flip_v, flip_p
 
 
 def flip_volume_shape(volume_shape, points):
     flip_p = np.copy(points)
-    flip_p[:, [0]] = np.ones(flip_p[:, [0]].shape) * (volume_shape[1] - 1) - flip_p[:, [0]]
+    flip_p[:, [0]] = np.ones(flip_p[:, [0]].shape) * (volume_shape[1] + 1) - flip_p[:, [0]]
 
     return flip_p
 

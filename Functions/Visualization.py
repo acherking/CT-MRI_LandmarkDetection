@@ -61,6 +61,10 @@ def show_two_landmarks(left_volume, left_points, right_volume, right_points, pix
     x_column = numpy.arange(0.0, left_volume.shape[1] * pixel_space[1], pixel_space[1])
     z_slice = numpy.arange(0.0, left_volume.shape[2] * pixel_space[2], pixel_space[2])
 
+    left_points = left_points - 1
+    right_points = right_points - 1
+    # right_points[:, [0]] = right_points[:, [0]] + 2
+
     landmark_radius = left_volume.shape[1] * pixel_space[1] * 0.016
 
     fig, axs = pyplot.subplots(2, 2, sharex=True, constrained_layout=True)
