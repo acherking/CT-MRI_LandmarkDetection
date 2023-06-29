@@ -102,15 +102,15 @@ def crop_volume_shape(volume_shape, points, crop_size=((50, 50), (50, 50), (50, 
 
 def crop(volume, points, anchor, crop_size):
     """
-    crop_size: ((x_d, x_a), (y_d, y_a), (z_d, z_a))
-        x_d is the length from the centre of the given points to the descending direction of axis x, include the given points
-        x_a is the length from the centre of the given points to the ascending direction of axis x
+    crop_size: ((row_d, row_a), (column_d, column_a), (slice_d, slice_a))
+        row_d is the length from the centre of the given points to the descending direction of axis x, include the given points
+        row_a is the length from the centre of the given points to the ascending direction of axis x
         ...
     """
     fill_value = np.min(volume)
-    ((x_d, x_a), (y_d, y_a), (z_d, z_a)) = crop_size
+    ((row_d, row_a), (column_d, column_a), (slice_d, slice_a)) = crop_size
     # initialize the cropped_volume with the minimal value in the volume
-    cropped_volume = np.ones((x_d + x_a, y_d + y_a, z_d + z_a)) * fill_value
+    cropped_volume = np.ones((row_d + row_a, column_d + column_a, slice_d + slice_a)) * fill_value
 
     if anchor is not None:
         centre = anchor.astype(int)

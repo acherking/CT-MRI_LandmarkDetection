@@ -104,7 +104,7 @@ model.summary()
 # y_tag: "one_landmark", "two_landmarks", "mean_two_landmarks"
 y_tag = "one_landmark_res"
 model_name = "straight_model"
-model_tag = "cropped_trans"
+model_tag = "cropped_trans_Yshift2"
 model_size = f"{crop_size[0]}x{crop_size[1]}x{crop_size[2]}"
 model_label = f"{model_name}_{model_tag}_{model_size}"
 save_dir = f"/data/gpfs/projects/punim1836/Training/trained_models/" \
