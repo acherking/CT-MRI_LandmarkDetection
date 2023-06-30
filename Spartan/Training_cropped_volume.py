@@ -24,7 +24,7 @@ crop_size = (volume_shape[0]-crop_layers[0, 0]-crop_layers[0, 1],
              volume_shape[2]-crop_layers[2, 0]-crop_layers[2, 1])
 
 crop_tag = "x7575y7575z5050"
-has_trans = "trans"
+has_trans = "trans/tmp"
 trans_tag = "s1_test_dis"
 base_dir = "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth"
 

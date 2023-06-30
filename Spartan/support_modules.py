@@ -176,13 +176,13 @@ def load_dataset_crop(x_path, y_path, length_path, pat_splits, crop_layers):
         # np.random.shuffle(idx_splits[i])
 
     train_idx = idx_splits[0]
-    np.random.shuffle(train_idx)
+    # np.random.shuffle(train_idx)
     x_train = x_dataset[train_idx]
     y_train = y_dataset[train_idx]
     length_train = length_dataset[train_idx]
 
     val_idx = idx_splits[1]
-    np.random.shuffle(val_idx)
+    # np.random.shuffle(val_idx)
     x_val = x_dataset[val_idx]
     y_val = y_dataset[val_idx]
     length_val = length_dataset[val_idx]
@@ -266,7 +266,6 @@ def load_dataset_crop_dir(x_dir, y_dir, length_dir):
 
     # read centre shift
     centre_shift = np.load("res/noises_s1_pred_test_dis.npy")
-    centre_shift = centre_shift * 2
 
     cropped_volumes, cropped_points, cropped_length = \
         MyCrop.crop_outside_layers_trans(cropped_volumes, cropped_points, cropped_length, centre_shift)
@@ -318,14 +317,14 @@ def load_dataset_divide(dataset_dir, rescaled_size, pat_splits, no_split=False):
         # np.random.shuffle(idx_splits[i])
 
     train_idx = idx_splits[0]
-    np.random.shuffle(train_idx)
+    # np.random.shuffle(train_idx)
     x_train = x_dataset[train_idx]
     y_train = y_dataset[train_idx]
     res_train = res_dataset_rep[train_idx]
     length_train = length_dataset[train_idx]
 
     val_idx = idx_splits[1]
-    np.random.shuffle(val_idx)
+    # np.random.shuffle(val_idx)
     x_val = x_dataset[val_idx]
     y_val = y_dataset[val_idx]
     res_val = res_dataset_rep[val_idx]

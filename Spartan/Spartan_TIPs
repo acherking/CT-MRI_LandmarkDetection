@@ -37,6 +37,9 @@ tf.debugging.set_log_device_placement(True)
 . /Users/achs/opt/anaconda3/bin/activate && conda activate /Users/achs/opt/anaconda3/envs/test;
 
 *** Python crop and combine
+import support_modules
+import numpy as np
+
 base_dir = "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/x100100y100100z8080"
 
 x_dir = base_dir + "/volumes/"
@@ -52,3 +55,7 @@ support_modules.load_dataset_crop_dir(x_dir,y_dir,length_dir)
 import importlib
 
 importlib.reload(support_modules)
+
+*** Python tmp
+
+
