@@ -9,6 +9,25 @@ from scipy.ndimage import zoom
 patient_names = ['AH', 'AZ', 'DE', 'DM', 'DM2', 'DGL', 'FA', 'GE', 'GM', 'GP', 'HB', 'HH',
                  'JH', 'JM', 'LG', 'LP', 'MJ', 'NV', 'PH', 'SM']
 
+# static K folds
+k_folds_5 = [['JM' 'DM2' 'LG' 'HB']
+             ['GP' 'PH' 'AZ' 'HH']
+             ['SM' 'DM' 'AH' 'DGL']
+             ['DE' 'FA' 'GE' 'JH']
+             ['GM' 'LP' 'NV' 'MJ']]
+
+k_folds_10 = [['LP' 'JM']
+              ['AH' 'DM']
+              ['LG' 'MJ']
+              ['NV' 'JH']
+              ['SM' 'FA']
+              ['HB' 'GM']
+              ['AZ' 'DGL']
+              ['GP' 'GE']
+              ['DE' 'PH']
+              ['HH' 'DM2']]
+
+k_folds_20 = np.reshape(patient_names, (20, 1))
 
 # Load Mat data for single patient
 def load_mat_data(volume_path, pts_path="None", with_res=False):
@@ -200,12 +219,13 @@ def get_pat_from_test_idx(idx, split=False):
     return pt_name, pt_aug_id
 
 
-# e.g. map the landmarks points from current shape (like the rescaled 176*176*48)
-# to the target shape (like before rescaled)
-def map_points(points, current_volume_shape, target_volume_shape):
-    # points: (num_points * 3)
-    # current_volume_shape: e.g. 176*176*48
-    # target_volume_shape: e.g. 1200*1100*365
-    mapped_points = []
-
-    return mapped_points
+def get_k_folds(k):
+    if k == 5:
+        return k_folds_5
+    elif k == 10:
+        return k_folds_10
+    elif k == 20:
+        return k_folds_20
+    else:
+        print("Error k: ", k)
+        return []
