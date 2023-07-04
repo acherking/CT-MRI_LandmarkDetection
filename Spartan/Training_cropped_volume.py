@@ -36,9 +36,9 @@ print("Read Volumes from:   ", X_path)
 print("Read Points from:    ", Y_path)
 print("Read Length from:    ", Cropped_length_path)
 
-pat_splits = MyDataset.get_pat_splits(static=True)
+data_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True)
 X_train, Y_train, length_train, X_val, Y_val, length_val, X_test, Y_test, length_test = \
-    support_modules.load_dataset_crop(X_path, Y_path, Cropped_length_path, pat_splits, crop_layers)
+    support_modules.load_dataset_crop(X_path, Y_path, Cropped_length_path, data_splits, crop_layers)
 
 Y_train_one = np.asarray(Y_train)[:, 0, :].reshape((1400, 1, 3))
 Y_val_one = np.asarray(Y_val)[:, 0, :].reshape((200, 1, 3))

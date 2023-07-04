@@ -8,199 +8,195 @@ import Functions.MyDataset as MyDataset
 import support_modules
 import models
 
-# gpus = tf.config.experimental.list_physical_devices('GPU')
-# tf.config.experimental.set_memory_growth(gpus, True)
 
-print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
-
-rescaled_size = (176, 176, 48)
-str_size = str(rescaled_size[0]) + "_" + str(rescaled_size[1]) + "_" + str(rescaled_size[2])
-dataset_dir = f"/data/gpfs/projects/punim1836/Data/divided/" \
-              f"{str(rescaled_size[0])}{str(rescaled_size[1])}{str(rescaled_size[2])}/"
-
-pat_splits = MyDataset.get_pat_splits(static=True)
-X_train, Y_train, res_train, length_train, X_val, Y_val, res_val, length_val, X_test, Y_test, res_test, length_test = \
-    support_modules.load_dataset_divide(dataset_dir, rescaled_size, pat_splits)
-
-Y_train_one = np.asarray(Y_train)[:, 0, :].reshape((1400, 1, 3))
-Y_val_one = np.asarray(Y_val)[:, 0, :].reshape((200, 1, 3))
-Y_test_one = np.asarray(Y_test)[:, 0, :].reshape((400, 1, 3))
-
-Y_train_mean = np.mean(Y_train, axis=1).reshape((1400, 1, 3))
-Y_val_mean = np.mean(Y_val, axis=1).reshape((200, 1, 3))
-Y_test_mean = np.mean(Y_test, axis=1).reshape((400, 1, 3))
-
-""" *** Training Process *** """
-
-batch_size = 2
-epochs = 100
-min_val_mse_res = 400
-
-# Prepare dataset used in the training process
-train_dataset = tf.data.Dataset.from_tensor_slices((X_train, Y_train_mean, res_train))
-train_dataset = train_dataset.shuffle(buffer_size=2800, reshuffle_each_iteration=True).batch(batch_size)
-
-val_dataset = tf.data.Dataset.from_tensor_slices((X_val, Y_val_mean, res_val))
-val_dataset = val_dataset.shuffle(buffer_size=400, reshuffle_each_iteration=True).batch(batch_size)
-
-test_dataset = tf.data.Dataset.from_tensor_slices((X_test, Y_test_mean, res_test)).batch(batch_size)
-
-# Check these datasets
-for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset):
-    print("train_dataset, step: ", step)
-    print("x shape: ", x_batch_train.shape, type(x_batch_train))
-    print("y shape: ", y_batch_train.shape, type(y_batch_train))
-    print("res: ", res_batch_train)
-    break
-
-for step, (x_batch_val, y_batch_val, res_batch_val) in enumerate(val_dataset):
-    print("val_dataset, step: ", step)
-    print("x shape: ", x_batch_val.shape, type(x_batch_val))
-    print("y shape: ", y_batch_val.shape, type(y_batch_val))
-    print("res: ", res_batch_val)
-    break
-
-# optimizer
-initial_learning_rate = 0.0001
-lr_schedule = keras.optimizers.schedules.ExponentialDecay(
-    initial_learning_rate, decay_steps=10000, decay_rate=0.96, staircase=True
-)
-
-optimizer = keras.optimizers.Adam(learning_rate=lr_schedule)
-
-# loss functions
-wing_loss = models.wing_loss
-mse = tf.keras.losses.MeanSquaredError()
-mse_with_res = models.mse_with_res
-
-# Instantiate a metric object
-train_mse_metric = keras.metrics.Mean()
-train_mse_res_metric = keras.metrics.Mean()
-val_mse_res_metric = keras.metrics.Mean()
-test_mse_res_metric = keras.metrics.Mean()
-
-# Get model.
-w = np.ceil(rescaled_size[1]/2).astype(int)
-# model = models.first_model(height=rescaled_size[0], width=w, depth=rescaled_size[2], points_num=1)
-model = models.straight_model(height=rescaled_size[0], width=w, depth=rescaled_size[2], points_num=1)
-model.summary()
-
-# y_tag: "one_landmark", "two_landmarks", "mean_two_landmarks"
-y_tag = "mean_two_landmarks"
-model_name = "straight_model"
-model_tag = "divided_y_right_ear_x_shift_two"
-model_size = f"{rescaled_size[0]}_{w}_{rescaled_size[2]}"
-model_label = f"{model_name}_{model_tag}_{model_size}"
-save_dir = f"/data/gpfs/projects/punim1836/Training/trained_models/{model_tag}_dataset/{model_name}/{y_tag}/"
-
-# create the dir if not exist
-if os.path.exists(save_dir):
-    print("Save model to: ", save_dir)
-else:
-    os.makedirs(save_dir)
-    print("Create dir and save model in it: ", save_dir)
-
-
+# err_fun(y, y_pred, res)
 @tf.function
-def train_step(x, y, res):
+def train_step(model, err_fun, eval_metric, optimizer, x, y, res):
     with tf.GradientTape() as tape:
         # Compute the loss value for this batch.
         y_pred = model(x, training=True)
-        mse_res = mse_with_res(y, y_pred, res)
-
-    # record MSE in pixel distance (without resolution)
-    mse_pixel = mse(y, y_pred)
+        mse_res = err_fun(y, y_pred, res)
 
     # Update training metric.
-    train_mse_metric.update_state(mse_pixel)
-    train_mse_res_metric.update_state(mse_res)
+    eval_metric.update_state(mse_res)
 
     # Update the weights of the model to minimize the loss value.
     gradients = tape.gradient(mse_res, model.trainable_weights)
     optimizer.apply_gradients(zip(gradients, model.trainable_weights))
-    return mse_res, mse_pixel
+    return mse_res
 
 
 @tf.function
-def val_step(x, y, res):
+def val_step(model, err_fun, eval_metric, x, y, res):
     y_pred = model(x, training=False)
-    mse_res = mse_with_res(y, y_pred, res)
+    mse_res = err_fun(y, y_pred, res)
     # Update val metrics
-    val_mse_res_metric.update_state(mse_res)
+    eval_metric.update_state(mse_res)
 
 
 @tf.function
-def test_step(x, y, res):
+def test_step(model, err_fun, eval_metric, x, y, res):
     y_pred = model(x, training=False)
-    mse_res = mse_with_res(y, y_pred, res)
+    mse_res = err_fun(y, y_pred, res)
     # Update test metrics
-    test_mse_res_metric.update_state(mse_res)
+    eval_metric.update_state(mse_res)
     return y_pred
 
 
-def my_evaluate(eva_model):
+def my_evaluate(eval_model, err_fun, eval_metric, eval_dataset):
     # Run a test loop when meet the best val result.
-    for s, (x_batch_test, y_batch_test, res_batch_test) in enumerate(test_dataset):
+    for s, (x_batch_test, y_batch_test, res_batch_test) in enumerate(eval_dataset):
         if s == 0:
-            y_test_p = test_step(x_batch_test, y_batch_test, res_batch_test)
+            y_test_p = test_step(eval_model, err_fun, eval_metric, x_batch_test, y_batch_test, res_batch_test)
         else:
-            y_test = test_step(x_batch_test, y_batch_test, res_batch_test)
+            y_test = test_step(eval_model, err_fun, eval_metric, x_batch_test, y_batch_test, res_batch_test)
             y_test_p = np.concatenate((y_test_p, y_test), axis=0)
 
-    test_mse_res_f = test_mse_res_metric.result()
-    test_mse_res_metric.reset_states()
-    return test_mse_res_f, y_test_p
+    eval_metric_result = eval_metric.result()
+    eval_metric.reset_states()
+    return eval_metric_result, y_test_p
 
 
-# Training loop
-for epoch in range(epochs):
-    print("\nStart of epoch %d" % (epoch,))
-    start_time = time.time()
+def train_model(data_splits, cross_val=False):
+    print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-    # Iterate over the batches of a dataset.
+    rescaled_size = (176, 176, 48)
+    str_size = str(rescaled_size[0]) + "_" + str(rescaled_size[1]) + "_" + str(rescaled_size[2])
+    dataset_dir = f"/data/gpfs/projects/punim1836/Data/divided/" \
+                  f"{str(rescaled_size[0])}{str(rescaled_size[1])}{str(rescaled_size[2])}/"
+
+    x_train, y_train, res_train, length_train, x_val, y_val, res_val, length_val, \
+        x_test, y_test, res_test, length_test = support_modules.load_dataset_divide(dataset_dir, rescaled_size, data_splits)
+
+    train_num = x_train.shape[0]
+    val_num = x_val.shape[0]
+    test_num = x_test.shape[0]
+
+    y_train_mean = np.mean(y_train, axis=1).reshape((train_num.shape[0], 1, 3))
+    y_val_mean = np.mean(y_val, axis=1).reshape((val_num.shape[0], 1, 3))
+    y_test_mean = np.mean(y_test, axis=1).reshape((test_num.shape[0], 1, 3))
+
+    """ *** Training Process *** """
+
+    batch_size = 2
+    epochs = 100
+    min_val_mse_res = 100  # just a big number
+
+    # Prepare dataset used in the training process
+    train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train_mean, res_train))
+    train_dataset = train_dataset.shuffle(buffer_size=train_num*2, reshuffle_each_iteration=True).batch(batch_size)
+
+    val_dataset = tf.data.Dataset.from_tensor_slices((x_val, y_val_mean, res_val))
+    val_dataset = val_dataset.shuffle(buffer_size=val_num*2, reshuffle_each_iteration=True).batch(batch_size)
+
+    test_dataset = tf.data.Dataset.from_tensor_slices((test_num*2, y_test_mean, res_test)).batch(batch_size)
+
+    # Check these datasets
     for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset):
-        loss_value, loss_mse = train_step(x_batch_train, y_batch_train, res_batch_train)
+        print("train_dataset, step: ", step)
+        print("x shape: ", x_batch_train.shape, type(x_batch_train))
+        print("y shape: ", y_batch_train.shape, type(y_batch_train))
+        print("res: ", res_batch_train)
+        break
 
-        # Logging every *** batches
-        if step % 100 == 0:
-            print("********Step ", step, " ********")
-            print("Training loss (MSE):             %.3f" % loss_mse.numpy())
-            print("Training loss (MSE with Res):    %.3f" % loss_value.numpy())
-            print("Seen so far: %d samples" % ((step + 1) * batch_size))
-
-    # Display metrics at the end of each epoch.
-    train_mse = train_mse_metric.result()
-    train_mse_res = train_mse_res_metric.result()
-    print("Training (MSE) over epoch:       %.4f" % (float(train_mse),))
-    print("Training (MSE Res) over epoch:   %.4f" % (float(train_mse_res),))
-
-    # Reset the metric's state at the end of an epoch
-    train_mse_metric.reset_states()
-    train_mse_res_metric.reset_states()
-
-    # Run a validation loop at the end of each epoch.
     for step, (x_batch_val, y_batch_val, res_batch_val) in enumerate(val_dataset):
-        val_step(x_batch_val, y_batch_val, res_batch_val)
+        print("val_dataset, step: ", step)
+        print("x shape: ", x_batch_val.shape, type(x_batch_val))
+        print("y shape: ", y_batch_val.shape, type(y_batch_val))
+        print("res: ", res_batch_val)
+        break
 
-    val_mse_res = val_mse_res_metric.result()
-    val_mse_res_metric.reset_states()
+    # optimizer
+    initial_learning_rate = 0.0001
+    lr_schedule = keras.optimizers.schedules.ExponentialDecay(
+        initial_learning_rate, decay_steps=10000, decay_rate=0.96, staircase=True
+    )
 
-    # Try to save the Trained Model with the best Val results
-    if val_mse_res < min_val_mse_res:
-        min_val_mse_res = val_mse_res
-        # Use Test Dataset to evaluate the best Val model (at the moment), and save the Test results
-        test_mse_res, y_test_pred = my_evaluate(model)
-        np.save(f"{save_dir}bestVal_{model_label}_y_test", y_test_pred)
-        model.save(f"{save_dir}bestVal_{model_label}")
-        print("Validation (MSE with Res, saved):%.3f" % (float(val_mse_res),))
-        print("Test (MSE with Res), bestVa      %.3f" % (float(test_mse_res),))
+    optimizer = keras.optimizers.Adam(learning_rate=lr_schedule)
+
+    # loss functions
+    wing_loss = models.wing_loss
+    mse = tf.keras.losses.MeanSquaredError()
+    mse_with_res = models.mse_with_res
+
+    # Instantiate a metric object
+    train_mse_res_metric = keras.metrics.Mean()
+    val_mse_res_metric = keras.metrics.Mean()
+    test_mse_res_metric = keras.metrics.Mean()
+
+    # Get model.
+    w = np.ceil(rescaled_size[1] / 2).astype(int)
+    model = models.straight_model(height=rescaled_size[0], width=w, depth=rescaled_size[2], points_num=1)
+    model.summary()
+
+    # y_tag: "one_landmark", "two_landmarks", "mean_two_landmarks"
+    y_tag = "mean_two_landmarks"
+    model_name = "straight_model"
+    model_tag = "divided"
+    model_size = f"{rescaled_size[0]}_{w}_{rescaled_size[2]}"
+    model_label = f"{model_name}_{model_tag}_{model_size}"
+    save_dir = f"/data/gpfs/projects/punim1836/Training/trained_models/{model_tag}_dataset/{model_name}/{y_tag}/"
+
+    # create the dir if not exist
+    if os.path.exists(save_dir):
+        print("Save model to: ", save_dir)
     else:
-        print("Validation (MSE with Res):       %.3f" % (float(val_mse_res),))
-    print("Time taken:                      %.2fs" % (time.time() - start_time))
+        os.makedirs(save_dir)
+        print("Create dir and save model in it: ", save_dir)
 
-# Use Test Dataset to evaluate the final model, and save the Test results
-test_mse_res, y_test_pred = my_evaluate(model)
-np.save(f"{save_dir}final_{model_label}_y_test", y_test_pred)
-print("Test (MSE with Res), final       %.3f" % (float(test_mse_res),))
+    # Training loop
+    for epoch in range(epochs):
+        print("\nStart of epoch %d" % (epoch,))
+        start_time = time.time()
 
-model.save(f"{save_dir}final_{model_label}")
+        # Iterate over the batches of a dataset.
+        for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset):
+            loss_mse = train_step(model, mse_with_res, train_mse_res_metric, optimizer,
+                                  x_batch_train, y_batch_train, res_batch_train)
+
+            # Logging every *** batches
+            if step % 100 == 0:
+                print("********Step ", step, " ********")
+                print("Training loss (MSE with Res):    %.3f" % loss_mse.numpy())
+                print("Seen so far: %d samples" % ((step + 1) * batch_size))
+
+        # Display metrics at the end of each epoch.
+        train_mse_res = train_mse_res_metric.result()
+        print("Training (MSE Res) over epoch:   %.4f" % (float(train_mse_res),))
+
+        # Reset the metric's state at the end of an epoch
+        train_mse_res_metric.reset_states()
+
+        # Run a validation loop at the end of each epoch.
+        for step, (x_batch_val, y_batch_val, res_batch_val) in enumerate(val_dataset):
+            val_step(model, mse_with_res, val_mse_res_metric, x_batch_val, y_batch_val, res_batch_val)
+
+        val_mse_res = val_mse_res_metric.result()
+        val_mse_res_metric.reset_states()
+
+        # Try to save the Trained Model with the best Val results
+        if val_mse_res < min_val_mse_res:
+            min_val_mse_res = val_mse_res
+            # Use Test Dataset to evaluate the best Val model (at the moment), and save the Test results
+            test_mse_res, y_test_pred = my_evaluate(model)
+            np.save(f"{save_dir}bestVal_{model_label}_y_test", y_test_pred)
+            model.save(f"{save_dir}bestVal_{model_label}")
+            print("Validation (MSE with Res, saved):%.3f" % (float(val_mse_res),))
+            print("Test (MSE with Res), bestVa      %.3f" % (float(test_mse_res),))
+        else:
+            print("Validation (MSE with Res):       %.3f" % (float(val_mse_res),))
+        print("Time taken:                      %.2fs" % (time.time() - start_time))
+
+    # Use Test Dataset to evaluate the final model, and save the Test results
+    test_mse_res, y_test_pred = my_evaluate(model)
+    np.save(f"{save_dir}final_{model_label}_y_test", y_test_pred)
+    print("Test (MSE with Res), final       %.3f" % (float(test_mse_res),))
+
+    model.save(f"{save_dir}final_{model_label}")
+
+
+if __name__ == "__main__":
+
+    d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True)
+
+    train_model(d_splits)

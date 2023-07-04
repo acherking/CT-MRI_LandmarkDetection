@@ -10,24 +10,25 @@ patient_names = ['AH', 'AZ', 'DE', 'DM', 'DM2', 'DGL', 'FA', 'GE', 'GM', 'GP', '
                  'JH', 'JM', 'LG', 'LP', 'MJ', 'NV', 'PH', 'SM']
 
 # static K folds
-k_folds_5 = [['JM' 'DM2' 'LG' 'HB']
-             ['GP' 'PH' 'AZ' 'HH']
-             ['SM' 'DM' 'AH' 'DGL']
-             ['DE' 'FA' 'GE' 'JH']
-             ['GM' 'LP' 'NV' 'MJ']]
+k_folds_5 = [['JM', 'DM2', 'LG', 'HB'],
+             ['GP', 'PH', 'AZ', 'HH'],
+             ['SM', 'DM', 'AH', 'DGL'],
+             ['DE', 'FA', 'GE', 'JH'],
+             ['GM', 'LP', 'NV', 'MJ']]
 
-k_folds_10 = [['LP' 'JM']
-              ['AH' 'DM']
-              ['LG' 'MJ']
-              ['NV' 'JH']
-              ['SM' 'FA']
-              ['HB' 'GM']
-              ['AZ' 'DGL']
-              ['GP' 'GE']
-              ['DE' 'PH']
-              ['HH' 'DM2']]
+k_folds_10 = [['LP', 'JM'],
+              ['AH', 'DM'],
+              ['LG', 'MJ'],
+              ['NV', 'JH'],
+              ['SM', 'FA'],
+              ['HB', 'GM'],
+              ['AZ', 'DGL'],
+              ['GP', 'GE'],
+              ['DE', 'PH'],
+              ['HH', 'DM2']]
 
 k_folds_20 = np.reshape(patient_names, (20, 1))
+
 
 # Load Mat data for single patient
 def load_mat_data(volume_path, pts_path="None", with_res=False):
@@ -150,8 +151,7 @@ def get_pat_splits(static=False):
     return pat_splits
 
 
-def get_data_splits(static=False, split=False):
-    pat_splits = get_pat_splits(static)
+def get_data_splits(pat_splits, split=False):
 
     if split:
         idx_splits = [[list(range(i * 100, i * 100 + 100)) for i in j] for j in pat_splits]
@@ -229,3 +229,22 @@ def get_k_folds(k):
     else:
         print("Error k: ", k)
         return []
+
+
+def get_k_folds_data_splits(k):
+    k_folds = get_k_folds(k)
+
+    # [training_dataset_id, val_dataset_id, val_dataset_id] --- just for convenient
+    k_folds_idx_splits = []
+    for k_i in range(k):
+        val_pats = k_folds[k_i]
+        val_pats_id = [patient_names.index(name) for name in val_pats]
+
+        training_pats = k_folds[:k_i] + k_folds[k_i+1:]
+        training_pats = [j for i in training_pats for j in i]  # combine sub-lists
+        training_pats_id = [patient_names.index(name) for name in training_pats]
+
+        pat_splits = [training_pats_id, val_pats_id, val_pats_id]
+        k_folds_idx_splits.append(get_data_splits(pat_splits, split=True))
+
+    return k_folds_idx_splits

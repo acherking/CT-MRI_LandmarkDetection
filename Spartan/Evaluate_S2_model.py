@@ -270,10 +270,10 @@ X_path = f"{base_dir}/{crop_tag}/cropped_volumes_{crop_tag}_truth.npy"
 Y_path = f"{base_dir}/{crop_tag}/cropped_points_{crop_tag}_truth.npy"
 Cropped_length_path = f"{base_dir}/{crop_tag}/cropped_length_{crop_tag}_truth.npy"
 
-pat_splits = MyDataset.get_pat_splits(static=True)
+data_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True)
 
 X_train, Y_train, length_train, X_val, Y_val, length_val, X_test, Y_test, length_test = \
-    supporter.load_dataset_crop(X_path, Y_path, Cropped_length_path, pat_splits, crop_layers)
+    supporter.load_dataset_crop(X_path, Y_path, Cropped_length_path, data_splits, crop_layers)
 
 Y_train_one = np.asarray(Y_train)[:, 0, :].reshape((1400, 1, 3))
 Y_val_one = np.asarray(Y_val)[:, 0, :].reshape((200, 1, 3))
