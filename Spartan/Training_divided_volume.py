@@ -9,78 +9,34 @@ import support_modules
 import models
 
 
-# err_fun(y, y_pred, res)
-@tf.function
-def train_step(model, err_fun, eval_metric, optimizer, x, y, res):
-    with tf.GradientTape() as tape:
-        # Compute the loss value for this batch.
-        y_pred = model(x, training=True)
-        mse_res = err_fun(y, y_pred, res)
-
-    # Update training metric.
-    eval_metric.update_state(mse_res)
-
-    # Update the weights of the model to minimize the loss value.
-    gradients = tape.gradient(mse_res, model.trainable_weights)
-    optimizer.apply_gradients(zip(gradients, model.trainable_weights))
-    return mse_res
-
-
-@tf.function
-def val_step(model, err_fun, eval_metric, x, y, res):
-    y_pred = model(x, training=False)
-    mse_res = err_fun(y, y_pred, res)
-    # Update val metrics
-    eval_metric.update_state(mse_res)
-
-
-@tf.function
-def test_step(model, err_fun, eval_metric, x, y, res):
-    y_pred = model(x, training=False)
-    mse_res = err_fun(y, y_pred, res)
-    # Update test metrics
-    eval_metric.update_state(mse_res)
-    return y_pred
-
-
-def my_evaluate(eval_model, err_fun, eval_metric, eval_dataset):
-    # Run a test loop when meet the best val result.
-    for s, (x_batch_test, y_batch_test, res_batch_test) in enumerate(eval_dataset):
-        if s == 0:
-            y_test_p = test_step(eval_model, err_fun, eval_metric, x_batch_test, y_batch_test, res_batch_test)
-        else:
-            y_test = test_step(eval_model, err_fun, eval_metric, x_batch_test, y_batch_test, res_batch_test)
-            y_test_p = np.concatenate((y_test_p, y_test), axis=0)
-
-    eval_metric_result = eval_metric.result()
-    eval_metric.reset_states()
-    return eval_metric_result, y_test_p
-
-
-def train_model(data_splits, cross_val=False):
+def train_model(data_splits, args_dict):
     print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-    rescaled_size = (176, 176, 48)
-    str_size = str(rescaled_size[0]) + "_" + str(rescaled_size[1]) + "_" + str(rescaled_size[2])
-    dataset_dir = f"/data/gpfs/projects/punim1836/Data/divided/" \
-                  f"{str(rescaled_size[0])}{str(rescaled_size[1])}{str(rescaled_size[2])}/"
+    dataset_tag = args_dict.get("dataset_tag")
+    rescaled_size = args_dict.get("rescaled_size", (176, 176, 48))
+    base_dir = args_dict.get("base_dir", "/data/gpfs/projects/punim1836/Data")
 
-    x_train, y_train, res_train, length_train, x_val, y_val, res_val, length_val, \
-        x_test, y_test, res_test, length_test = support_modules.load_dataset_divide(dataset_dir, rescaled_size, data_splits)
+    dataset_dir = f"{base_dir}/{dataset_tag}/{str(rescaled_size[0])}{str(rescaled_size[1])}{str(rescaled_size[2])}/"
+    print("Read dataset from: ", dataset_dir)
+
+    x_train, y_train, res_train, length_train, x_val, y_val, res_val, length_val, x_test, y_test, res_test, length_test = \
+        support_modules.load_dataset_divide(dataset_dir, rescaled_size, data_splits)
 
     train_num = x_train.shape[0]
     val_num = x_val.shape[0]
     test_num = x_test.shape[0]
 
-    y_train_mean = np.mean(y_train, axis=1).reshape((train_num.shape[0], 1, 3))
-    y_val_mean = np.mean(y_val, axis=1).reshape((val_num.shape[0], 1, 3))
-    y_test_mean = np.mean(y_test, axis=1).reshape((test_num.shape[0], 1, 3))
+    y_train_mean = np.mean(y_train, axis=1).reshape((train_num, 1, 3))
+    y_val_mean = np.mean(y_val, axis=1).reshape((val_num, 1, 3))
+    y_test_mean = np.mean(y_test, axis=1).reshape((test_num, 1, 3))
 
     """ *** Training Process *** """
 
-    batch_size = 2
-    epochs = 100
+    batch_size = args_dict.get("batch_size", 2)
+    epochs = args_dict.get("epochs", 100)
     min_val_mse_res = 100  # just a big number
+
+    print(f"training process: batch_size[{batch_size}], epochs[{epochs}]")
 
     # Prepare dataset used in the training process
     train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train_mean, res_train))
@@ -89,7 +45,7 @@ def train_model(data_splits, cross_val=False):
     val_dataset = tf.data.Dataset.from_tensor_slices((x_val, y_val_mean, res_val))
     val_dataset = val_dataset.shuffle(buffer_size=val_num*2, reshuffle_each_iteration=True).batch(batch_size)
 
-    test_dataset = tf.data.Dataset.from_tensor_slices((test_num*2, y_test_mean, res_test)).batch(batch_size)
+    test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test_mean, res_test)).batch(batch_size)
 
     # Check these datasets
     for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset):
@@ -125,17 +81,20 @@ def train_model(data_splits, cross_val=False):
     test_mse_res_metric = keras.metrics.Mean()
 
     # Get model.
-    w = np.ceil(rescaled_size[1] / 2).astype(int)
-    model = models.straight_model(height=rescaled_size[0], width=w, depth=rescaled_size[2], points_num=1)
+    model_name = args_dict.get("model_name")
+    input_shape = (rescaled_size[0], np.ceil(rescaled_size[1] / 2).astype(int), rescaled_size[2])
+    model_output_num = args_dict.get("model_output_num")
+
+    model = models.get_model(model_name, input_shape, model_output_num)
     model.summary()
 
     # y_tag: "one_landmark", "two_landmarks", "mean_two_landmarks"
-    y_tag = "mean_two_landmarks"
-    model_name = "straight_model"
-    model_tag = "divided"
-    model_size = f"{rescaled_size[0]}_{w}_{rescaled_size[2]}"
-    model_label = f"{model_name}_{model_tag}_{model_size}"
-    save_dir = f"/data/gpfs/projects/punim1836/Training/trained_models/{model_tag}_dataset/{model_name}/{y_tag}/"
+    y_tag = args_dict.get("y_tag")
+    model_size = f"{input_shape[0]}x{input_shape[1]}x{input_shape[2]}"
+    model_label = f"{model_name}_{dataset_tag}_{model_size}"
+    save_dir = f"/data/gpfs/projects/punim1836/Training/trained_models/{dataset_tag}_dataset/{model_name}/{y_tag}"
+    save_dir_extend = args_dict.get("save_dir_extend")
+    save_dir = f"{save_dir}/{save_dir_extend}"
 
     # create the dir if not exist
     if os.path.exists(save_dir):
@@ -144,6 +103,7 @@ def train_model(data_splits, cross_val=False):
         os.makedirs(save_dir)
         print("Create dir and save model in it: ", save_dir)
 
+    train_err_array = np.zeros((2, epochs))  # 0: training err MSE over epoch, 1: val err MSE
     # Training loop
     for epoch in range(epochs):
         print("\nStart of epoch %d" % (epoch,))
@@ -151,8 +111,8 @@ def train_model(data_splits, cross_val=False):
 
         # Iterate over the batches of a dataset.
         for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset):
-            loss_mse = train_step(model, mse_with_res, train_mse_res_metric, optimizer,
-                                  x_batch_train, y_batch_train, res_batch_train)
+            loss_mse = support_modules.train_step(model, mse_with_res, train_mse_res_metric, optimizer,
+                                                  x_batch_train, y_batch_train, res_batch_train)
 
             # Logging every *** batches
             if step % 100 == 0:
@@ -162,6 +122,7 @@ def train_model(data_splits, cross_val=False):
 
         # Display metrics at the end of each epoch.
         train_mse_res = train_mse_res_metric.result()
+        train_err_array[0][epoch] = float(train_mse_res)
         print("Training (MSE Res) over epoch:   %.4f" % (float(train_mse_res),))
 
         # Reset the metric's state at the end of an epoch
@@ -169,18 +130,19 @@ def train_model(data_splits, cross_val=False):
 
         # Run a validation loop at the end of each epoch.
         for step, (x_batch_val, y_batch_val, res_batch_val) in enumerate(val_dataset):
-            val_step(model, mse_with_res, val_mse_res_metric, x_batch_val, y_batch_val, res_batch_val)
+            support_modules.val_step(model, mse_with_res, val_mse_res_metric, x_batch_val, y_batch_val, res_batch_val)
 
         val_mse_res = val_mse_res_metric.result()
+        train_err_array[1][epoch] = float(val_mse_res)
         val_mse_res_metric.reset_states()
 
         # Try to save the Trained Model with the best Val results
         if val_mse_res < min_val_mse_res:
             min_val_mse_res = val_mse_res
             # Use Test Dataset to evaluate the best Val model (at the moment), and save the Test results
-            test_mse_res, y_test_pred = my_evaluate(model)
-            np.save(f"{save_dir}bestVal_{model_label}_y_test", y_test_pred)
-            model.save(f"{save_dir}bestVal_{model_label}")
+            test_mse_res, y_test_pred = support_modules.my_evaluate(model, mse_with_res, test_mse_res_metric, test_dataset)
+            np.save(f"{save_dir}/bestVal_{model_label}_y_test", y_test_pred)
+            model.save(f"{save_dir}/bestVal_{model_label}")
             print("Validation (MSE with Res, saved):%.3f" % (float(val_mse_res),))
             print("Test (MSE with Res), bestVa      %.3f" % (float(test_mse_res),))
         else:
@@ -188,15 +150,33 @@ def train_model(data_splits, cross_val=False):
         print("Time taken:                      %.2fs" % (time.time() - start_time))
 
     # Use Test Dataset to evaluate the final model, and save the Test results
-    test_mse_res, y_test_pred = my_evaluate(model)
-    np.save(f"{save_dir}final_{model_label}_y_test", y_test_pred)
+    test_mse_res, y_test_pred = support_modules.my_evaluate(model, mse_with_res, test_mse_res_metric, test_dataset)
+    np.save(f"{save_dir}/final_{model_label}_y_test", y_test_pred)
     print("Test (MSE with Res), final       %.3f" % (float(test_mse_res),))
 
-    model.save(f"{save_dir}final_{model_label}")
+    model.save(f"{save_dir}/final_{model_label}")
+    np.save(f"{save_dir}/train_val_err_array", train_err_array)
 
 
 if __name__ == "__main__":
 
-    d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True)
+    args = {
+        # prepare Dataset
+        "dataset_tag": "divided",
+        "rescaled_size":  (176, 176, 48),
+        "base_dir": "/data/gpfs/projects/punim1836/Data",
+        # training
+        "batch_size": 2,
+        "epochs": 100,
+        # model
+        "model_name": "straight_model",
+        "model_output_num": 1,
+        # record
+        "y_tag": "mean_two_landmarks",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
+        "save_dir_extend": "",  # can be used for cross validation
+    }
 
-    train_model(d_splits)
+    d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True)
+    print("Using static dataset split: Train, Val, Test")
+
+    train_model(d_splits, args)

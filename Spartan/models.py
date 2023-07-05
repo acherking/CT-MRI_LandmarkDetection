@@ -753,3 +753,13 @@ def straight_model_more_dropout(height=176, width=176, depth=48, points_num=4):
     model = keras.Model(inputs, outputs, name="straight-3d-cnn")
 
     return model
+
+
+def get_model(model_name, input_shape, model_output_num):
+    if model_name == "straight_model":
+        model = straight_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
+    else:
+        print("There is no model: ", model_name)
+
+    return model
+

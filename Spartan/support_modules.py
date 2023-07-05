@@ -1,4 +1,5 @@
 import numpy as np
+import tensorflow as tf
 
 import Functions.MyDataset as MyDataset
 import Functions.MyCrop as MyCrop
@@ -190,3 +191,50 @@ def load_dataset_divide(dataset_dir, rescaled_size, idx_splits, no_split=False):
     return x_train, y_train, res_train, length_train, \
         x_val, y_val, res_val, length_val, \
         x_test, y_test, res_test, length_test
+
+
+@tf.function
+def train_step(model, err_fun, eval_metric, optimizer, x, y, res):
+    with tf.GradientTape() as tape:
+        # Compute the loss value for this batch.
+        y_pred = model(x, training=True)
+        mse_res = err_fun(y, y_pred, res)
+
+    # Update training metric.
+    eval_metric.update_state(mse_res)
+
+    # Update the weights of the model to minimize the loss value.
+    gradients = tape.gradient(mse_res, model.trainable_weights)
+    optimizer.apply_gradients(zip(gradients, model.trainable_weights))
+    return mse_res
+
+
+@tf.function
+def val_step(model, err_fun, eval_metric, x, y, res):
+    y_pred = model(x, training=False)
+    mse_res = err_fun(y, y_pred, res)
+    # Update val metrics
+    eval_metric.update_state(mse_res)
+
+
+@tf.function
+def test_step(model, err_fun, eval_metric, x, y, res):
+    y_pred = model(x, training=False)
+    mse_res = err_fun(y, y_pred, res)
+    # Update test metrics
+    eval_metric.update_state(mse_res)
+    return y_pred
+
+
+def my_evaluate(eval_model, err_fun, eval_metric, eval_dataset):
+    # Run a test loop when meet the best val result.
+    for s, (x_batch_test, y_batch_test, res_batch_test) in enumerate(eval_dataset):
+        if s == 0:
+            y_test_p = test_step(eval_model, err_fun, eval_metric, x_batch_test, y_batch_test, res_batch_test)
+        else:
+            y_test = test_step(eval_model, err_fun, eval_metric, x_batch_test, y_batch_test, res_batch_test)
+            y_test_p = np.concatenate((y_test_p, y_test), axis=0)
+
+    eval_metric_result = eval_metric.result()
+    eval_metric.reset_states()
+    return eval_metric_result, y_test_p

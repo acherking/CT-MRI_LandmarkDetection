@@ -233,6 +233,7 @@ def get_k_folds(k):
 
 def get_k_folds_data_splits(k):
     k_folds = get_k_folds(k)
+    print("K folds: ", k_folds)
 
     # [training_dataset_id, val_dataset_id, val_dataset_id] --- just for convenient
     k_folds_idx_splits = []
