@@ -3,6 +3,7 @@ from tensorflow import keras
 import numpy as np
 import time
 import os
+import sys
 
 import Functions.MyDataset as MyDataset
 import support_modules
@@ -11,6 +12,11 @@ import models
 
 def train_model(data_splits, args_dict):
     print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+
+    save_dir = get_record_dir(args_dict)
+
+    log = open(f"{save_dir}/original_log", "w")
+    sys.stdout = log
 
     dataset_tag = args_dict.get("dataset_tag")
     rescaled_size = args_dict.get("rescaled_size", (176, 176, 48))
@@ -88,20 +94,10 @@ def train_model(data_splits, args_dict):
     model = models.get_model(model_name, input_shape, model_output_num)
     model.summary()
 
-    # y_tag: "one_landmark", "two_landmarks", "mean_two_landmarks"
-    y_tag = args_dict.get("y_tag")
     model_size = f"{input_shape[0]}x{input_shape[1]}x{input_shape[2]}"
     model_label = f"{model_name}_{dataset_tag}_{model_size}"
-    save_dir = f"/data/gpfs/projects/punim1836/Training/trained_models/{dataset_tag}_dataset/{model_name}/{y_tag}"
-    save_dir_extend = args_dict.get("save_dir_extend")
-    save_dir = f"{save_dir}/{save_dir_extend}"
 
-    # create the dir if not exist
-    if os.path.exists(save_dir):
-        print("Save model to: ", save_dir)
-    else:
-        os.makedirs(save_dir)
-        print("Create dir and save model in it: ", save_dir)
+    log.flush()
 
     train_err_array = np.zeros((2, epochs))  # 0: training err MSE over epoch, 1: val err MSE
     # Training loop
@@ -149,6 +145,8 @@ def train_model(data_splits, args_dict):
             print("Validation (MSE with Res):       %.3f" % (float(val_mse_res),))
         print("Time taken:                      %.2fs" % (time.time() - start_time))
 
+        log.flush()
+
     # Use Test Dataset to evaluate the final model, and save the Test results
     test_mse_res, y_test_pred = support_modules.my_evaluate(model, mse_with_res, test_mse_res_metric, test_dataset)
     np.save(f"{save_dir}/final_{model_label}_y_test", y_test_pred)
@@ -156,6 +154,28 @@ def train_model(data_splits, args_dict):
 
     model.save(f"{save_dir}/final_{model_label}")
     np.save(f"{save_dir}/train_val_err_array", train_err_array)
+
+    log.close()
+
+
+def get_record_dir(args_dict):
+    dataset_tag = args_dict.get("dataset_tag")
+    model_name = args_dict.get("model_name")
+    # y_tag: "one_landmark", "two_landmarks", "mean_two_landmarks"
+    y_tag = args_dict.get("y_tag")
+
+    save_dir = f"/data/gpfs/projects/punim1836/Training/trained_models/{dataset_tag}_dataset/{model_name}/{y_tag}"
+    save_dir_extend = args_dict.get("save_dir_extend")
+    save_dir = f"{save_dir}/{save_dir_extend}"
+
+    # create the dir if not exist
+    if os.path.exists(save_dir):
+        print("Save model to: ", save_dir)
+    else:
+        os.makedirs(save_dir)
+        print("Create dir and save model in it: ", save_dir)
+
+    return save_dir
 
 
 if __name__ == "__main__":
