@@ -204,6 +204,15 @@ def wing_loss(landmarks, labels, res):
         return loss
 
 
+def two_stage_mse_loss(y_true, y_pred, res):
+    [y_stage1, y_stage2] = y_pred
+
+    loss_s1 = mse_with_res(y_true, y_stage1, res)
+    loss_s2 = mse_with_res(y_true, y_stage2, res)
+
+    return [loss_s1, loss_s2]
+
+
 def mse_with_res(y_true, y_pred, res):
     """
     :param y_true: [batch_size, num_landmarks, dimension(column, row, slice)]
@@ -223,13 +232,16 @@ def mse_with_res(y_true, y_pred, res):
         return loss
 
 
-def spine_lateral_radiograph_model(height=176, width=176, depth=48):
+# spine_lateral_radiograph_model
+def slr_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
     """
     The original model is for 2D image, our data are 3D.
     Change it to a 3D convolutional neural network model."""
     inputs = keras.Input((height, width, depth, 1))
     # e.x. batches*170*170*30*4*3, 4 type of coordinates, 3 dimensions
-    base_coordinate_xyz = keras.Input((width, height, depth, 4, 3))
+    # base_coordinate_rcs = keras.Input((height, width, depth, points_num, 3))
+
+    base_cor_rcs = coordinate_3d(batch_size, points_num, height, width, depth)
 
     x = layers.BatchNormalization()(inputs)
     x = layers.ReLU()(x)
@@ -263,9 +275,9 @@ def spine_lateral_radiograph_model(height=176, width=176, depth=48):
     x = residual_block(violet_x, downsample=False, filters=64)
     grey_x_s1 = layers.UpSampling3D(size=2)(x)
 
-    x = residual_block(grey_x_s1, downsample=False, filters=4)
-    x = residual_block(x, downsample=False, filters=4)
-    heatmap_s1 = residual_block(x, downsample=False, filters=4)
+    x = residual_block(grey_x_s1, downsample=False, filters=points_num)
+    x = residual_block(x, downsample=False, filters=points_num)
+    heatmap_s1 = residual_block(x, downsample=False, filters=points_num)
 
     # Stage 2
     blue_x = residual_block(blue_x, downsample=False, filters=256)
@@ -283,22 +295,22 @@ def spine_lateral_radiograph_model(height=176, width=176, depth=48):
     upsampling_violet_x = layers.UpSampling3D(size=2)(violet_x)
     grey_x_s2 = layers.Concatenate(axis=4)([upsampling_blue_x, upsampling_yellow_x, upsampling_violet_x, grey_x_s1])
 
-    x = residual_block(grey_x_s2, downsample=False, filters=4)
-    x = residual_block(x, downsample=False, filters=4)
-    heatmap_s2 = residual_block(x, downsample=False, filters=4)
+    x = residual_block(grey_x_s2, downsample=False, filters=points_num)
+    x = residual_block(x, downsample=False, filters=points_num)
+    heatmap_s2 = residual_block(x, downsample=False, filters=points_num)
 
     # in our project, e.x. heatmap shape: 170*170*30*4
-    pro_matrix_s1 = layers.Reshape((width, height, depth, 4, 3)) \
+    pro_matrix_s1 = layers.Reshape((width, height, depth, points_num, 3)) \
         (tf.repeat(layers.Softmax(axis=[1, 2, 3], name="stage1_softmax")(heatmap_s1), repeats=3, axis=-1))
-    outputs_s1 = tf.math.reduce_sum(layers.multiply([base_coordinate_xyz, pro_matrix_s1]), axis=[1, 2, 3])
-    # model_s1 = keras.Model([inputs, base_coordinate_xyz], outputs_s1, name="ResStage1")
+    outputs_s1 = tf.math.reduce_sum(layers.multiply([base_cor_rcs, pro_matrix_s1]), axis=[1, 2, 3])
+    # model_s1 = keras.Model([inputs, base_coordinate_rcs], outputs_s1, name="ResStage1")
 
-    pro_matrix_s2 = layers.Reshape((width, height, depth, 4, 3)) \
+    pro_matrix_s2 = layers.Reshape((width, height, depth, points_num, 3)) \
         (tf.repeat(layers.Softmax(axis=[1, 2, 3], name="stage2_softmax")(heatmap_s2), repeats=3, axis=-1))
-    outputs_s2 = tf.math.reduce_sum(layers.multiply([base_coordinate_xyz, pro_matrix_s2]), axis=[1, 2, 3])
-    # model_s2 = keras.Model([inputs, base_coordinate_xyz], outputs_s2, name="ResStage2")
+    outputs_s2 = tf.math.reduce_sum(layers.multiply([base_cor_rcs, pro_matrix_s2]), axis=[1, 2, 3])
+    # model_s2 = keras.Model([inputs, base_coordinate_rcs], outputs_s2, name="ResStage2")
 
-    model = keras.Model([inputs, base_coordinate_xyz], [outputs_s1, outputs_s2], name="ResModel")
+    model = keras.Model(inputs, [outputs_s1, outputs_s2], name="slr-model")
 
     return model
 
@@ -755,9 +767,11 @@ def straight_model_more_dropout(height=176, width=176, depth=48, points_num=4):
     return model
 
 
-def get_model(model_name, input_shape, model_output_num):
+def get_model(model_name, input_shape, model_output_num, batch_size=2):
     if model_name == "straight_model":
         model = straight_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
+    elif model_name == "slr_model":
+        model = slr_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
     else:
         print("There is no model: ", model_name)
 

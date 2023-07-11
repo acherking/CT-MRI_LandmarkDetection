@@ -238,14 +238,18 @@ def get_k_folds_data_splits(k):
     # [training_dataset_id, val_dataset_id, val_dataset_id] --- just for convenient
     k_folds_idx_splits = []
     for k_i in range(k):
-        val_pats = k_folds[k_i]
-        val_pats_id = [patient_names.index(name) for name in val_pats]
+        test_pats = k_folds[k_i]
+        test_pats_id = [patient_names.index(name) for name in test_pats]
 
         training_pats = k_folds[:k_i] + k_folds[k_i+1:]
         training_pats = [j for i in training_pats for j in i]  # combine sub-lists
         training_pats_id = [patient_names.index(name) for name in training_pats]
 
-        pat_splits = [training_pats_id, val_pats_id, val_pats_id]
+        # add val dataset
+        val_pats_id = training_pats_id[0:2]
+        training_pats_id = training_pats_id[2:]
+
+        pat_splits = [training_pats_id, val_pats_id, test_pats_id]
         k_folds_idx_splits.append(get_data_splits(pat_splits, split=True))
 
     return k_folds_idx_splits
