@@ -300,12 +300,12 @@ def slr_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
     heatmap_s2 = residual_block(x, downsample=False, filters=points_num)
 
     # in our project, e.x. heatmap shape: 170*170*30*4
-    pro_matrix_s1 = layers.Reshape((width, height, depth, points_num, 3)) \
+    pro_matrix_s1 = layers.Reshape((height, width, depth, points_num, 3)) \
         (tf.repeat(layers.Softmax(axis=[1, 2, 3], name="stage1_softmax")(heatmap_s1), repeats=3, axis=-1))
     outputs_s1 = tf.math.reduce_sum(layers.multiply([base_cor_rcs, pro_matrix_s1]), axis=[1, 2, 3])
     # model_s1 = keras.Model([inputs, base_coordinate_rcs], outputs_s1, name="ResStage1")
 
-    pro_matrix_s2 = layers.Reshape((width, height, depth, points_num, 3)) \
+    pro_matrix_s2 = layers.Reshape((height, width, depth, points_num, 3)) \
         (tf.repeat(layers.Softmax(axis=[1, 2, 3], name="stage2_softmax")(heatmap_s2), repeats=3, axis=-1))
     outputs_s2 = tf.math.reduce_sum(layers.multiply([base_cor_rcs, pro_matrix_s2]), axis=[1, 2, 3])
     # model_s2 = keras.Model([inputs, base_coordinate_rcs], outputs_s2, name="ResStage2")
@@ -315,13 +315,15 @@ def slr_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
     return model
 
 
-def simple_slr_model(height=176, width=176, depth=48, points_num=4):
+def slr_s1_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
     """
     This is a simplified slr model used to debug the original one.
     """
     inputs = keras.Input((height, width, depth, 1))
     # e.x. batches*170*170*30*4*3, 4 type of coordinates, 3 dimensions
     # base_coordinate_xyz = keras.Input((width, height, depth, 4, 3))
+
+    base_cor_rcs = coordinate_3d(batch_size, points_num, height, width, depth)
 
     x = layers.BatchNormalization()(inputs)
     x = layers.ReLU()(x)
@@ -355,23 +357,26 @@ def simple_slr_model(height=176, width=176, depth=48, points_num=4):
     x = residual_block(violet_x, downsample=False, filters=64)
     grey_x_s1 = layers.UpSampling3D(size=2)(x)
 
-    # x = residual_block(grey_x_s1, downsample=False, filters=12)
-    # x = residual_block(x, downsample=False, filters=12)
-    # heatmap_s1 = residual_block(x, downsample=False, filters=12)
+    x = residual_block(grey_x_s1, downsample=False, filters=points_num)
+    x = residual_block(x, downsample=False, filters=points_num)
+    heatmap_s1 = residual_block(x, downsample=False, filters=points_num)
 
-    # pro_matrix_s1 = layers.Reshape((width, height, depth, 4, 3)) \
-    #     (tf.repeat(layers.Softmax(axis=[1, 2, 3], name="stage1_softmax")(heatmap_s1), repeats=3, axis=-1))
-    # outputs_s1 = tf.math.reduce_sum(layers.multiply([base_coordinate_xyz, pro_matrix_s1]), axis=[1, 2, 3])
+    # add dropout?
+    heatmap_s1 = layers.Dropout(0.2)(heatmap_s1)
 
-    # model_s1 = keras.Model([inputs, base_coordinate_xyz], outputs_s1, name="slr_stage1")
+    pro_matrix_s1 = layers.Reshape((width, height, depth, points_num, 3)) \
+        (tf.repeat(layers.Softmax(axis=[1, 2, 3], name="stage1_softmax")(heatmap_s1), repeats=3, axis=-1))
+    outputs_s1 = tf.math.reduce_sum(layers.multiply([base_cor_rcs, pro_matrix_s1]), axis=[1, 2, 3])
 
-    x_hidden = layers.Dropout(0.2)(grey_x_s1)
-    x_hidden = layers.Flatten()(x_hidden)
+    model_s1 = keras.Model(inputs, outputs_s1, name="slr_stage1")
 
-    outputs = layers.Dense(units=3)(x_hidden)
-    outputs = layers.Reshape((1, 3))(outputs)
-
-    model_s1 = keras.Model(inputs, outputs, name="slr_stage1")
+    # x_hidden = layers.Dropout(0.2)(grey_x_s1)
+    # x_hidden = layers.Flatten()(x_hidden)
+    #
+    # outputs = layers.Dense(units=3*points_num)(x_hidden)
+    # outputs = layers.Reshape((points_num, 3))(outputs)
+    #
+    # model_s1 = keras.Model(inputs, outputs, name="slr_stage1")
 
     return model_s1
 
@@ -772,6 +777,8 @@ def get_model(model_name, input_shape, model_output_num, batch_size=2):
         model = straight_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     elif model_name == "slr_model":
         model = slr_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
+    elif model_name == "slr_s1":
+        model = slr_s1_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
     else:
         print("There is no model: ", model_name)
 

@@ -47,9 +47,9 @@ def test_step(model, err_fun, eval_metric, x, y, res):
     #                      shape=(batch_size, size[0], size[1], size[2], landmarks_num, 3))
     # cor_xyz = keras.layers.multiply([base_cor_xyz, res_dup])
     y_pred = model(x, training=False)
-    [mse_res1, mse_res2] = err_fun(y, y_pred, res)
+    mse_res = err_fun(y, y_pred, res)
     # Update val metrics
-    eval_metric.update_state(mse_res2)
+    eval_metric.update_state(mse_res)
     return y_pred
 
 
@@ -73,7 +73,7 @@ def train_model(data_splits, args_dict):
     save_dir = get_record_dir(args_dict)
 
     log = open(f"{save_dir}/original_log", "w")
-    sys.stdout = log
+    # sys.stdout = log
 
     dataset_tag = args_dict.get("dataset_tag")
     crop_size = args_dict.get("crop_dataset_size")
@@ -100,6 +100,11 @@ def train_model(data_splits, args_dict):
     train_num = x_train.shape[0]
     val_num = x_val.shape[0]
     test_num = x_test.shape[0]
+
+    # shift origin to centre
+    y_train = (y_train - [64, 64, 32]).astype('float32')
+    y_val = (y_val - [64, 64, 32]).astype('float32')
+    y_test = (y_test - [64, 64, 32]).astype('float32')
 
     y_train_one = np.asarray(y_train)[:, 0, :].reshape((train_num, 1, 3))
     y_val_one = np.asarray(y_val)[:, 0, :].reshape((val_num, 1, 3))
@@ -184,7 +189,7 @@ def train_model(data_splits, args_dict):
 
         # Iterate over the batches of a dataset.
         for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset):
-            loss_mse = train_step(model, two_wing_loss, train_mse_metric, optimizer,
+            loss_mse = train_step(model, one_wing_loss, train_mse_metric, optimizer,
                                   x_batch_train, y_batch_train, res_batch_train)
 
             # Logging every *** batches
@@ -203,7 +208,7 @@ def train_model(data_splits, args_dict):
 
         # Run a validation loop at the end of each epoch.
         for step, (x_batch_val, y_batch_val, res_batch_val) in enumerate(val_dataset):
-            val_step(model, two_wing_loss, val_mse_metric, x_batch_val, y_batch_val, res_batch_val)
+            val_step(model, one_wing_loss, val_mse_metric, x_batch_val, y_batch_val, res_batch_val)
 
         val_mse = val_mse_metric.result()
         train_err_array[1][epoch] = float(val_mse)
@@ -213,7 +218,7 @@ def train_model(data_splits, args_dict):
         if val_mse < min_val_mse:
             min_val_mse = val_mse
             # Use Test Dataset to evaluate the best Val model (at the moment), and save the Test results
-            test_mse, y_test_pred = my_evaluate(model, two_mse_res, test_mse_metric, test_dataset)
+            test_mse, y_test_pred = my_evaluate(model, mse_res, test_mse_metric, test_dataset)
             np.save(f"{save_dir}/bestVal_{model_label}_y_test", y_test_pred)
             model.save(f"{save_dir}/bestVal_{model_label}")
             print("Validation (MSE with res, saved):%.3f" % (float(val_mse),))
@@ -226,7 +231,7 @@ def train_model(data_splits, args_dict):
         log.flush()
 
     # Use Test Dataset to evaluate the final model, and save the Test results
-    test_mse, y_test_pred = my_evaluate(model, two_mse_res, test_mse_metric, test_dataset)
+    test_mse, y_test_pred = my_evaluate(model, mse_res, test_mse_metric, test_dataset)
     np.save(f"{save_dir}/final_{model_label}_y_test", y_test_pred)
     print("Test (MSE with res), final       %.3f" % (float(test_mse),))
 
@@ -282,7 +287,7 @@ if __name__ == "__main__":
         "batch_size": 2,
         "epochs": 100,
         # model
-        "model_name": "slr_model",
+        "model_name": "slr_s1",
         "model_output_num": 1,
         # record
         "y_tag": "one_landmark_res",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
