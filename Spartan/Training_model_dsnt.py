@@ -73,7 +73,7 @@ def train_model(data_splits, args_dict):
     save_dir = get_record_dir(args_dict)
 
     log = open(f"{save_dir}/original_log", "w")
-    # sys.stdout = log
+    sys.stdout = log
 
     dataset_tag = args_dict.get("dataset_tag")
     crop_size = args_dict.get("crop_dataset_size")

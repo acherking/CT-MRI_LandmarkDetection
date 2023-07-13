@@ -101,6 +101,11 @@ def train_model(data_splits, args_dict):
     val_num = x_val.shape[0]
     test_num = x_test.shape[0]
 
+    # shift origin to centre
+    y_train = (y_train - [64, 64, 32]).astype('float32')
+    y_val = (y_val - [64, 64, 32]).astype('float32')
+    y_test = (y_test - [64, 64, 32]).astype('float32')
+
     y_train_one = np.asarray(y_train)[:, 0, :].reshape((train_num, 1, 3))
     y_val_one = np.asarray(y_val)[:, 0, :].reshape((val_num, 1, 3))
     y_test_one = np.asarray(y_test)[:, 0, :].reshape((test_num, 1, 3))
