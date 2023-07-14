@@ -67,13 +67,14 @@ def my_evaluate(eval_model, err_fun, eval_metric, eval_dataset):
     return eval_metric_result, y_test_p
 
 
-def train_model(data_splits, args_dict):
+def train_model(data_splits, args_dict, write_log=True):
     print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
     save_dir = get_record_dir(args_dict)
 
     log = open(f"{save_dir}/original_log", "w")
-    sys.stdout = log
+    if write_log:
+        sys.stdout = log
 
     dataset_tag = args_dict.get("dataset_tag")
     crop_size = args_dict.get("crop_dataset_size")
@@ -279,7 +280,8 @@ if __name__ == "__main__":
         # prepare Dataset
         "dataset_tag": "cropped",
         "crop_dataset_size": [75, 75, 75, 75, 50, 50],
-        "cut_layers": [11, 11, 11, 11, 18, 18],
+        # "cut_layers": [11, 11, 11, 11, 18, 18],
+        "cut_layers": [25, 25, 25, 25, 0, 0],
         "has_trans": "_trans/tmp",
         "trans_tag": "s1_test_dis",
         "base_dir": "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth",
@@ -287,7 +289,7 @@ if __name__ == "__main__":
         "batch_size": 2,
         "epochs": 100,
         # model
-        "model_name": "slr_s1",
+        "model_name": "cov_only_dsnt",
         "model_output_num": 1,
         # record
         "y_tag": "one_landmark_res",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
@@ -297,4 +299,4 @@ if __name__ == "__main__":
     d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True)
     print("Using static dataset split: Train, Val, Test")
 
-    train_model(d_splits, args)
+    train_model(d_splits, args, write_log=True)

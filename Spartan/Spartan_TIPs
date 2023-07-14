@@ -20,6 +20,8 @@ module load tensorflow/2.7.1
 # Slurm Environmental Variables
 https://hpcc.umd.edu/hpcc/help/slurmenv.html
 
+scontrol write batch_script <job_id>
+
 ***Python***
 
 import tensorflow as tf

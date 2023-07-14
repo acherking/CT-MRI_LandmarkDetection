@@ -39,7 +39,7 @@ def first_model(height=170, width=170, depth=30, points_num=4):
 
     # outputs = layers.Dense(units=1*3, )(x_hidden)
     # outputs = layers.Reshape((1, 3))(outputs)
-    outputs = layers.Dense(units=points_num*3, )(x_hidden)
+    outputs = layers.Dense(units=points_num * 3, )(x_hidden)
     outputs = layers.Reshape((points_num, 3))(outputs)
 
     # Define the model.
@@ -148,11 +148,11 @@ def coordinate_3d(batch_size, landmarks_num, row_size, clown_size, slice_size):
     for i in range(slice_size):
         matrix_z[:, :, i] = matrix_z[:, :, i] * c_2_v[i]
 
-    matrix_x = tf.repeat(matrix_x.reshape((row_size, clown_size, slice_size, 1)), repeats=landmarks_num, axis=-1)\
+    matrix_x = tf.repeat(matrix_x.reshape((row_size, clown_size, slice_size, 1)), repeats=landmarks_num, axis=-1) \
         .numpy().reshape((row_size, clown_size, slice_size, landmarks_num, 1))
-    matrix_y = tf.repeat(matrix_y.reshape((row_size, clown_size, slice_size, 1)), repeats=landmarks_num, axis=-1)\
+    matrix_y = tf.repeat(matrix_y.reshape((row_size, clown_size, slice_size, 1)), repeats=landmarks_num, axis=-1) \
         .numpy().reshape((row_size, clown_size, slice_size, landmarks_num, 1))
-    matrix_z = tf.repeat(matrix_z.reshape((row_size, clown_size, slice_size, 1)), repeats=landmarks_num, axis=-1)\
+    matrix_z = tf.repeat(matrix_z.reshape((row_size, clown_size, slice_size, 1)), repeats=landmarks_num, axis=-1) \
         .numpy().reshape((row_size, clown_size, slice_size, landmarks_num, 1))
 
     coordinate_xyz = layers.Concatenate(axis=-1)([matrix_x, matrix_y, matrix_z])
@@ -382,7 +382,6 @@ def slr_s1_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
 
 
 def straight_model(height=176, width=176, depth=48, points_num=4):
-
     inputs = keras.Input((height, width, depth, 1))
 
     # layer 1
@@ -451,7 +450,7 @@ def straight_model(height=176, width=176, depth=48, points_num=4):
 
     x_hidden = layers.Dropout(0.2)(x_hidden)
     x_hidden = layers.Flatten()(x_hidden)
-    outputs = layers.Dense(units=points_num*3, )(x_hidden)
+    outputs = layers.Dense(units=points_num * 3, )(x_hidden)
 
     outputs = layers.Reshape((points_num, 3))(outputs)
 
@@ -462,7 +461,6 @@ def straight_model(height=176, width=176, depth=48, points_num=4):
 
 
 def straight_model_short(height=176, width=176, depth=48, points_num=4):
-
     inputs = keras.Input((height, width, depth, 1))
 
     # layer 1
@@ -531,7 +529,7 @@ def straight_model_short(height=176, width=176, depth=48, points_num=4):
 
     x_hidden = layers.Dropout(0.2)(x_hidden)
     x_hidden = layers.Flatten()(x_hidden)
-    outputs = layers.Dense(units=points_num*3, )(x_hidden)
+    outputs = layers.Dense(units=points_num * 3, )(x_hidden)
 
     outputs = layers.Reshape((points_num, 3))(outputs)
 
@@ -542,7 +540,6 @@ def straight_model_short(height=176, width=176, depth=48, points_num=4):
 
 
 def straight_model_bn_a(height=176, width=176, depth=48, points_num=4):
-
     inputs = keras.Input((height, width, depth, 1))
 
     # layer 1
@@ -611,7 +608,7 @@ def straight_model_bn_a(height=176, width=176, depth=48, points_num=4):
 
     x_hidden = layers.Dropout(0.2)(x_hidden)
     x_hidden = layers.Flatten()(x_hidden)
-    outputs = layers.Dense(units=points_num*3, )(x_hidden)
+    outputs = layers.Dense(units=points_num * 3, )(x_hidden)
 
     outputs = layers.Reshape((points_num, 3))(outputs)
 
@@ -622,7 +619,6 @@ def straight_model_bn_a(height=176, width=176, depth=48, points_num=4):
 
 
 def straight_model_no_bn(height=176, width=176, depth=48, points_num=4):
-
     inputs = keras.Input((height, width, depth, 1))
 
     # layer 1
@@ -679,7 +675,7 @@ def straight_model_no_bn(height=176, width=176, depth=48, points_num=4):
 
     x_hidden = layers.Dropout(0.2)(x_hidden)
     x_hidden = layers.Flatten()(x_hidden)
-    outputs = layers.Dense(units=points_num*3, )(x_hidden)
+    outputs = layers.Dense(units=points_num * 3, )(x_hidden)
 
     outputs = layers.Reshape((points_num, 3))(outputs)
 
@@ -690,7 +686,6 @@ def straight_model_no_bn(height=176, width=176, depth=48, points_num=4):
 
 
 def straight_model_more_dropout(height=176, width=176, depth=48, points_num=4):
-
     inputs = keras.Input((height, width, depth, 1))
 
     # layer 1
@@ -762,7 +757,7 @@ def straight_model_more_dropout(height=176, width=176, depth=48, points_num=4):
 
     x_hidden = layers.Dropout(0.2)(x_hidden)
     x_hidden = layers.Flatten()(x_hidden)
-    outputs = layers.Dense(units=points_num*3, )(x_hidden)
+    outputs = layers.Dense(units=points_num * 3, )(x_hidden)
 
     outputs = layers.Reshape((points_num, 3))(outputs)
 
@@ -772,6 +767,213 @@ def straight_model_more_dropout(height=176, width=176, depth=48, points_num=4):
     return model
 
 
+# Convolutional Only
+def cov_only_dsnt_model(height=176, width=176, depth=48, points_num=2, batch_size=2, dsnt=False):
+    inputs = keras.Input((height, width, depth, 1))
+
+    base_cor_rcs = coordinate_3d(batch_size, points_num, height, width, depth)
+
+    # layer 1
+    x_hidden = layers.Conv3D(filters=32, kernel_size=3, padding="same")(inputs)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+    # x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+
+    # layer 2
+    x_hidden = layers.Conv3D(filters=64, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+    # x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+
+    # layer 3
+    x_hidden = layers.Conv3D(filters=128, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+
+    # layer 4
+    x_hidden = layers.Conv3D(filters=64, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+
+    # layer 5
+    x_hidden = layers.Conv3D(filters=128, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+    # x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+
+    # layer 6
+    x = layers.Conv3D(filters=64, kernel_size=3, padding="same")(x_hidden)
+    x = layers.BatchNormalization()(x)
+    x = layers.ReLU()(x)
+
+    # layer 7
+    heatmap_s1 = residual_block(x, downsample=False, filters=points_num)
+
+    pro_matrix = layers.Reshape((width, height, depth, points_num, 3)) \
+        (tf.repeat(layers.Softmax(axis=[1, 2, 3], name="softmax")(heatmap_s1), repeats=3, axis=-1))
+    outputs = tf.math.reduce_sum(layers.multiply([base_cor_rcs, pro_matrix]), axis=[1, 2, 3])
+
+    model = keras.Model(inputs, outputs, name="cov-only-dsnt-model")
+
+    return model
+
+
+# U-Net: "End-to-End Coordinate Regression Model with Attention-Guided Mechanism
+# for Landmark Localization in 3D Medical Images"
+# not from the origin
+# https://pyimagesearch.com/2022/02/21/u-net-image-segmentation-in-keras/
+def double_conv_block(x, n_filters):
+    # Conv3D then ReLU activation
+    x = layers.Conv3D(n_filters, 3, padding="same", activation="relu", kernel_initializer="he_normal")(x)
+    # Conv3D then ReLU activation
+    x = layers.Conv3D(n_filters, 3, padding="same", activation="relu", kernel_initializer="he_normal")(x)
+
+    return x
+
+
+def downsample_block(x, n_filters):
+    f = double_conv_block(x, n_filters)
+    p = layers.MaxPool3D(2)(f)
+    p = layers.Dropout(0.3)(p)
+
+    return f, p
+
+
+def upsample_block(x, conv_features, n_filters):
+    # upsample
+    x = layers.Conv3DTranspose(n_filters, 3, 2, padding="same")(x)
+    # concatenate
+    if x.shape[1] < conv_features.shape[1]:
+        p_r = (0, 1)
+    else:
+        p_r = (0, 0)
+    if x.shape[2] < conv_features.shape[2]:
+        p_c = (0, 1)
+    else:
+        p_c = (0, 0)
+    if x.shape[3] < conv_features.shape[3]:
+        p_s = (0, 1)
+    else:
+        p_s = (0, 0)
+    padding_value = (p_r, p_c, p_s)
+    x = layers.ZeroPadding3D(padding_value)(x)
+    x = layers.concatenate([x, conv_features])
+    # dropout
+    x = layers.Dropout(0.3)(x)
+    # Conv3D twice with ReLU activation
+    x = double_conv_block(x, n_filters)
+
+    return x
+
+
+def u_net_model(height=176, width=176, depth=48, points_num=2):
+    # inputs
+    inputs = keras.Input((height, width, depth, 1))
+
+    # encoder: contracting path - downsample
+    # 1 - downsample
+    f1, p1 = downsample_block(inputs, 64)
+    # 2 - downsample
+    f2, p2 = downsample_block(p1, 128)
+    # 3 - downsample
+    f3, p3 = downsample_block(p2, 256)
+    # 4 - downsample
+    f4, p4 = downsample_block(p3, 512)
+
+    # 5 - bottleneck
+    bottleneck = double_conv_block(p4, 1024)
+
+    # decoder: expanding path - upsample
+    # 6 - upsample
+    u6 = upsample_block(bottleneck, f4, 512)
+    # 7 - upsample
+    u7 = upsample_block(u6, f3, 256)
+    # 8 - upsample
+    u8 = upsample_block(u7, f2, 128)
+    # 9 - upsample
+    u9 = upsample_block(u8, f1, 64)
+
+    # outputs
+    # outputs = layers.Conv3D(3, 1, padding="same", activation="softmax")(u9)
+
+    # calculate the coordinate directly
+    x = layers.Dropout(0.3)(u9)
+    x = layers.MaxPool3D(4)(x)
+    x_hidden = layers.Dropout(0.2)(x)
+    x_hidden = layers.Flatten()(x_hidden)
+    outputs = layers.Dense(units=points_num * 3, )(x_hidden)
+
+    outputs = layers.Reshape((points_num, 3))(outputs)
+
+    # unet model with Keras Functional API
+    unet_model = tf.keras.Model(inputs, outputs, name="U-Net")
+
+    return unet_model
+
+
+# https://keras.io/examples/vision/oxford_pets_image_segmentation/
+def u_net_Xception_model(height=176, width=176, depth=48, points_num=2):
+    inputs = keras.Input((height, width, depth, 1))
+
+    ### [First half of the network: downsampling inputs] ###
+
+    # Entry block
+    x = layers.Conv3D(32, 3, strides=2, padding="same")(inputs)
+    x = layers.BatchNormalization()(x)
+
+    previous_block_activation = x  # Set aside residual
+
+    # Blocks 1, 2, 3 are identical apart from the feature depth.
+    for filters in [64, 128, 256]:
+        x = layers.Activation("relu")(x)
+        x = layers.Conv3D(filters, 3, padding="same")(x)
+        x = layers.BatchNormalization()(x)
+
+        x = layers.Activation("relu")(x)
+        x = layers.Conv3D(filters, 3, padding="same")(x)
+        x = layers.BatchNormalization()(x)
+
+        x = layers.MaxPooling3D(3, strides=2, padding="same")(x)
+
+        # Project residual
+        residual = layers.Conv3D(filters, 1, strides=2, padding="same")(
+            previous_block_activation
+        )
+        x = layers.add([x, residual])  # Add back residual
+        previous_block_activation = x  # Set aside next residual
+
+    ### [Second half of the network: upsampling inputs] ###
+
+    for filters in [256, 128, 64, 32]:
+        x = layers.Activation("relu")(x)
+        x = layers.Conv3DTranspose(filters, 3, padding="same")(x)
+        x = layers.BatchNormalization()(x)
+
+        x = layers.Activation("relu")(x)
+        x = layers.Conv3DTranspose(filters, 3, padding="same")(x)
+        x = layers.BatchNormalization()(x)
+
+        x = layers.UpSampling3D(2)(x)
+
+        # Project residual
+        residual = layers.UpSampling3D(2)(previous_block_activation)
+        residual = layers.Conv3D(filters, 1, padding="same")(residual)
+        x = layers.add([x, residual])  # Add back residual
+        previous_block_activation = x  # Set aside next residual
+
+    # Add a per-pixel classification layer
+    outputs = layers.Conv3D(points_num, 3, activation="softmax", padding="same")(x)
+
+    # Define the model
+    model = keras.Model(inputs, outputs)
+    return model
+
+
+# Spatial Configuration Net: "Regressing Heatmaps for Multiple Landmark Localization Using CNNs"
+def sc_net_model(height=176, width=176, depth=48, points_num=2):
+    return
+
+
 def get_model(model_name, input_shape, model_output_num, batch_size=2):
     if model_name == "straight_model":
         model = straight_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
@@ -779,8 +981,11 @@ def get_model(model_name, input_shape, model_output_num, batch_size=2):
         model = slr_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
     elif model_name == "slr_s1":
         model = slr_s1_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
+    elif model_name == "cov_only_dsnt":
+        model = cov_only_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
+    elif model_name == "u_net":
+        model = u_net_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     else:
         print("There is no model: ", model_name)
 
     return model
-
