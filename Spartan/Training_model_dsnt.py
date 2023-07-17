@@ -107,9 +107,13 @@ def train_model(data_splits, args_dict, write_log=True):
     y_val = (y_val - [64, 64, 32]).astype('float32')
     y_test = (y_test - [64, 64, 32]).astype('float32')
 
-    y_train_one = np.asarray(y_train)[:, 0, :].reshape((train_num, 1, 3))
-    y_val_one = np.asarray(y_val)[:, 0, :].reshape((val_num, 1, 3))
-    y_test_one = np.asarray(y_test)[:, 0, :].reshape((test_num, 1, 3))
+    model_output_num = args_dict.get("model_output_num")
+    print("Landmarks Num: ", model_output_num)
+
+    if model_output_num == 1:
+        y_train = np.asarray(y_train)[:, 0, :].reshape((train_num, 1, 3))
+        y_val = np.asarray(y_val)[:, 0, :].reshape((val_num, 1, 3))
+        y_test = np.asarray(y_test)[:, 0, :].reshape((test_num, 1, 3))
 
     res_train = (np.ones((train_num, 1, 3)) * 0.15).astype('float32')
     res_val = (np.ones((val_num, 1, 3)) * 0.15).astype('float32')
@@ -125,13 +129,13 @@ def train_model(data_splits, args_dict, write_log=True):
 
     # Set
     # Prepare dataset used in the training process
-    train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train_one, res_train))
+    train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train, res_train))
     train_dataset = train_dataset.shuffle(buffer_size=train_num*2, reshuffle_each_iteration=True).batch(batch_size)
 
-    val_dataset = tf.data.Dataset.from_tensor_slices((x_val, y_val_one, res_val))
+    val_dataset = tf.data.Dataset.from_tensor_slices((x_val, y_val, res_val))
     val_dataset = val_dataset.shuffle(buffer_size=val_num*2, reshuffle_each_iteration=True).batch(batch_size)
 
-    test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test_one, res_test)).batch(batch_size)
+    test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test, res_test)).batch(batch_size)
 
     # Check these datasets
     for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset):
@@ -289,10 +293,10 @@ if __name__ == "__main__":
         "batch_size": 2,
         "epochs": 100,
         # model
-        "model_name": "cov_only_dsnt",
-        "model_output_num": 1,
+        "model_name": "scn_dsnt",
+        "model_output_num": 2,
         # record
-        "y_tag": "one_landmark_res",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
+        "y_tag": "two_landmark_res",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
         "save_dir_extend": "",  # can be used for cross validation
     }
 

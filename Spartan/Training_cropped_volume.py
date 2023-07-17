@@ -45,9 +45,13 @@ def train_model(data_splits, args_dict, write_log=True):
     val_num = x_val.shape[0]
     test_num = x_test.shape[0]
 
-    y_train_one = np.asarray(y_train)[:, 0, :].reshape((train_num, 1, 3))
-    y_val_one = np.asarray(y_val)[:, 0, :].reshape((val_num, 1, 3))
-    y_test_one = np.asarray(y_test)[:, 0, :].reshape((test_num, 1, 3))
+    model_output_num = args_dict.get("model_output_num")
+    print("Landmarks Num: ", model_output_num)
+
+    if model_output_num == 1:
+        y_train = np.asarray(y_train)[:, 0, :].reshape((train_num, 1, 3))
+        y_val = np.asarray(y_val)[:, 0, :].reshape((val_num, 1, 3))
+        y_test = np.asarray(y_test)[:, 0, :].reshape((test_num, 1, 3))
 
     res_train = (np.ones((train_num, 1, 3)) * 0.15).astype('float32')
     res_val = (np.ones((val_num, 1, 3)) * 0.15).astype('float32')
@@ -63,13 +67,13 @@ def train_model(data_splits, args_dict, write_log=True):
 
     # Set
     # Prepare dataset used in the training process
-    train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train_one, res_train))
+    train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train, res_train))
     train_dataset = train_dataset.shuffle(buffer_size=train_num*2, reshuffle_each_iteration=True).batch(batch_size)
 
-    val_dataset = tf.data.Dataset.from_tensor_slices((x_val, y_val_one, res_val))
+    val_dataset = tf.data.Dataset.from_tensor_slices((x_val, y_val, res_val))
     val_dataset = val_dataset.shuffle(buffer_size=val_num*2, reshuffle_each_iteration=True).batch(batch_size)
 
-    test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test_one, res_test)).batch(batch_size)
+    test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test, res_test)).batch(batch_size)
 
     # Check these datasets
     for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset):
@@ -107,7 +111,6 @@ def train_model(data_splits, args_dict, write_log=True):
     input_shape = (crop_size[0]+crop_size[1]-crop_layers[0, 0]-crop_layers[0, 1],
                    crop_size[2]+crop_size[3]-crop_layers[1, 0]-crop_layers[1, 1],
                    crop_size[4]+crop_size[5]-crop_layers[2, 0]-crop_layers[2, 1])
-    model_output_num = args_dict.get("model_output_num")
 
     model = models.get_model(model_name, input_shape, model_output_num)
     model.summary()
@@ -224,14 +227,14 @@ if __name__ == "__main__":
         "batch_size": 2,
         "epochs": 100,
         # model
-        "model_name": "u_net",
-        "model_output_num": 1,
+        "model_name": "scn",
+        "model_output_num": 2,
         # record
-        "y_tag": "one_landmark_res",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
+        "y_tag": "two_landmarks_res",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
         "save_dir_extend": "",  # can be used for cross validation
     }
 
     d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True)
     print("Using static dataset split: Train, Val, Test")
 
-    train_model(d_splits, args, write_log=True)
+    train_model(d_splits, args, write_log=False)

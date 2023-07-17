@@ -771,8 +771,6 @@ def straight_model_more_dropout(height=176, width=176, depth=48, points_num=4):
 def cov_only_dsnt_model(height=176, width=176, depth=48, points_num=2, batch_size=2, dsnt=False):
     inputs = keras.Input((height, width, depth, 1))
 
-    base_cor_rcs = coordinate_3d(batch_size, points_num, height, width, depth)
-
     # layer 1
     x_hidden = layers.Conv3D(filters=32, kernel_size=3, padding="same")(inputs)
     x_hidden = layers.BatchNormalization()(x_hidden)
@@ -809,6 +807,7 @@ def cov_only_dsnt_model(height=176, width=176, depth=48, points_num=2, batch_siz
     # layer 7
     heatmap_s1 = residual_block(x, downsample=False, filters=points_num)
 
+    base_cor_rcs = coordinate_3d(batch_size, points_num, height, width, depth)
     pro_matrix = layers.Reshape((width, height, depth, points_num, 3)) \
         (tf.repeat(layers.Softmax(axis=[1, 2, 3], name="softmax")(heatmap_s1), repeats=3, axis=-1))
     outputs = tf.math.reduce_sum(layers.multiply([base_cor_rcs, pro_matrix]), axis=[1, 2, 3])
@@ -970,8 +969,81 @@ def u_net_Xception_model(height=176, width=176, depth=48, points_num=2):
 
 
 # Spatial Configuration Net: "Regressing Heatmaps for Multiple Landmark Localization Using CNNs"
-def sc_net_model(height=176, width=176, depth=48, points_num=2):
-    return
+# https://github.com/christianpayer/MedicalDataAugmentationTool-HeatmapRegression/blob/master/hand_xray/network.py
+def sc_net(inputs, points_num, dsnt=False):
+    num_filters = 64
+    local_kernel_size = (3, 3, 3)
+    spatial_kernel_size = (9, 9, 5)
+    downsampling_factor = 4
+    padding = 'same'
+    kernel_initializer = tf.keras.initializers.HeNormal
+    activation = tf.nn.relu
+    heatmap_initializer = tf.compat.v1.truncated_normal_initializer(stddev=0.0001)
+    local_activation = None
+    spatial_activation = None
+    with tf.name_scope('local_appearance'):
+        node = layers.Conv3D(num_filters, kernel_size=local_kernel_size, name='conv1', activation=activation, kernel_initializer=kernel_initializer, padding=padding)(inputs)
+        node = layers.Conv3D(num_filters, kernel_size=local_kernel_size, name='conv2', activation=activation, kernel_initializer=kernel_initializer, padding=padding)(node)
+        node = layers.Conv3D(num_filters, kernel_size=local_kernel_size, name='conv3', activation=activation, kernel_initializer=kernel_initializer, padding=padding)(node)
+        # print("points_num:", points_num)
+        local_heatmaps = layers.Conv3D(points_num, kernel_size=local_kernel_size, name='local_heatmaps', activation=local_activation,  kernel_initializer=heatmap_initializer, padding=padding)(node)
+    with tf.name_scope('spatial_configuration'):
+        local_heatmaps_downsampled = layers.AveragePooling3D(downsampling_factor, name='local_heatmaps_downsampled')(local_heatmaps)
+        print(tf.shape(local_heatmaps))
+        channel_axis = -1
+        local_heatmaps_downsampled_split = tf.split(local_heatmaps_downsampled, points_num, channel_axis)
+        print(tf.shape(local_heatmaps_downsampled_split))
+        spatial_heatmaps_downsampled_split = []
+        for i in range(points_num):
+            local_heatmaps_except_i = tf.concat([local_heatmaps_downsampled_split[j] for j in range(points_num) if i != j], name=f"h_app_except_{i}", axis=channel_axis)
+            h_acc = layers.Conv3D(1, kernel_size=spatial_kernel_size, name='h_acc_'+str(i), activation=spatial_activation, kernel_initializer=heatmap_initializer, padding=padding)(local_heatmaps_except_i)
+            spatial_heatmaps_downsampled_split.append(h_acc)
+        spatial_heatmaps_downsampled = tf.concat(spatial_heatmaps_downsampled_split, name='spatial_heatmaps_downsampled', axis=channel_axis)
+        spatial_heatmaps = layers.UpSampling3D(downsampling_factor, name='spatial_prediction')(spatial_heatmaps_downsampled)
+    with tf.name_scope('combination'):
+        if dsnt:
+            heatmaps = local_heatmaps * spatial_heatmaps
+        else:
+            # heatmaps = tf.concat([local_heatmaps, spatial_heatmaps], axis=channel_axis)
+            heatmaps = local_heatmaps_downsampled * spatial_heatmaps_downsampled
+    return heatmaps
+
+
+def scn_model(height=176, width=176, depth=48, points_num=2):
+    inputs = keras.Input((height, width, depth, 1))
+
+    reg_mat = sc_net(inputs, points_num, dsnt=False)
+
+    # calculate the coordinate directly
+    # x = layers.Dropout(0.3)(heatmaps)
+    # x = layers.MaxPool3D(4)(x)
+    x_hidden = layers.Dropout(0.2)(reg_mat)
+    x_hidden = layers.Flatten()(x_hidden)
+    outputs = layers.Dense(units=points_num * 3, )(x_hidden)
+
+    outputs = layers.Reshape((points_num, 3))(outputs)
+
+    # unet model with Keras Functional API
+    model = tf.keras.Model(inputs, outputs, name="scn_model")
+
+    return model
+
+
+def scn_dsnt_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
+    inputs = keras.Input((height, width, depth, 1))
+
+    heatmaps = sc_net(inputs, points_num, dsnt=True)
+
+    base_cor_rcs = coordinate_3d(batch_size, points_num, height, width, depth)
+
+    pro_matrix = layers.Reshape((width, height, depth, points_num, 3)) \
+        (tf.repeat(layers.Softmax(axis=[1, 2, 3], name="softmax")(heatmaps), repeats=3, axis=-1))
+    outputs = tf.math.reduce_sum(layers.multiply([base_cor_rcs, pro_matrix]), axis=[1, 2, 3])
+
+    # unet model with Keras Functional API
+    model = tf.keras.Model(inputs, outputs, name="scn_dsnt_model")
+
+    return model
 
 
 def get_model(model_name, input_shape, model_output_num, batch_size=2):
@@ -985,6 +1057,10 @@ def get_model(model_name, input_shape, model_output_num, batch_size=2):
         model = cov_only_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
     elif model_name == "u_net":
         model = u_net_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
+    elif model_name == "scn":
+        model = scn_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
+    elif model_name == "scn_dsnt":
+        model = scn_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
     else:
         print("There is no model: ", model_name)
 
