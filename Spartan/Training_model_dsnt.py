@@ -102,10 +102,15 @@ def train_model(data_splits, args_dict, write_log=True):
     val_num = x_val.shape[0]
     test_num = x_test.shape[0]
 
+    row_size = x_train.shape[1]
+    column_size = x_train.shape[2]
+    slice_size = x_train.shape[3]
+    print(f"Train Volume Shape: row [{row_size}], column [{column_size}], slice [{slice_size}]")
+
     # shift origin to centre
-    y_train = (y_train - [64, 64, 32]).astype('float32')
-    y_val = (y_val - [64, 64, 32]).astype('float32')
-    y_test = (y_test - [64, 64, 32]).astype('float32')
+    y_train = (y_train - [column_size/2, row_size/2, slice_size/2]).astype('float32')
+    y_val = (y_val - [column_size/2, row_size/2, slice_size/2]).astype('float32')
+    y_test = (y_test - [column_size/2, row_size/2, slice_size/2]).astype('float32')
 
     model_output_num = args_dict.get("model_output_num")
     print("Landmarks Num: ", model_output_num)
@@ -293,7 +298,7 @@ if __name__ == "__main__":
         "batch_size": 2,
         "epochs": 100,
         # model
-        "model_name": "scn_dsnt",
+        "model_name": "u_net_dsnt",
         "model_output_num": 2,
         # record
         "y_tag": "two_landmark_res",  # "one_landmark", "two_landmarks", "mean_two_landmarks"

@@ -227,7 +227,7 @@ if __name__ == "__main__":
         "batch_size": 2,
         "epochs": 100,
         # model
-        "model_name": "scn",
+        "model_name": "u_net",
         "model_output_num": 2,
         # record
         "y_tag": "two_landmarks_res",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
@@ -237,4 +237,4 @@ if __name__ == "__main__":
     d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True)
     print("Using static dataset split: Train, Val, Test")
 
-    train_model(d_splits, args, write_log=False)
+    train_model(d_splits, args, write_log=True)

@@ -865,9 +865,7 @@ def upsample_block(x, conv_features, n_filters):
     return x
 
 
-def u_net_model(height=176, width=176, depth=48, points_num=2):
-    # inputs
-    inputs = keras.Input((height, width, depth, 1))
+def u_net(inputs, points_num=2, dsnt=False):
 
     # encoder: contracting path - downsample
     # 1 - downsample
@@ -892,22 +890,49 @@ def u_net_model(height=176, width=176, depth=48, points_num=2):
     # 9 - upsample
     u9 = upsample_block(u8, f1, 64)
 
-    # outputs
-    # outputs = layers.Conv3D(3, 1, padding="same", activation="softmax")(u9)
+    if dsnt:
+        heatmaps = layers.Conv3D(points_num, 1, padding="same", activation="softmax")(u9)
+    else:
+        heatmaps = layers.Conv3D(3, 3, strides=4, activation="relu")(u9)
+
+    return heatmaps
+
+
+def u_net_model(height=176, width=176, depth=48, points_num=2):
+    inputs = keras.Input((height, width, depth, 1))
+
+    reg_mat = u_net(inputs, points_num, dsnt=False)
 
     # calculate the coordinate directly
-    x = layers.Dropout(0.3)(u9)
-    x = layers.MaxPool3D(4)(x)
-    x_hidden = layers.Dropout(0.2)(x)
+    # x = layers.Dropout(0.3)(reg_mat)
+    # x = layers.MaxPool3D(4)(x)
+    x_hidden = layers.Dropout(0.2)(reg_mat)
     x_hidden = layers.Flatten()(x_hidden)
     outputs = layers.Dense(units=points_num * 3, )(x_hidden)
 
     outputs = layers.Reshape((points_num, 3))(outputs)
 
     # unet model with Keras Functional API
-    unet_model = tf.keras.Model(inputs, outputs, name="U-Net")
+    model = tf.keras.Model(inputs, outputs, name="u_net_model")
 
-    return unet_model
+    return model
+
+
+def u_net_dsnt_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
+    inputs = keras.Input((height, width, depth, 1))
+
+    heatmaps = u_net(inputs, points_num, dsnt=True)
+
+    base_cor_rcs = coordinate_3d(batch_size, points_num, height, width, depth)
+
+    pro_matrix = layers.Reshape((width, height, depth, points_num, 3)) \
+        (tf.repeat(layers.Softmax(axis=[1, 2, 3], name="softmax")(heatmaps), repeats=3, axis=-1))
+    outputs = tf.math.reduce_sum(layers.multiply([base_cor_rcs, pro_matrix]), axis=[1, 2, 3])
+
+    # unet model with Keras Functional API
+    model = tf.keras.Model(inputs, outputs, name="u_net_dsnt_model")
+
+    return model
 
 
 # https://keras.io/examples/vision/oxford_pets_image_segmentation/
@@ -971,7 +996,7 @@ def u_net_Xception_model(height=176, width=176, depth=48, points_num=2):
 # Spatial Configuration Net: "Regressing Heatmaps for Multiple Landmark Localization Using CNNs"
 # https://github.com/christianpayer/MedicalDataAugmentationTool-HeatmapRegression/blob/master/hand_xray/network.py
 def sc_net(inputs, points_num, dsnt=False):
-    num_filters = 64
+    num_filters = 128
     local_kernel_size = (3, 3, 3)
     spatial_kernel_size = (9, 9, 5)
     downsampling_factor = 4
@@ -1057,6 +1082,8 @@ def get_model(model_name, input_shape, model_output_num, batch_size=2):
         model = cov_only_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
     elif model_name == "u_net":
         model = u_net_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
+    elif model_name == "u_net_dsnt":
+        model = u_net_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
     elif model_name == "scn":
         model = scn_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     elif model_name == "scn_dsnt":
