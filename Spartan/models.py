@@ -232,12 +232,49 @@ def mse_with_res(y_true, y_pred, res):
         return loss
 
 
+def down_sampling_shape(dim):
+    dim_list = [dim]
+    while dim > 1:
+        dim = int(np.ceil(dim/2))
+        dim_list.append(dim)
+
+    return dim_list
+
+
+def my_upsampling(size, x, input_shape):
+    row_dim_list = down_sampling_shape(input_shape[0])
+    column_dim_list = down_sampling_shape(input_shape[1])
+    slice_dim_list = down_sampling_shape(input_shape[2])
+
+    for i in range(int(np.log2(size))):
+        x = layers.UpSampling3D(size=2)(x)
+        row_dim = x.shape[1]
+        for r_d in row_dim_list:
+            if (row_dim - r_d) == 1:
+                row_dim = r_d
+                break
+        column_dim = x.shape[2]
+        for c_d in column_dim_list:
+            if (column_dim - c_d) == 1:
+                column_dim = c_d
+                break
+        slice_dim = x.shape[3]
+        for s_d in slice_dim_list:
+            if (slice_dim - s_d) == 1:
+                slice_dim = s_d
+                break
+        x = x[:, 0:row_dim, 0:column_dim, 0:slice_dim, :]
+
+    return x
+
+
 # spine_lateral_radiograph_model
 def slr_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
     """
     The original model is for 2D image, our data are 3D.
     Change it to a 3D convolutional neural network model."""
     inputs = keras.Input((height, width, depth, 1))
+    input_shape = (height, width, depth)
     # e.x. batches*170*170*30*4*3, 4 type of coordinates, 3 dimensions
     # base_coordinate_rcs = keras.Input((height, width, depth, points_num, 3))
 
@@ -261,19 +298,19 @@ def slr_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
     green_x = residual_block(green_x, downsample=False, filters=512)
 
     x = residual_block(green_x, downsample=False, filters=256)
-    x = layers.UpSampling3D(size=2)(x)
+    x = my_upsampling(2, x, input_shape)
     blue_x = layers.Add()([x, blue_x])
 
     x = residual_block(blue_x, downsample=False, filters=128)
-    x = layers.UpSampling3D(size=2)(x)
+    x = my_upsampling(2, x, input_shape)
     yellow_x = layers.Add()([x, yellow_x])
 
     x = residual_block(yellow_x, downsample=False, filters=64)
-    x = layers.UpSampling3D(size=2)(x)
+    x = my_upsampling(2, x, input_shape)
     violet_x = layers.Add()([x, violet_x])
 
     x = residual_block(violet_x, downsample=False, filters=64)
-    grey_x_s1 = layers.UpSampling3D(size=2)(x)
+    grey_x_s1 = my_upsampling(2, x, input_shape)
 
     x = residual_block(grey_x_s1, downsample=False, filters=points_num)
     x = residual_block(x, downsample=False, filters=points_num)
@@ -290,9 +327,9 @@ def slr_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
     violet_x = residual_block(violet_x, downsample=False, filters=64)
 
     # Upsampling & Concatenate
-    upsampling_blue_x = layers.UpSampling3D(size=8)(blue_x)
-    upsampling_yellow_x = layers.UpSampling3D(size=4)(yellow_x)
-    upsampling_violet_x = layers.UpSampling3D(size=2)(violet_x)
+    upsampling_blue_x = my_upsampling(8, blue_x, input_shape)
+    upsampling_yellow_x = my_upsampling(4, yellow_x, input_shape)
+    upsampling_violet_x = my_upsampling(2, violet_x, input_shape)
     grey_x_s2 = layers.Concatenate(axis=4)([upsampling_blue_x, upsampling_yellow_x, upsampling_violet_x, grey_x_s1])
 
     x = residual_block(grey_x_s2, downsample=False, filters=points_num)

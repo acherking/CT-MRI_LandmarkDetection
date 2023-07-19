@@ -101,14 +101,23 @@ def train_model(data_splits, args_dict):
     val_num = x_val.shape[0]
     test_num = x_test.shape[0]
 
-    # shift origin to centre
-    y_train = (y_train - [64, 64, 32]).astype('float32')
-    y_val = (y_val - [64, 64, 32]).astype('float32')
-    y_test = (y_test - [64, 64, 32]).astype('float32')
+    row_size = x_train.shape[1]
+    column_size = x_train.shape[2]
+    slice_size = x_train.shape[3]
+    print(f"Train Volume Shape: row [{row_size}], column [{column_size}], slice [{slice_size}]")
 
-    y_train_one = np.asarray(y_train)[:, 0, :].reshape((train_num, 1, 3))
-    y_val_one = np.asarray(y_val)[:, 0, :].reshape((val_num, 1, 3))
-    y_test_one = np.asarray(y_test)[:, 0, :].reshape((test_num, 1, 3))
+    # shift origin to centre
+    y_train = (y_train - [column_size/2, row_size/2, slice_size/2]).astype('float32')
+    y_val = (y_val - [column_size/2, row_size/2, slice_size/2]).astype('float32')
+    y_test = (y_test - [column_size/2, row_size/2, slice_size/2]).astype('float32')
+
+    model_output_num = args_dict.get("model_output_num")
+    print("Landmarks Num: ", model_output_num)
+
+    if model_output_num == 1:
+        y_train = np.asarray(y_train)[:, 0, :].reshape((train_num, 1, 3))
+        y_val = np.asarray(y_val)[:, 0, :].reshape((val_num, 1, 3))
+        y_test = np.asarray(y_test)[:, 0, :].reshape((test_num, 1, 3))
 
     res_train = (np.ones((train_num, 1, 3)) * 0.15).astype('float32')
     res_val = (np.ones((val_num, 1, 3)) * 0.15).astype('float32')
@@ -124,13 +133,13 @@ def train_model(data_splits, args_dict):
 
     # Set
     # Prepare dataset used in the training process
-    train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train_one, res_train))
+    train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train, res_train))
     train_dataset = train_dataset.shuffle(buffer_size=train_num*2, reshuffle_each_iteration=True).batch(batch_size)
 
-    val_dataset = tf.data.Dataset.from_tensor_slices((x_val, y_val_one, res_val))
+    val_dataset = tf.data.Dataset.from_tensor_slices((x_val, y_val, res_val))
     val_dataset = val_dataset.shuffle(buffer_size=val_num*2, reshuffle_each_iteration=True).batch(batch_size)
 
-    test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test_one, res_test)).batch(batch_size)
+    test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test, res_test)).batch(batch_size)
 
     # Check these datasets
     for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset):
@@ -279,18 +288,18 @@ if __name__ == "__main__":
         # prepare Dataset
         "dataset_tag": "cropped",
         "crop_dataset_size": [75, 75, 75, 75, 50, 50],
-        "cut_layers": [11, 11, 11, 11, 18, 18],
+        "cut_layers": [25, 25, 25, 25, 0, 0],
         "has_trans": "_trans/tmp",
-        "trans_tag": "s1_test_dis",
+         "trans_tag": "s1_test_dis",
         "base_dir": "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth",
         # training
         "batch_size": 2,
         "epochs": 100,
         # model
         "model_name": "slr_model",
-        "model_output_num": 1,
+        "model_output_num": 2,
         # record
-        "y_tag": "one_landmark_res",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
+        "y_tag": "two_landmarks_res",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
         "save_dir_extend": "",  # can be used for cross validation
     }
 
