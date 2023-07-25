@@ -268,17 +268,22 @@ def my_upsampling(size, x, input_shape):
     return x
 
 
-# spine_lateral_radiograph_model
-def slr_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
-    """
-    The original model is for 2D image, our data are 3D.
-    Change it to a 3D convolutional neural network model."""
-    inputs = keras.Input((height, width, depth, 1))
-    input_shape = (height, width, depth)
-    # e.x. batches*170*170*30*4*3, 4 type of coordinates, 3 dimensions
-    # base_coordinate_rcs = keras.Input((height, width, depth, points_num, 3))
+# input: heatmap
+def dsnt_transfer(heatmap, base_cor_rcs, str_name):
+    height = heatmap.shape[1]
+    width = heatmap.shape[2]
+    depth = heatmap.shape[3]
+    points_num = heatmap.shape[4]
 
-    base_cor_rcs = coordinate_3d(batch_size, points_num, height, width, depth)
+    pro_matrix = layers.Reshape((height, width, depth, points_num, 3)) \
+        (tf.repeat(layers.Softmax(axis=[1, 2, 3], name=str_name)(heatmap), repeats=3, axis=-1))
+    outputs = tf.math.reduce_sum(layers.multiply([base_cor_rcs, pro_matrix]), axis=[1, 2, 3])
+
+    return outputs
+
+
+# Cascaded Pyramid Network
+def cpn(inputs, input_shape, points_num=2, dsnt=True):
 
     x = layers.BatchNormalization()(inputs)
     x = layers.ReLU()(x)
@@ -312,10 +317,6 @@ def slr_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
     x = residual_block(violet_x, downsample=False, filters=64)
     grey_x_s1 = my_upsampling(2, x, input_shape)
 
-    x = residual_block(grey_x_s1, downsample=False, filters=points_num)
-    x = residual_block(x, downsample=False, filters=points_num)
-    heatmap_s1 = residual_block(x, downsample=False, filters=points_num)
-
     # Stage 2
     blue_x = residual_block(blue_x, downsample=False, filters=256)
     blue_x = residual_block(blue_x, downsample=False, filters=256)
@@ -332,27 +333,64 @@ def slr_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
     upsampling_violet_x = my_upsampling(2, violet_x, input_shape)
     grey_x_s2 = layers.Concatenate(axis=4)([upsampling_blue_x, upsampling_yellow_x, upsampling_violet_x, grey_x_s1])
 
-    x = residual_block(grey_x_s2, downsample=False, filters=points_num)
-    x = residual_block(x, downsample=False, filters=points_num)
-    heatmap_s2 = residual_block(x, downsample=False, filters=points_num)
+    if dsnt:
+        # S1 output
+        x = residual_block(grey_x_s1, downsample=False, filters=points_num)
+        x = residual_block(x, downsample=False, filters=points_num)
+        heatmap_s1 = residual_block(x, downsample=False, filters=points_num)
+        # S2 output
+        x = residual_block(grey_x_s2, downsample=False, filters=points_num)
+        x = residual_block(x, downsample=False, filters=points_num)
+        heatmap_s2 = residual_block(x, downsample=False, filters=points_num)
+    else:
+        # low resolution heatmap
+        # S1 output
+        x = residual_block(grey_x_s1, downsample=False, filters=64)
+        x = residual_block(x, downsample=True, filters=64)
+        heatmap_s1 = residual_block(x, downsample=True, filters=64)
+        # S2 output
+        x = residual_block(grey_x_s2, downsample=False, filters=64)
+        x = residual_block(x, downsample=True, filters=64)
+        heatmap_s2 = residual_block(x, downsample=True, filters=64)
 
-    # in our project, e.x. heatmap shape: 170*170*30*4
-    pro_matrix_s1 = layers.Reshape((height, width, depth, points_num, 3)) \
-        (tf.repeat(layers.Softmax(axis=[1, 2, 3], name="stage1_softmax")(heatmap_s1), repeats=3, axis=-1))
-    outputs_s1 = tf.math.reduce_sum(layers.multiply([base_cor_rcs, pro_matrix_s1]), axis=[1, 2, 3])
-    # model_s1 = keras.Model([inputs, base_coordinate_rcs], outputs_s1, name="ResStage1")
+    return heatmap_s1, heatmap_s2
 
-    pro_matrix_s2 = layers.Reshape((height, width, depth, points_num, 3)) \
-        (tf.repeat(layers.Softmax(axis=[1, 2, 3], name="stage2_softmax")(heatmap_s2), repeats=3, axis=-1))
-    outputs_s2 = tf.math.reduce_sum(layers.multiply([base_cor_rcs, pro_matrix_s2]), axis=[1, 2, 3])
-    # model_s2 = keras.Model([inputs, base_coordinate_rcs], outputs_s2, name="ResStage2")
 
-    model = keras.Model(inputs, [outputs_s1, outputs_s2], name="slr-model")
+def cpn_fc_model(height=176, width=176, depth=48, points_num=2):
+
+    inputs = keras.Input((height, width, depth, 1))
+    input_shape = (height, width, depth)
+
+    heatmap_s1, heatmap_s2 = cpn(inputs, input_shape, points_num, dsnt=False)
+
+    x_hidden_s1 = layers.Dropout(0.2)(heatmap_s1)
+    x_hidden_s1 = layers.Flatten()(x_hidden_s1)
+    outputs_s1 = layers.Dense(units=3*points_num)(x_hidden_s1)
+    outputs_s1 = layers.Reshape((points_num, 3))(outputs_s1)
+
+    x_hidden_s2 = layers.Dropout(0.2)(heatmap_s2)
+    x_hidden_s2 = layers.Flatten()(x_hidden_s2)
+    outputs_s2 = layers.Dense(units=3*points_num)(x_hidden_s2)
+    outputs_s2 = layers.Reshape((points_num, 3))(outputs_s2)
+
+    model = keras.Model(inputs, [outputs_s1, outputs_s2], name="cpn-fc-model")
 
     return model
 
 
-def slr_s1_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
+def cpn_dsnt_model(height=176, width=176, depth=48, points_num=2):
+
+    inputs = keras.Input((height, width, depth, 1))
+    input_shape = (height, width, depth)
+
+    heatmap_s1, heatmap_s2 = cpn(inputs, input_shape, points_num, dsnt=False)
+
+    model = keras.Model(inputs, [heatmap_s1, heatmap_s2], name="cpn-dsnt-model")
+
+    return model
+
+
+def cpn_s1(height=176, width=176, depth=48, points_num=2, batch_size=2):
     """
     This is a simplified slr model used to debug the original one.
     """
@@ -805,39 +843,39 @@ def straight_model_more_dropout(height=176, width=176, depth=48, points_num=4):
 
 
 # Convolutional Only
-def cov_only_dsnt_model(height=176, width=176, depth=48, points_num=2, batch_size=2, dsnt=False):
+def cov_only_dsnt_model(height=176, width=176, depth=48, kernel_size=3, points_num=2, batch_size=2, dsnt=False):
     inputs = keras.Input((height, width, depth, 1))
 
     # layer 1
-    x_hidden = layers.Conv3D(filters=32, kernel_size=3, padding="same")(inputs)
+    x_hidden = layers.Conv3D(filters=32, kernel_size=kernel_size, padding="same")(inputs)
     x_hidden = layers.BatchNormalization()(x_hidden)
     x_hidden = layers.ReLU()(x_hidden)
     # x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
 
     # layer 2
-    x_hidden = layers.Conv3D(filters=64, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.Conv3D(filters=64, kernel_size=kernel_size, padding="same")(x_hidden)
     x_hidden = layers.BatchNormalization()(x_hidden)
     x_hidden = layers.ReLU()(x_hidden)
     # x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
 
     # layer 3
-    x_hidden = layers.Conv3D(filters=128, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.Conv3D(filters=128, kernel_size=kernel_size, padding="same")(x_hidden)
     x_hidden = layers.BatchNormalization()(x_hidden)
     x_hidden = layers.ReLU()(x_hidden)
 
     # layer 4
-    x_hidden = layers.Conv3D(filters=64, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.Conv3D(filters=64, kernel_size=kernel_size, padding="same")(x_hidden)
     x_hidden = layers.BatchNormalization()(x_hidden)
     x_hidden = layers.ReLU()(x_hidden)
 
     # layer 5
-    x_hidden = layers.Conv3D(filters=128, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.Conv3D(filters=128, kernel_size=kernel_size, padding="same")(x_hidden)
     x_hidden = layers.BatchNormalization()(x_hidden)
     x_hidden = layers.ReLU()(x_hidden)
     # x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
 
     # layer 6
-    x = layers.Conv3D(filters=64, kernel_size=3, padding="same")(x_hidden)
+    x = layers.Conv3D(filters=64, kernel_size=kernel_size, padding="same")(x_hidden)
     x = layers.BatchNormalization()(x)
     x = layers.ReLU()(x)
 
@@ -1111,12 +1149,21 @@ def scn_dsnt_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
 def get_model(model_name, input_shape, model_output_num, batch_size=2):
     if model_name == "straight_model":
         model = straight_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
-    elif model_name == "slr_model":
-        model = slr_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
+    elif model_name == "cpn_fc_model":
+        model = cpn_fc_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
+    elif model_name == "cpn_dsnt_model":
+        model = cpn_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     elif model_name == "slr_s1":
-        model = slr_s1_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
+        model = cpn_s1(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
     elif model_name == "cov_only_dsnt":
-        model = cov_only_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
+        kernel_size = 5
+        model = cov_only_dsnt_model(input_shape[0], input_shape[1], input_shape[2], kernel_size, model_output_num, batch_size)
+    # elif model_name == "cov_only_k5_dsnt":
+    #     kernel_size = 5
+    #     model = cov_only_dsnt_model(input_shape[0], input_shape[1], input_shape[2], kernel_size, model_output_num, batch_size)
+    # elif model_name == "cov_only_k7_dsnt":
+    #     kernel_size = 7
+    #     model = cov_only_dsnt_model(input_shape[0], input_shape[1], input_shape[2], kernel_size, model_output_num, batch_size)
     elif model_name == "u_net":
         model = u_net_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     elif model_name == "u_net_dsnt":

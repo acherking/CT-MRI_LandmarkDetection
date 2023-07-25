@@ -9,19 +9,24 @@ import Functions.MyDataset as MyDataset
 import support_modules
 import models
 
-landmarks_num = 1
+dsnt = False
 
 
 @tf.function
-def train_step(model, err_fun, eval_metric, optimizer, x, y, res):
+def train_step(model, err_fun, eval_metric, optimizer, x, y, res, base_cor_rcs):
     # unify the unit of pixel distance in base coordinate map
     # res_dup = tf.reshape(tf.repeat(res, repeats=size[0]*size[1]*size[2], axis=0),
     #                      shape=(batch_size, size[0], size[1], size[2], landmarks_num, 3))
     # cor_xyz = keras.layers.multiply([base_cor_xyz, res_dup])
     with tf.GradientTape() as tape:
         # Compute the loss value for this batch.
-        y_pred = model(x, training=True)
-        mse_res = err_fun(y, y_pred, res)
+        if dsnt:
+            [heatmap_s1, heatmap_s2] = model(x, training=True)
+            y_pred_s1 = models.dsnt_transfer(heatmap_s1, base_cor_rcs, "stage_1_dsnt")
+            y_pred_s2 = models.dsnt_transfer(heatmap_s2, base_cor_rcs, "stage_2_dsnt")
+        else:
+            [y_pred_s1, y_pred_s2] = model(x, training=True)
+        mse_res = err_fun(y, [y_pred_s1, y_pred_s2], res)
 
     # Update training metric.
     eval_metric.update_state(mse_res)
@@ -33,33 +38,39 @@ def train_step(model, err_fun, eval_metric, optimizer, x, y, res):
 
 
 @tf.function
-def val_step(model, err_fun, eval_metric, x, y, res):
-    y_pred = model(x, training=False)
-    mse_res = err_fun(y, y_pred, res)
+def val_step(model, err_fun, eval_metric, x, y, res, base_cor_rcs):
+    if dsnt:
+        [heatmap_s1, heatmap_s2] = model(x, training=False)
+        y_pred_s1 = models.dsnt_transfer(heatmap_s1, base_cor_rcs, "stage_1_dsnt")
+        y_pred_s2 = models.dsnt_transfer(heatmap_s2, base_cor_rcs, "stage_2_dsnt")
+    else:
+        [y_pred_s1, y_pred_s2] = model(x, training=False)
+    mse_res = err_fun(y, [y_pred_s1, y_pred_s2], res)
     # Update val metrics
     eval_metric.update_state(mse_res)
 
 
 @tf.function
-def test_step(model, err_fun, eval_metric, x, y, res):
-    # unify the unit of pixel distance in base coordinate map
-    # res_dup = tf.reshape(tf.repeat(res, repeats=size[0]*size[1]*size[2], axis=0),
-    #                      shape=(batch_size, size[0], size[1], size[2], landmarks_num, 3))
-    # cor_xyz = keras.layers.multiply([base_cor_xyz, res_dup])
-    y_pred = model(x, training=False)
-    [mse_res1, mse_res2] = err_fun(y, y_pred, res)
+def test_step(model, err_fun, eval_metric, x, y, res, base_cor_rcs):
+    if dsnt:
+        [heatmap_s1, heatmap_s2] = model(x, training=True)
+        y_pred_s1 = models.dsnt_transfer(heatmap_s1, base_cor_rcs, "stage_1_dsnt")
+        y_pred_s2 = models.dsnt_transfer(heatmap_s2, base_cor_rcs, "stage_2_dsnt")
+    else:
+        [y_pred_s1, y_pred_s2] = model(x, training=True)
+    [mse_res1, mse_res2] = err_fun(y, [y_pred_s1, y_pred_s2], res)
     # Update val metrics
     eval_metric.update_state(mse_res2)
-    return y_pred
+    return y_pred_s2
 
 
-def my_evaluate(eval_model, err_fun, eval_metric, eval_dataset):
+def my_evaluate(eval_model, err_fun, eval_metric, eval_dataset, base_cor_rcs):
     # Run a test loop when meet the best val result.
     for s, (x_batch_test, y_batch_test, res_batch_test) in enumerate(eval_dataset):
         if s == 0:
-            y_test_p = test_step(eval_model, err_fun, eval_metric, x_batch_test, y_batch_test, res_batch_test)
+            y_test_p = test_step(eval_model, err_fun, eval_metric, x_batch_test, y_batch_test, res_batch_test, base_cor_rcs)
         else:
-            y_test = test_step(eval_model, err_fun, eval_metric, x_batch_test, y_batch_test, res_batch_test)
+            y_test = test_step(eval_model, err_fun, eval_metric, x_batch_test, y_batch_test, res_batch_test, base_cor_rcs)
             y_test_p = np.concatenate((y_test_p, y_test), axis=0)
 
     eval_metric_result = eval_metric.result()
@@ -188,6 +199,8 @@ def train_model(data_splits, args_dict):
     model_size = f"{input_shape[0]}x{input_shape[1]}x{input_shape[2]}"
     model_label = f"{model_name}_{dataset_tag}_{model_size}"
 
+    base_cor_rcs = models.coordinate_3d(batch_size, model_output_num, input_shape[0], input_shape[1], input_shape[2])
+
     log.flush()
 
     train_err_array = np.zeros((2, epochs))  # 0: training err MSE over epoch, 1: val err MSE
@@ -199,7 +212,7 @@ def train_model(data_splits, args_dict):
         # Iterate over the batches of a dataset.
         for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset):
             loss_mse = train_step(model, two_wing_loss, train_mse_metric, optimizer,
-                                  x_batch_train, y_batch_train, res_batch_train)
+                                  x_batch_train, y_batch_train, res_batch_train, base_cor_rcs)
 
             # Logging every *** batches
             if step % 100 == 0:
@@ -217,7 +230,7 @@ def train_model(data_splits, args_dict):
 
         # Run a validation loop at the end of each epoch.
         for step, (x_batch_val, y_batch_val, res_batch_val) in enumerate(val_dataset):
-            val_step(model, two_wing_loss, val_mse_metric, x_batch_val, y_batch_val, res_batch_val)
+            val_step(model, two_wing_loss, val_mse_metric, x_batch_val, y_batch_val, res_batch_val, base_cor_rcs)
 
         val_mse = val_mse_metric.result()
         train_err_array[1][epoch] = float(val_mse)
@@ -227,7 +240,7 @@ def train_model(data_splits, args_dict):
         if val_mse < min_val_mse:
             min_val_mse = val_mse
             # Use Test Dataset to evaluate the best Val model (at the moment), and save the Test results
-            test_mse, y_test_pred = my_evaluate(model, two_mse_res, test_mse_metric, test_dataset)
+            test_mse, y_test_pred = my_evaluate(model, two_mse_res, test_mse_metric, test_dataset, base_cor_rcs)
             np.save(f"{save_dir}/bestVal_{model_label}_y_test", y_test_pred)
             model.save(f"{save_dir}/bestVal_{model_label}")
             print("Validation (MSE with res, saved):%.3f" % (float(val_mse),))
@@ -240,7 +253,7 @@ def train_model(data_splits, args_dict):
         log.flush()
 
     # Use Test Dataset to evaluate the final model, and save the Test results
-    test_mse, y_test_pred = my_evaluate(model, two_mse_res, test_mse_metric, test_dataset)
+    test_mse, y_test_pred = my_evaluate(model, two_mse_res, test_mse_metric, test_dataset, base_cor_rcs)
     np.save(f"{save_dir}/final_{model_label}_y_test", y_test_pred)
     print("Test (MSE with res), final       %.3f" % (float(test_mse),))
 
@@ -290,13 +303,13 @@ if __name__ == "__main__":
         "crop_dataset_size": [75, 75, 75, 75, 50, 50],
         "cut_layers": [25, 25, 25, 25, 0, 0],
         "has_trans": "_trans/tmp",
-         "trans_tag": "s1_test_dis",
+        "trans_tag": "s1_test_dis",
         "base_dir": "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth",
         # training
         "batch_size": 2,
         "epochs": 100,
         # model
-        "model_name": "slr_model",
+        "model_name": "cpn_fc_model",
         "model_output_num": 2,
         # record
         "y_tag": "two_landmarks_res",  # "one_landmark", "two_landmarks", "mean_two_landmarks"

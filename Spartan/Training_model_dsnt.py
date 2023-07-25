@@ -298,11 +298,11 @@ if __name__ == "__main__":
         "batch_size": 2,
         "epochs": 100,
         # model
-        "model_name": "u_net_dsnt",
-        "model_output_num": 2,
+        "model_name": "cov_only_dsnt",
+        "model_output_num": 1,
         # record
-        "y_tag": "two_landmark_res",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
-        "save_dir_extend": "",  # can be used for cross validation
+        "y_tag": "one_landmark_res",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
+        "save_dir_extend": "kernel_size_5",  # can be used for cross validation
     }
 
     d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True)
