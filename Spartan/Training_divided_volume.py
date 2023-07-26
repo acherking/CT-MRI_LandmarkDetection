@@ -15,7 +15,7 @@ def train_model(data_splits, args_dict):
 
     save_dir = get_record_dir(args_dict)
 
-    log = open(f"{save_dir}/original_log", "w")
+    log = open(f"{save_dir}/original_log_tmp", "w")
     sys.stdout = log
 
     dataset_tag = args_dict.get("dataset_tag")
@@ -36,6 +36,8 @@ def train_model(data_splits, args_dict):
     y_val_mean = np.mean(y_val, axis=1).reshape((val_num, 1, 3))
     y_test_mean = np.mean(y_test, axis=1).reshape((test_num, 1, 3))
 
+    np.save(f"{save_dir}/res_test", res_test)
+    exit()
     """ *** Training Process *** """
 
     batch_size = args_dict.get("batch_size", 2)

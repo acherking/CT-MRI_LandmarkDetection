@@ -9,8 +9,6 @@ import Functions.MyDataset as MyDataset
 import support_modules
 import models
 
-landmarks_num = 1
-
 
 @tf.function
 def train_step(model, err_fun, eval_metric, optimizer, x, y, res):
@@ -298,7 +296,7 @@ if __name__ == "__main__":
         "batch_size": 2,
         "epochs": 100,
         # model
-        "model_name": "cov_only_dsnt",
+        "model_name": "cov_only_fc",
         "model_output_num": 1,
         # record
         "y_tag": "one_landmark_res",  # "one_landmark", "two_landmarks", "mean_two_landmarks"

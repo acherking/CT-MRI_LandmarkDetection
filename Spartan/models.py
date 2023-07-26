@@ -843,8 +843,7 @@ def straight_model_more_dropout(height=176, width=176, depth=48, points_num=4):
 
 
 # Convolutional Only
-def cov_only_dsnt_model(height=176, width=176, depth=48, kernel_size=3, points_num=2, batch_size=2, dsnt=False):
-    inputs = keras.Input((height, width, depth, 1))
+def cov_only(inputs, kernel_size, points_num):
 
     # layer 1
     x_hidden = layers.Conv3D(filters=32, kernel_size=kernel_size, padding="same")(inputs)
@@ -880,14 +879,37 @@ def cov_only_dsnt_model(height=176, width=176, depth=48, kernel_size=3, points_n
     x = layers.ReLU()(x)
 
     # layer 7
-    heatmap_s1 = residual_block(x, downsample=False, filters=points_num)
+    heatmap = residual_block(x, downsample=False, filters=points_num)
+
+    return heatmap
+
+
+def cov_only_dsnt_model(height=176, width=176, depth=48, kernel_size=3, points_num=2, batch_size=2):
+    inputs = keras.Input((height, width, depth, 1))
+
+    heatmap = cov_only(inputs, kernel_size, points_num)
 
     base_cor_rcs = coordinate_3d(batch_size, points_num, height, width, depth)
-    pro_matrix = layers.Reshape((width, height, depth, points_num, 3)) \
-        (tf.repeat(layers.Softmax(axis=[1, 2, 3], name="softmax")(heatmap_s1), repeats=3, axis=-1))
-    outputs = tf.math.reduce_sum(layers.multiply([base_cor_rcs, pro_matrix]), axis=[1, 2, 3])
+    outputs = dsnt_transfer(heatmap, base_cor_rcs, "cov-only-dsnt")
 
     model = keras.Model(inputs, outputs, name="cov-only-dsnt-model")
+
+    return model
+
+
+def cov_only_fc_model(height=176, width=176, depth=48, kernel_size=3, points_num=2):
+    inputs = keras.Input((height, width, depth, 1))
+
+    heatmap = cov_only(inputs, kernel_size, points_num)
+
+    reg = layers.MaxPool3D(4)(heatmap)
+    x_hidden = layers.Dropout(0.2)(reg)
+    x_hidden = layers.Flatten()(x_hidden)
+
+    outputs = layers.Dense(units=3*points_num)(x_hidden)
+    outputs = layers.Reshape((points_num, 3))(outputs)
+
+    model = keras.Model(inputs, outputs, name="cov-only-fc-model")
 
     return model
 
@@ -1149,6 +1171,8 @@ def scn_dsnt_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
 def get_model(model_name, input_shape, model_output_num, batch_size=2):
     if model_name == "straight_model":
         model = straight_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
+    if model_name == "straight_model_short":
+        model = straight_model_short(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     elif model_name == "cpn_fc_model":
         model = cpn_fc_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     elif model_name == "cpn_dsnt_model":
@@ -1156,14 +1180,12 @@ def get_model(model_name, input_shape, model_output_num, batch_size=2):
     elif model_name == "slr_s1":
         model = cpn_s1(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
     elif model_name == "cov_only_dsnt":
+        kernel_size = 7
+        model = cov_only_dsnt_model(input_shape[0], input_shape[1], input_shape[2],
+                                    kernel_size, model_output_num, batch_size)
+    elif model_name == "cov_only_fc":
         kernel_size = 5
-        model = cov_only_dsnt_model(input_shape[0], input_shape[1], input_shape[2], kernel_size, model_output_num, batch_size)
-    # elif model_name == "cov_only_k5_dsnt":
-    #     kernel_size = 5
-    #     model = cov_only_dsnt_model(input_shape[0], input_shape[1], input_shape[2], kernel_size, model_output_num, batch_size)
-    # elif model_name == "cov_only_k7_dsnt":
-    #     kernel_size = 7
-    #     model = cov_only_dsnt_model(input_shape[0], input_shape[1], input_shape[2], kernel_size, model_output_num, batch_size)
+        model = cov_only_fc_model(input_shape[0], input_shape[1], input_shape[2], kernel_size, model_output_num)
     elif model_name == "u_net":
         model = u_net_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     elif model_name == "u_net_dsnt":
