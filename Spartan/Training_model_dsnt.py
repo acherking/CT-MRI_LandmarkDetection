@@ -300,7 +300,7 @@ if __name__ == "__main__":
         "model_output_num": 1,
         # record
         "y_tag": "one_landmark_res",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
-        "save_dir_extend": "kernel_size_5",  # can be used for cross validation
+        "save_dir_extend": "kernel_size_7",  # can be used for cross validation
     }
 
     d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True)

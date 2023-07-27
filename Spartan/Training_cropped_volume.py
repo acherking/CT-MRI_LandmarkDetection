@@ -220,6 +220,7 @@ if __name__ == "__main__":
         "crop_dataset_size": [75, 75, 75, 75, 50, 50],
         # "cut_layers": [11, 11, 11, 11, 18, 18],
         "cut_layers": [25, 25, 25, 25, 0, 0],
+        # "cut_layers": [51, 43, 40, 59, 42, 26],
         "has_trans": "_trans/tmp",
         "trans_tag": "s1_test_dis",
         "base_dir": "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth",

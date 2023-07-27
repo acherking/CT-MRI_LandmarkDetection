@@ -614,6 +614,48 @@ def straight_model_short(height=176, width=176, depth=48, points_num=4):
     return model
 
 
+def straight_model_mini(height=176, width=176, depth=48, points_num=4):
+    inputs = keras.Input((height, width, depth, 1))
+
+    # layer 1
+    x_hidden = layers.Conv3D(filters=8, kernel_size=3, padding="same")(inputs)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+    x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+
+    # layer 2
+    x_hidden = layers.Conv3D(filters=16, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+    x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+
+    # layer 3
+    x_hidden = layers.Conv3D(filters=32, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+
+    # layer 4
+    x_hidden = layers.Conv3D(filters=16, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+
+    # layer 5
+    x_hidden = layers.Conv3D(filters=32, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+
+    x_hidden = layers.Dropout(0.2)(x_hidden)
+    x_hidden = layers.Flatten()(x_hidden)
+    outputs = layers.Dense(units=points_num * 3, )(x_hidden)
+
+    outputs = layers.Reshape((points_num, 3))(outputs)
+
+    # Define the model.
+    model = keras.Model(inputs, outputs, name="straight-3d-mini")
+
+    return model
+
+
 def straight_model_bn_a(height=176, width=176, depth=48, points_num=4):
     inputs = keras.Input((height, width, depth, 1))
 
@@ -1173,6 +1215,8 @@ def get_model(model_name, input_shape, model_output_num, batch_size=2):
         model = straight_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     if model_name == "straight_model_short":
         model = straight_model_short(input_shape[0], input_shape[1], input_shape[2], model_output_num)
+    if model_name == "straight_model_mini":
+        model = straight_model_mini(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     elif model_name == "cpn_fc_model":
         model = cpn_fc_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     elif model_name == "cpn_dsnt_model":
@@ -1184,7 +1228,7 @@ def get_model(model_name, input_shape, model_output_num, batch_size=2):
         model = cov_only_dsnt_model(input_shape[0], input_shape[1], input_shape[2],
                                     kernel_size, model_output_num, batch_size)
     elif model_name == "cov_only_fc":
-        kernel_size = 5
+        kernel_size = 7
         model = cov_only_fc_model(input_shape[0], input_shape[1], input_shape[2], kernel_size, model_output_num)
     elif model_name == "u_net":
         model = u_net_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
