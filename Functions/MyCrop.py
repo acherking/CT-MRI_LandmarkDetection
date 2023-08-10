@@ -195,6 +195,8 @@ def crop_outside_layers(x_volumes_org, y_landmarks_org, length_org, crop_layers,
     y_dataset = np.copy(y_landmarks_org)
     length_dataset = np.copy(length_org)
 
+    instances_num = x_dataset.shape[0]
+
     row_num = x_dataset.shape[1]
     column_num = x_dataset.shape[2]
     slice_num = x_dataset.shape[3]
@@ -220,11 +222,11 @@ def crop_outside_layers(x_volumes_org, y_landmarks_org, length_org, crop_layers,
         y_dataset = y_dataset - [crop_layers[1, 0], crop_layers[0, 0], crop_layers[2, 0]]
         # y_dataset = y_dataset.astype('float32')
         # left ear
-        length_dataset[range(0, 2000, 2)] = \
-            length_dataset[range(0, 2000, 2)] + [crop_layers[1, 0], crop_layers[0, 0], crop_layers[2, 0]]
+        length_dataset[range(0, instances_num, 2)] = \
+            length_dataset[range(0, instances_num, 2)] + [crop_layers[1, 0], crop_layers[0, 0], crop_layers[2, 0]]
         # right ear, because of the flip
-        length_dataset[range(1, 2000, 2)] = \
-            length_dataset[range(1, 2000, 2)] + [crop_layers[1, 1], crop_layers[0, 0], crop_layers[2, 0]]
+        length_dataset[range(1, instances_num, 2)] = \
+            length_dataset[range(1, instances_num, 2)] + [crop_layers[1, 1], crop_layers[0, 0], crop_layers[2, 0]]
         # length_dataset = length_dataset.astype('float32')
 
     return x_dataset, y_dataset, length_dataset
