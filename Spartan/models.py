@@ -1210,6 +1210,90 @@ def scn_dsnt_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
     return model
 
 
+## ViT
+def mlp(x, hidden_units, dropout_rate):
+    for units in hidden_units:
+        x = layers.Dense(units, activation=tf.nn.gelu)(x)
+        x = layers.Dropout(dropout_rate)(x)
+    return x
+
+
+class Patches3D(layers.Layer):
+    def __init__(self, patch_size):
+        super().__init__()
+        self.patch_size = patch_size
+
+    def call(self, images):
+        batch_size = tf.shape(images)[0]
+        patches = tf.extract_volume_patches(
+            input=images,
+            ksizes=[1, self.patch_size[0], self.patch_size[1], self.patch_size[2], 1],
+            strides=[1, self.patch_size[0], self.patch_size[1], self.patch_size[2], 1],
+            padding="VALID",
+        )
+        patch_dims = patches.shape[-1]
+        patches = tf.reshape(patches, [batch_size, -1, patch_dims])
+        return patches
+
+
+class PatchEncoder3D(layers.Layer):
+    def __init__(self, num_patches, projection_dim):
+        super().__init__()
+        self.num_patches = num_patches
+        self.projection = layers.Dense(units=projection_dim)
+        self.position_embedding = layers.Embedding(
+            input_dim=num_patches, output_dim=projection_dim
+        )
+
+    def call(self, patch):
+        positions = tf.range(start=0, limit=self.num_patches, delta=1)
+        encoded = self.projection(patch) + self.position_embedding(positions)
+        return encoded
+
+
+def create_vit3D_regression(patch_size, num_patches, projection_dim, transformer_layers,
+                            num_heads, transformer_units, mlp_head_units, volume_shape, points_num):
+    inputs = layers.Input(shape=(volume_shape[0], volume_shape[1], volume_shape[2], 1))
+    # Create patches.
+    patches = Patches3D(patch_size)(inputs)
+    # Encode patches.
+    encoded_patches = PatchEncoder3D(num_patches, projection_dim)(patches)
+
+    # Create multiple layers of the Transformer block.
+    for _ in range(transformer_layers):
+        # Layer normalization 1.
+        x1 = layers.LayerNormalization(epsilon=1e-6)(encoded_patches)
+        # Create a multi-head attention layer.
+        attention_output = layers.MultiHeadAttention(
+            num_heads=num_heads, key_dim=projection_dim, dropout=0.1
+        )(x1, x1)
+        # Skip connection 1.
+        x2 = layers.Add()([attention_output, encoded_patches])
+        # Layer normalization 2.
+        x3 = layers.LayerNormalization(epsilon=1e-6)(x2)
+        # MLP.
+        x3 = mlp(x3, hidden_units=transformer_units, dropout_rate=0.1)
+        # Skip connection 2.
+        encoded_patches = layers.Add()([x3, x2])
+
+    # Create a [batch_size, projection_dim] tensor.
+    representation = layers.LayerNormalization(epsilon=1e-6)(encoded_patches)
+    # representation = layers.Flatten()(representation)
+    representation = layers.GlobalAveragePooling1D()(representation)
+    representation = layers.Dropout(0.5)(representation)
+    # Add MLP.
+    features = mlp(representation, hidden_units=mlp_head_units, dropout_rate=0.5)
+    # Classify outputs.
+    # logits = layers.Dense(num_classes)(features)
+    # Create the Keras model.
+    # model = keras.Model(inputs=inputs, outputs=logits)
+    # Regression ouputs
+    reg = layers.Dense(units=points_num * 3, )(features)
+    reg = layers.Reshape((points_num, 3))(reg)
+    model = keras.Model(inputs=inputs, outputs=reg)
+    return model
+
+
 def get_model(model_name, input_shape, model_output_num, batch_size=2):
     if model_name == "straight_model":
         model = straight_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
@@ -1238,6 +1322,20 @@ def get_model(model_name, input_shape, model_output_num, batch_size=2):
         model = scn_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     elif model_name == "scn_dsnt":
         model = scn_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
+    elif model_name == "vit":
+        image_size = (72, 72, 48)
+        patch_size = (6, 6, 4)
+        num_patches = (image_size[0] // patch_size[0]) * (image_size[1] // patch_size[1]) * (image_size[2] // patch_size[2])
+        projection_dim = 512
+        num_heads = 8
+        transformer_units = [
+            projection_dim * 2,
+            projection_dim,
+            ]  # Size of the transformer layers
+        transformer_layers = 12
+        mlp_head_units = [4096, 4096]  # Size of the dense layers of the final classifier
+        model = create_vit3D_regression(patch_size, num_patches, projection_dim, transformer_layers,num_heads,
+                                        transformer_units, mlp_head_units, input_shape, model_output_num)
     else:
         print("There is no model: ", model_name)
 

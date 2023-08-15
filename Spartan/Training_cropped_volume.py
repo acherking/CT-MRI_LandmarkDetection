@@ -219,7 +219,7 @@ if __name__ == "__main__":
         "dataset_tag": "cropped",
         "crop_dataset_size": [75, 75, 75, 75, 50, 50],
         # "cut_layers": [11, 11, 11, 11, 18, 18],
-        "cut_layers": [25, 25, 25, 25, 0, 0],
+        "cut_layers": [39, 39, 39, 39, 26, 26],
         # "cut_layers": [51, 43, 40, 59, 42, 26],
         "has_trans": "_trans/tmp",
         "trans_tag": "s1_test_dis",
@@ -228,7 +228,7 @@ if __name__ == "__main__":
         "batch_size": 2,
         "epochs": 100,
         # model
-        "model_name": "straight_model_short",
+        "model_name": "vit",
         "model_output_num": 1,
         # record
         "y_tag": "one_landmark_res",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
