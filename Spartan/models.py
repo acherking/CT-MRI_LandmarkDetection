@@ -1219,16 +1219,18 @@ def mlp(x, hidden_units, dropout_rate):
 
 
 class Patches3D(layers.Layer):
-    def __init__(self, patch_size):
+    def __init__(self, patch_size, patch_overlap):
         super().__init__()
         self.patch_size = patch_size
+        self.patch_overlap = patch_overlap
 
     def call(self, images):
         batch_size = tf.shape(images)[0]
         patches = tf.extract_volume_patches(
             input=images,
             ksizes=[1, self.patch_size[0], self.patch_size[1], self.patch_size[2], 1],
-            strides=[1, self.patch_size[0], self.patch_size[1], self.patch_size[2], 1],
+            strides=[1, self.patch_size[0]-self.patch_overlap[0], self.patch_size[1]-self.patch_overlap[1],
+                     self.patch_size[2]-self.patch_overlap[2], 1],
             padding="VALID",
         )
         patch_dims = patches.shape[-1]
@@ -1251,11 +1253,11 @@ class PatchEncoder3D(layers.Layer):
         return encoded
 
 
-def create_vit3D_regression(patch_size, num_patches, projection_dim, transformer_layers,
+def create_vit3D_regression(patch_size, patch_overlap, num_patches, projection_dim, transformer_layers,
                             num_heads, transformer_units, mlp_head_units, volume_shape, points_num):
     inputs = layers.Input(shape=(volume_shape[0], volume_shape[1], volume_shape[2], 1))
     # Create patches.
-    patches = Patches3D(patch_size)(inputs)
+    patches = Patches3D(patch_size, patch_overlap)(inputs)
     # Encode patches.
     encoded_patches = PatchEncoder3D(num_patches, projection_dim)(patches)
 
@@ -1325,16 +1327,18 @@ def get_model(model_name, input_shape, model_output_num, batch_size=2):
     elif model_name == "vit":
         image_size = (72, 72, 48)
         patch_size = (6, 6, 4)
-        num_patches = (image_size[0] // patch_size[0]) * (image_size[1] // patch_size[1]) * (image_size[2] // patch_size[2])
-        projection_dim = 512
-        num_heads = 8
+        patch_overlap = (2, 2, 2)
+        # num_patches = (image_size[0] // patch_size[0]) * (image_size[1] // patch_size[1]) * (image_size[2] // patch_size[2])
+        num_patches = 6647
+        projection_dim = 64
+        num_heads = 4
         transformer_units = [
             projection_dim * 2,
             projection_dim,
             ]  # Size of the transformer layers
-        transformer_layers = 12
-        mlp_head_units = [4096, 4096]  # Size of the dense layers of the final classifier
-        model = create_vit3D_regression(patch_size, num_patches, projection_dim, transformer_layers,num_heads,
+        transformer_layers = 8
+        mlp_head_units = [2048, 2048]  # Size of the dense layers of the final classifier
+        model = create_vit3D_regression(patch_size, patch_overlap, num_patches, projection_dim, transformer_layers, num_heads,
                                         transformer_units, mlp_head_units, input_shape, model_output_num)
     else:
         print("There is no model: ", model_name)

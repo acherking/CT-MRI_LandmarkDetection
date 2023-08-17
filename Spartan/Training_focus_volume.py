@@ -226,8 +226,8 @@ if __name__ == "__main__":
         # prepare Dataset
         "dataset_tag": "cropped",
         "crop_dataset_size": [75, 75, 75, 75, 50, 50],
-        # "cut_layers": [39, 39, 39, 39, 26, 26],
-        "cut_layers": [25, 25, 25, 25, 0, 0],
+        "cut_layers": [39, 39, 39, 39, 26, 26],
+        # "cut_layers": [25, 25, 25, 25, 0, 0],
         "has_trans": "_trans/tmp",
         "trans_tag": "s1_test_dis",
         "base_dir": "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth",
@@ -235,10 +235,10 @@ if __name__ == "__main__":
         "batch_size": 2,
         "epochs": 100,
         # model
-        "model_name": "straight_model",
+        "model_name": "vit",
         "model_output_num": 1,
         # record
-        "y_tag": "mean_two_landmarks",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
+        "y_tag": "one_landmark",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
         "save_dir_extend": "",  # can be used for cross validation
     }
 
