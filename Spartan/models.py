@@ -1238,18 +1238,50 @@ class Patches3D(layers.Layer):
         return patches
 
 
+class ConvStem(layers.Layer):
+    def __init__(self, dim):
+        super().__init__()
+        self.dim = dim
+        self.conv_layers = keras.Sequential(
+            [
+                layers.Conv3D(kernel_size=3, strides=2, filters=48, padding="same"),
+                layers.Conv3D(kernel_size=3, strides=2, filters=96, padding="same"),
+                layers.Conv3D(kernel_size=3, strides=2, filters=192, padding="same"),
+                layers.Conv3D(kernel_size=3, strides=1, filters=384, padding="same"),
+                layers.Conv3D(kernel_size=1, strides=1, filters=self.dim, padding="same")
+            ]
+        )
+        # self.conv_0 = layers.Conv3D(kernel_size=3, strides=2, filters=48, padding="same")
+        # self.conv_1 = layers.Conv3D(kernel_size=3, strides=2, filters=96, padding="same")
+        # self.conv_2 = layers.Conv3D(kernel_size=3, strides=2, filters=192, padding="same")
+        # self.conv_3 = layers.Conv3D(kernel_size=3, strides=2, filters=384, padding="same")
+
+    def call(self, images):
+        batch_size = tf.shape(images)[0]
+        conv_x = self.conv_layers(images)
+
+        patch_size = conv_x.shape[1] * conv_x.shape[2] * conv_x.shape[3]
+        patches = tf.reshape(conv_x, [batch_size, patch_size, self.dim])
+
+        return patches
+
+
 class PatchEncoder3D(layers.Layer):
-    def __init__(self, num_patches, projection_dim):
+    def __init__(self, num_patches, projection_dim, if_project):
         super().__init__()
         self.num_patches = num_patches
         self.projection = layers.Dense(units=projection_dim)
+        self.if_project = if_project
         self.position_embedding = layers.Embedding(
             input_dim=num_patches, output_dim=projection_dim
         )
 
     def call(self, patch):
         positions = tf.range(start=0, limit=self.num_patches, delta=1)
-        encoded = self.projection(patch) + self.position_embedding(positions)
+        if self.if_project:
+            encoded = self.projection(patch) + self.position_embedding(positions)
+        else:
+            encoded = patch + self.position_embedding(positions)
         return encoded
 
 
@@ -1257,9 +1289,10 @@ def create_vit3D_regression(patch_size, patch_overlap, num_patches, projection_d
                             num_heads, transformer_units, mlp_head_units, volume_shape, points_num):
     inputs = layers.Input(shape=(volume_shape[0], volume_shape[1], volume_shape[2], 1))
     # Create patches.
-    patches = Patches3D(patch_size, patch_overlap)(inputs)
+    # patches = Patches3D(patch_size, patch_overlap)(inputs)
+    patches = ConvStem(projection_dim)(inputs)
     # Encode patches.
-    encoded_patches = PatchEncoder3D(num_patches, projection_dim)(patches)
+    encoded_patches = PatchEncoder3D(num_patches, projection_dim, if_project=False)(patches)
 
     # Create multiple layers of the Transformer block.
     for _ in range(transformer_layers):
@@ -1324,20 +1357,20 @@ def get_model(model_name, input_shape, model_output_num, batch_size=2):
         model = scn_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     elif model_name == "scn_dsnt":
         model = scn_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
-    elif model_name == "vit":
+    elif model_name == "vit_C":
         image_size = (72, 72, 48)
         patch_size = (6, 6, 4)
         patch_overlap = (2, 2, 2)
         # num_patches = (image_size[0] // patch_size[0]) * (image_size[1] // patch_size[1]) * (image_size[2] // patch_size[2])
-        num_patches = 6647
-        projection_dim = 64
+        num_patches = 486
+        projection_dim = 256
         num_heads = 4
         transformer_units = [
             projection_dim * 2,
             projection_dim,
             ]  # Size of the transformer layers
         transformer_layers = 8
-        mlp_head_units = [2048, 2048]  # Size of the dense layers of the final classifier
+        mlp_head_units = [2048, 1024]  # Size of the dense layers of the final classifier
         model = create_vit3D_regression(patch_size, patch_overlap, num_patches, projection_dim, transformer_layers, num_heads,
                                         transformer_units, mlp_head_units, input_shape, model_output_num)
     else:

@@ -9,8 +9,8 @@ sinteractive -p gpu-a100 --gres=gpu:1 -A ***
 
 
 module purge
-module load cuda/11.1.1
-module load tensorflow/2.6.0-python-3.8.6
+module load CUDA/11.7.0
+module load TensorFlow/2.11.0-CUDA-11.7.0
  
 
 # It seems this version was not compiled to use GPU

@@ -235,7 +235,7 @@ if __name__ == "__main__":
         "batch_size": 2,
         "epochs": 100,
         # model
-        "model_name": "vit",
+        "model_name": "vit_C",
         "model_output_num": 1,
         # record
         "y_tag": "one_landmark",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
