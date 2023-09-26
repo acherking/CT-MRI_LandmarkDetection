@@ -456,6 +456,79 @@ def cpn_s1(height=176, width=176, depth=48, points_num=2, batch_size=2):
     return model_s1
 
 
+# ResNet
+def identity_block(x, filter):
+    # copy tensor to variable called x_skip
+    x_skip = x
+    # Layer 1
+    x = tf.keras.layers.Conv3D(filter, (3,3,3), padding = 'same')(x)
+    x = tf.keras.layers.BatchNormalization(axis=3)(x)
+    x = tf.keras.layers.Activation('relu')(x)
+    # Layer 2
+    x = tf.keras.layers.Conv3D(filter, (3,3,3), padding = 'same')(x)
+    x = tf.keras.layers.BatchNormalization(axis=3)(x)
+    # Add Residue
+    x = tf.keras.layers.Add()([x, x_skip])
+    x = tf.keras.layers.Activation('relu')(x)
+    return x
+
+
+def convolutional_block(x, filter):
+    # copy tensor to variable called x_skip
+    x_skip = x
+    # Layer 1
+    x = tf.keras.layers.Conv3D(filter, (3,3,3), padding = 'same', strides = (2,2,2))(x)
+    x = tf.keras.layers.BatchNormalization(axis=3)(x)
+    x = tf.keras.layers.Activation('relu')(x)
+    # Layer 2
+    x = tf.keras.layers.Conv3D(filter, (3,3,3), padding = 'same')(x)
+    x = tf.keras.layers.BatchNormalization(axis=3)(x)
+    # Processing Residue with conv(1,1)
+    x_skip = tf.keras.layers.Conv3D(filter, (1,1,1), strides = (2,2,2))(x_skip)
+    # Add Residue
+    x = tf.keras.layers.Add()([x, x_skip])
+    x = tf.keras.layers.Activation('relu')(x)
+    return x
+
+
+def ResNet34(shape=(72, 72, 48, 1), points_num=4):
+    # Step 1 (Setup Input Layer)
+    x_input = tf.keras.layers.Input(shape)
+    x = tf.keras.layers.ZeroPadding3D((3, 3, 3))(x_input)
+    # Step 2 (Initial Conv layer along with maxPool)
+    x = tf.keras.layers.Conv3D(64, kernel_size=7, strides=2, padding='same')(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Activation('relu')(x)
+    x = tf.keras.layers.MaxPool3D(pool_size=3, strides=2, padding='same')(x)
+    # Define size of sub-blocks and initial filter size
+    block_layers = [3, 4, 6, 3]
+    filter_size = 64
+    # Step 3 Add the Resnet Blocks
+    for i in range(4):
+        if i == 0:
+            # For sub-block 1 Residual/Convolutional block not needed
+            for j in range(block_layers[i]):
+                x = identity_block(x, filter_size)
+        else:
+            # One Residual/Convolutional Block followed by Identity blocks
+            # The filter size will go on increasing by a factor of 2
+            filter_size = filter_size*2
+            x = convolutional_block(x, filter_size)
+            for j in range(block_layers[i] - 1):
+                x = identity_block(x, filter_size)
+    # Step 4 End Dense Network
+    x = tf.keras.layers.AveragePooling3D((2,2,2), padding = 'same')(x)
+    x = tf.keras.layers.Dropout(0.2)(x)
+    x = tf.keras.layers.Flatten()(x)
+    x = tf.keras.layers.Dense(512, activation = 'relu')(x)
+    # x = tf.keras.layers.Dense(classes, activation = 'softmax')(x)
+    outputs = tf.keras.layers.Dense(units=points_num * 3, )(x)
+    outputs = tf.keras.layers.Reshape((points_num, 3))(outputs)
+
+    model = tf.keras.models.Model(inputs = x_input, outputs = outputs, name = "ResNet34")
+    return model
+
+
 def straight_model(height=176, width=176, depth=48, points_num=4):
     inputs = keras.Input((height, width, depth, 1))
 
@@ -1332,10 +1405,12 @@ def create_vit3D_regression(patch_size, patch_overlap, num_patches, projection_d
 def get_model(model_name, input_shape, model_output_num, batch_size=2):
     if model_name == "straight_model":
         model = straight_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
-    if model_name == "straight_model_short":
+    elif model_name == "straight_model_short":
         model = straight_model_short(input_shape[0], input_shape[1], input_shape[2], model_output_num)
-    if model_name == "straight_model_mini":
+    elif model_name == "straight_model_mini":
         model = straight_model_mini(input_shape[0], input_shape[1], input_shape[2], model_output_num)
+    elif model_name == "res_net":
+        model = ResNet34((input_shape[0], input_shape[1], input_shape[2], 1), model_output_num)
     elif model_name == "cpn_fc_model":
         model = cpn_fc_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     elif model_name == "cpn_dsnt_model":
