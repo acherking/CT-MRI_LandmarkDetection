@@ -478,11 +478,11 @@ def convolutional_block(x, filter):
     x_skip = x
     # Layer 1
     x = tf.keras.layers.Conv3D(filter, (3,3,3), padding = 'same', strides = (2,2,2))(x)
-    x = tf.keras.layers.BatchNormalization(axis=3)(x)
+    x = tf.keras.layers.BatchNormalization(axis=4)(x)
     x = tf.keras.layers.Activation('relu')(x)
     # Layer 2
     x = tf.keras.layers.Conv3D(filter, (3,3,3), padding = 'same')(x)
-    x = tf.keras.layers.BatchNormalization(axis=3)(x)
+    x = tf.keras.layers.BatchNormalization(axis=4)(x)
     # Processing Residue with conv(1,1)
     x_skip = tf.keras.layers.Conv3D(filter, (1,1,1), strides = (2,2,2))(x_skip)
     # Add Residue
