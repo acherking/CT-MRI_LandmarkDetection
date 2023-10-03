@@ -149,6 +149,46 @@ def load_dataset_crop_dir(x_dir, y_dir, length_dir):
     return 1
 
 
+def augmentate_cropped_patches(x_dir, y_dir, length_dir):
+    pat_names = MyDataset.get_pat_names()
+
+    # Combine cropped volumes
+    cropped_volumes = []
+    cropped_points = []
+    cropped_length = []
+
+    for pat_name in pat_names:
+        aug_id = 1
+        print("**************" + pat_name + "__" + str(aug_id) + "***************")
+        cropped_volume_left_path = x_dir + pat_name + "_augVolume_" + str(aug_id) + "_cropped_left.npy"
+        cropped_volume_right_path = x_dir + pat_name + "_augVolume_" + str(aug_id) + "_cropped_right.npy"
+        cropped_points_left_path = y_dir + pat_name + "_augPoints_" + str(aug_id) + "_cropped_left.npy"
+        cropped_length_left_path = length_dir + pat_name + "_augLength_" + str(aug_id) + "_cropped_left.npy"
+        cropped_points_right_path = y_dir + pat_name + "_augPoints_" + str(aug_id) + "_cropped_right.npy"
+        cropped_length_right_path = length_dir + pat_name + "_augLength_" + str(aug_id) + "_cropped_right.npy"
+        cropped_volume_left = np.load(cropped_volume_left_path)
+        cropped_volume_right = np.load(cropped_volume_right_path)
+        cropped_points_left = np.load(cropped_points_left_path)
+        cropped_length_left = np.load(cropped_length_left_path)
+        cropped_points_right = np.load(cropped_points_right_path)
+        cropped_length_right = np.load(cropped_length_right_path)
+        cropped_volumes.append(cropped_volume_left)
+        cropped_volumes.append(cropped_volume_right)
+        cropped_points.append(cropped_points_left)
+        cropped_points.append(cropped_points_right)
+        cropped_length.append(cropped_length_left)
+        cropped_length.append(cropped_length_right)
+
+    print(len(cropped_volumes))
+    print(len(cropped_points))
+    print(len(cropped_length))
+
+    cropped_volumes = np.asarray(cropped_volumes).reshape((20, 200, 200, 160, 1))
+    cropped_points = np.asarray(cropped_points).reshape((20, 2, 3))
+    cropped_length = np.asarray(cropped_length).reshape((20, 2, 3))
+
+
+
 def load_dataset_divide(dataset_dir, rescaled_size, idx_splits, no_split=False):
     size_str = f"{rescaled_size[0]}{rescaled_size[1]}{rescaled_size[2]}"
 
