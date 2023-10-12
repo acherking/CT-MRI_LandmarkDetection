@@ -9,9 +9,9 @@ roiFile = '/Volumes/Shawn_HDD/PhD/Project/Resources/ROI_CT.xlsx'; % median is be
 strFile = '/Volumes/Shawn_HDD/PhD/Project/Resources/nameStrings.xlsx';
 imageDataPath = '/Volumes/Shawn_HDD/PhD/Project/Date/CT_MRI_Pre_Post/'; % change as required
 augPath = '/Volumes/Shawn_HDD/PhD/Project/Date/augmentation_from_matlab/'; % change as required
-trainPath = [augPath 'Train/'];
-valPath = [augPath 'val/'];
-testPath = [augPath 'Test/'];
+trainPath = [augPath 're_aug/'];
+valPath = [augPath 're_aug/'];
+testPath = [augPath 're_aug/'];
 inputFolder = 'Input/';
 outputFolder = 'Output/';
 outputAngFolder = 'OutputAng/';
@@ -64,7 +64,8 @@ testIdx = setdiff(diffIdx, valIdx);
 
 imgNameList = roiStr(:, 1);
 
-for pIdx = 1:nPat
+%for pIdx = 1:nPat
+for pIdx = 14:14
 
     patName = patList{pIdx};    
     imgIdx = find(strcmp(imgNameList, patName));

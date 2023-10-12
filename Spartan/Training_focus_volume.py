@@ -65,6 +65,9 @@ def train_model(data_splits, args_dict, write_log=True):
     res_val = (np.ones((val_num, 1, 3)) * 0.15).astype('float32')
     res_test = (np.ones((test_num, 1, 3)) * 0.15).astype('float32')
 
+    np.save(f"{save_dir}/y_test_gt", y_test)
+    exit()
+
     """ *** Training Process *** """
 
     batch_size = args_dict.get("batch_size", 2)
@@ -235,7 +238,7 @@ if __name__ == "__main__":
         "batch_size": 2,
         "epochs": 100,
         # model
-        "model_name": "res_net",
+        "model_name": "straight_model",
         "model_output_num": 1,
         # record
         "y_tag": "one_landmark",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
@@ -245,4 +248,4 @@ if __name__ == "__main__":
     d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True)
     print("Using static dataset split: Train, Val, Test")
 
-    train_model(d_splits, args, write_log=True)
+    train_model(d_splits, args, write_log=False)

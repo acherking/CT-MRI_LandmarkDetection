@@ -238,7 +238,7 @@ if __name__ == "__main__":
         "model_name": "straight_model",
         "model_output_num": 1,
         # record
-        "y_tag": "mean_two_landmarks",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
+        "y_tag": "one_landmark",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
         "save_dir_extend": "",  # can be used for cross validation
     }
 
