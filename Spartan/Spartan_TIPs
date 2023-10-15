@@ -50,8 +50,6 @@ y_dir = base_dir + "/points/"
 
 length_dir = base_dir + "/length/"
 
-import support_modules
-
 support_modules.load_dataset_crop_dir(x_dir,y_dir,length_dir)
 
 import importlib
