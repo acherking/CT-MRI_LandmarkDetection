@@ -4,10 +4,10 @@ close all;
 % reset random value generator
 rng default
 
-roiFile = '/Volumes/Shawn_HDD/PhD/Project/Resources/ROI_CT.xlsx'; % median is better
+roiFile = 'D:/PhD/Project/Resources/ROI_CT.xlsx'; % median is better
 %roiFile = '.\Data\ROI\ROI JM.xlsx';
-strFile = '/Volumes/Shawn_HDD/PhD/Project/Resources/nameStrings.xlsx';
-imageDataPath = '/Volumes/Shawn_HDD/PhD/Project/Date/CT_MRI_Pre_Post/'; % change as required
+strFile = 'D:\PhD\Project\Resources/nameStrings.xlsx';
+imageDataPath = 'D:\PhD\Project\Date\CT_MRI_Pre_Post/'; % change as required
 augPath = '/Volumes/Shawn_HDD/PhD/Project/Date/augmentation_from_matlab/'; % change as required
 trainPath = [augPath 're_aug/'];
 valPath = [augPath 're_aug/'];
@@ -132,7 +132,8 @@ for pIdx = 14:14
         outPath = [testPath, outputFolder];
     end
 
-    saveAugmentedPtData(vol, pts, nAug, inPath, outPath, patName);
+    saveDividedAugmentedPtData(vol, pts, nAug, patName);
+    %saveAugmentedPtData(vol, pts, nAug, inPath, outPath, patName);
     %saveAugmentedData(vol, pts, rotAng, sp, nAug, inPath, outAngPath, outOrigPath, pIdx, nameStr);
     fprintf("finished augmentation for patient: %s ------------------\n", patName)
 end

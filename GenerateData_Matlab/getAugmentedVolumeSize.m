@@ -8,6 +8,8 @@ imgSize5 = [560 560 160];
 
 desDir1 = 'F:\Data\rescaled_data\176_176_48_PD\';
 desDir2 = 'F:\Data\rescaled_data\240_240_64_PD\';
+desDir3 = 'F:\Data\rescaled_data\320_320_96_PD\';
+desDir4 = 'F:\Data\rescaled_data\480_480_128_PD\';
 
 patList = {'AH', 'AZ', 'DE', 'DM', 'DM2', 'DGL', 'FA', 'GE', 'GM', 'GP', 'HB', 'HH', 'JH', 'JM', 'LG', 'LP', 'MJ', 'NV', 'PH', 'SM' };
 
@@ -21,8 +23,10 @@ for ptIdx = 1:length(patList)
         des_data_file = [des_data_dir ptName '_augSize_' num2str(dataIdx) '.mat'];
         data = load(orig_data_file, 'augVol');
         volumeSize = size(data.augVol);
-        save(des_data_file, 'volumeSize', '-v7.3');
-        appendPixelDistance(ptName, volumeSize, imgSize1, dataIdx, desDir1)
-        appendPixelDistance(ptName, volumeSize, imgSize2, dataIdx, desDir2)
+        %save(des_data_file, 'volumeSize', '-v7.3');
+        %appendPixelDistance(ptName, volumeSize, imgSize1, dataIdx, desDir1)
+        %appendPixelDistance(ptName, volumeSize, imgSize2, dataIdx, desDir2)
+        %appendPixelDistance(ptName, volumeSize, imgSize3, dataIdx, desDir3)
+        appendPixelDistance(ptName, volumeSize, imgSize4, dataIdx, desDir4)
     end
 end
