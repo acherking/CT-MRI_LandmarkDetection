@@ -1,16 +1,26 @@
 
 function saveDividedAugmentedPtData(vol, pts, nAug, patName)
 
+imgSize = [176 88 48; 240 120 64; 320 160 96].';
+
+volSize = size(vol);
+halfXsize = volSize(2) / 2;
+
+if volSize(2) ~= 1020
+    fprintf("X not 1020, patient: %s (%d)\n", patName, volSize(2));
+end
+
 leftPts = pts(1:2, :);
-leftPts(:, 1) = leftPts(:, 1) - 510;
+leftPts(:, 1) = leftPts(:, 1) - halfXsize;
 rightPts = pts(3:4, :);
-rightPts(:, 1) = 510 - rightPts(:, 1) + 1;
+rightPts(:, 1) = halfXsize - rightPts(:, 1) + 1;
 
 leftOrig = mean(leftPts);
 rightOrig = mean(rightPts);
 
-leftVol = vol(511:end, :, :);
-rightVol = vol(1:510, :, :);
+leftVol = vol(:, (halfXsize+1):end, :);
+rightVol = vol(:, 1:halfXsize, :);
+rightVol = flip(rightVol, 2);
 
 idx = 1;
 while idx <= nAug
@@ -35,32 +45,47 @@ while idx <= nAug
             [augRightVol, augRightPts] = getAugmentedVolume(rightVol, rightPts, rightOrig);
         end
     end
-    
+
+    augLeftVolSize = size(augLeftVol);
+    augRightVolSize = size(augRightVol);
         
-    origBase = "F:\Data\augmentation_exp/";
+    origBase = "F:\Data\augmentation_exp";
 
-    origLeftFile = origBase + patName + '_augLeft_' + strIdx + '.mat';
-    save(origLeftFile, 'augLeftVol', 'augLeftPts', '-v7.3');
-    fprintf("Saved augmentation vol for patient: %s -- %d \n To Path: %s\n", patName, idx, origLeftFile)
+    augFile = origBase + "\original_divided_augmentation\" + patName + '_aug_' + strIdx + '.mat';
+    save(augFile, 'augLeftVol', 'augLeftPts', 'augLeftVolSize', ...
+        'augRightVol', 'augRightPts', 'augRightVolSize', '-v7.3');
 
-    origRightFile = origBase + patName + '_augRight_' + strIdx + '.mat';
-    save(origRightFile, 'augRightVol', 'augRightPts', '-v7.3');
-    fprintf("Saved augmentation vol for patient: %s -- %d \n To Path: %s\n", patName, idx, origRightFile)
+    fprintf("Saved augmentation vol for patient: %s -- %d \n To Path: %s\n", patName, idx, augFile)
 
     % reduce size
-    % [augVol, augPts] = rescaleData(augVol, augPts, imgSz);
-    % strIdx = num2str(idx);
-    % fileName_vol = [inPath patName '_17017030_AugVol_' strIdx '.mat'];
-    % fileName_pts = [outPath patName '_17017030_AugPts_' strIdx '.mat'];
-                
-    % save to datastores
-    % rescaled_aug_vol = augVol;
-    % save(fileName_vol, 'rescaled_aug_vol', '-v7.3');
-    % fprintf("Saved augmentation vol for patient: %s -- %d \n To Path: %s\n", patName, idx, fileName_vol)
-
-    % rescaled_aug_pts = augPts(:);
-    % save(fileName_pts, 'rescaled_aug_pts', '-v7.3');
-    % fprintf("Saved augmentation pts for patient: %s -- %d \n To Path: %s\n\n", patName, idx, fileName_pts)
+    for s = imgSize
+        sizeT = s.';
+        [augLeftVolRescaled, augLeftPtsRescaled] = rescaleData(augLeftVol, augLeftPts, sizeT);
+        [augRightVolRescaled, augRightPtsRescaled] = rescaleData(augRightVol, augRightPts, sizeT);
         
+        augLeftVolRescaledSize = size(augLeftVolRescaled);
+        augRightVolRescaledSize = size(augRightVolRescaled);
+
+        % in mm
+        oriRes = [0.15, 0.15, 0.15];
+        
+        leftScale = augLeftVolRescaledSize ./ augLeftVolSize;
+        leftRes = oriRes ./ leftScale;
+
+        rightScale = augRightVolRescaledSize ./ augRightVolSize;
+        rightRes = oriRes ./ rightScale;
+
+        strSize = num2str(sizeT(1)) + "x" + num2str(sizeT(2)) + "x" + num2str(sizeT(3));
+        inPath = origBase + "\reduce_size\" + strSize + "\";
+        augRescaledFile = inPath + patName + '_' + strSize + '_' + strIdx + '.mat';
+                
+        % save to datastores
+        save(augRescaledFile, 'augLeftVolRescaled', 'augLeftPtsRescaled', 'leftRes', 'augLeftVolSize', ...
+            'augRightVolRescaled', 'augRightPtsRescaled', 'rightRes', 'augRightVolSize','-v7.3');
+
+        fprintf("Saved augmentation vol for patient: %s -- %d \n To Path: %s\n", patName, idx, augRescaledFile)
+
+    end
+
     idx = idx + 1;
 end

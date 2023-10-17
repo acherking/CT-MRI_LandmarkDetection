@@ -20,7 +20,7 @@ outputOrigFolder = 'OutputOrig/';
 trainRat = 0.7;
 valRat = 0.1;
 rotAng = 20;
-nAug = 50;
+nAug = 80;
 refSc = 0.2604;
 
 % data tags

@@ -55,6 +55,46 @@ def show_pts(volume, pts, pixel_space):
     pyplot.show()
 
 
+def show_two_landmarks_half_volume(left_volume, left_points, pixel_space):
+    #
+    y_row = numpy.arange(0.0, left_volume.shape[0] * pixel_space[0], pixel_space[0])
+    x_column = numpy.arange(0.0, left_volume.shape[1] * pixel_space[1], pixel_space[1])
+    z_slice = numpy.arange(0.0, left_volume.shape[2] * pixel_space[2], pixel_space[2])
+
+    left_points = left_points - 1
+    # right_points[:, [0]] = right_points[:, [0]] + 2
+
+    landmark_radius = left_volume.shape[1] * pixel_space[1] * 0.016
+
+    fig, axs = pyplot.subplots(1, 2, sharex=True, constrained_layout=True)
+    fig.set_dpi(400)
+
+    axs[0].set_title("LLSCC ant")
+    axs[0].set_aspect('equal', 'box')
+    im00 = axs[0].pcolormesh(x_column[:], y_row[:], left_volume[:, :, round(left_points[0, 2])], cmap=pyplot.gray())
+    llscc_ant = Circle((left_points[0, 0] * pixel_space[1], left_points[0, 1] * pixel_space[0]), landmark_radius, facecolor='None',
+                       edgecolor='r', lw=1)
+    axs[0].add_patch(llscc_ant)
+    axs[0].invert_yaxis()
+
+    fig.colorbar(im00, ax=axs[0])
+
+    axs[1].set_title("LLSCC post")
+    axs[1].set_aspect('equal', 'box')
+    im01 = axs[1].pcolormesh(x_column[:], y_row[:], left_volume[:, :, round(left_points[1, 2])], cmap=pyplot.gray())
+    llscc_post = Circle((left_points[1, 0] * pixel_space[1], left_points[1, 1] * pixel_space[0]), landmark_radius, facecolor='None',
+                        edgecolor='r', lw=1)
+    axs[1].add_patch(llscc_post)
+    axs[1].invert_yaxis()
+
+    fig.colorbar(im01, ax=axs[1])
+
+    pyplot.setp(axs[-1], xlabel='(mm)')
+    pyplot.setp(axs[0], ylabel='(mm)')
+
+    pyplot.show()
+
+
 def show_two_landmarks(left_volume, left_points, right_volume, right_points, pixel_space):
     #
     y_row = numpy.arange(0.0, left_volume.shape[0] * pixel_space[0], pixel_space[0])
