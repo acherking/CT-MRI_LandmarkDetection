@@ -1,4 +1,6 @@
 import numpy as np
+import math
+from scipy import ndimage
 import tensorflow as tf
 
 import Functions.MyDataset as MyDataset
@@ -149,13 +151,61 @@ def load_dataset_crop_dir(x_dir, y_dir, length_dir):
     return 1
 
 
-def augmentate_cropped_patches(x_dir, y_dir, length_dir):
+def rotation_matrix(axis, theta):
+    """
+    Return the rotation matrix associated with counterclockwise rotation about
+    the given axis by theta radians (Euler-Rodrigues formula).
+    """
+    axis = np.asarray(axis)
+    axis = axis / math.sqrt(np.dot(axis, axis))
+    a = math.cos(theta / 2.0)
+    b, c, d = -axis * math.sin(theta / 2.0)
+    aa, bb, cc, dd = a * a, b * b, c * c, d * d
+    bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+    return np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+                     [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+                     [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
+
+
+def augment_fun(volume, points):
+    # max rotation angle: 15 Degrees; change to Radian
+    max_rot_angle = 15
+    # random rotation angle: -max to +max
+    rand_angle = 2 * np.random.rand() * max_rot_angle - max_rot_angle
+    rand_angle_r = rand_angle * math.pi / 180
+
+    v_left_15 = ndimage.rotate(volume, rand_angle, axes=(0, 1), reshape=False)
+    v_left_15 = ndimage.rotate(v_left_15, rand_angle, axes=(0, 2), reshape=False)
+    v_left_15 = ndimage.rotate(v_left_15, rand_angle, axes=(1, 2), reshape=False)
+
+    org_centre = np.asarray([200, 200, 160]) / 2.
+    rot_centre = np.asarray(v_left_15.shape) / 2.
+
+    v = points - org_centre
+
+    axis_0 = np.asarray([100, 100, 70]) - org_centre
+    p_new = np.dot(rotation_matrix(axis_0, rand_angle_r), v.T)
+
+    axis_1 = np.asarray([110, 100, 80]) - org_centre
+    p_new = np.dot(rotation_matrix(axis_1, rand_angle_r), p_new)
+
+    axis_2 = np.asarray([100, 90, 80]) - org_centre
+    p_new = np.dot(rotation_matrix(axis_2, rand_angle_r), p_new)
+
+    p_new = p_new.T + rot_centre
+
+    return v_left_15, p_new
+
+
+def augment_cropped_patches(x_dir, y_dir):
     pat_names = MyDataset.get_pat_names()
 
     # Combine cropped volumes
     cropped_volumes = []
     cropped_points = []
-    cropped_length = []
+
+    # augment num
+    aug_num = 50
 
     for pat_name in pat_names:
         aug_id = 1
@@ -163,30 +213,45 @@ def augmentate_cropped_patches(x_dir, y_dir, length_dir):
         cropped_volume_left_path = x_dir + pat_name + "_augVolume_" + str(aug_id) + "_cropped_left.npy"
         cropped_volume_right_path = x_dir + pat_name + "_augVolume_" + str(aug_id) + "_cropped_right.npy"
         cropped_points_left_path = y_dir + pat_name + "_augPoints_" + str(aug_id) + "_cropped_left.npy"
-        cropped_length_left_path = length_dir + pat_name + "_augLength_" + str(aug_id) + "_cropped_left.npy"
         cropped_points_right_path = y_dir + pat_name + "_augPoints_" + str(aug_id) + "_cropped_right.npy"
-        cropped_length_right_path = length_dir + pat_name + "_augLength_" + str(aug_id) + "_cropped_right.npy"
         cropped_volume_left = np.load(cropped_volume_left_path)
         cropped_volume_right = np.load(cropped_volume_right_path)
         cropped_points_left = np.load(cropped_points_left_path)
-        cropped_length_left = np.load(cropped_length_left_path)
         cropped_points_right = np.load(cropped_points_right_path)
-        cropped_length_right = np.load(cropped_length_right_path)
         cropped_volumes.append(cropped_volume_left)
         cropped_volumes.append(cropped_volume_right)
         cropped_points.append(cropped_points_left)
         cropped_points.append(cropped_points_right)
-        cropped_length.append(cropped_length_left)
-        cropped_length.append(cropped_length_right)
+
+        # augmentation
+        for re_aug_id in range(1, aug_num):
+            print("re_aug Id: ", re_aug_id)
+            aug_left_volume, aug_left_points = augment_fun(cropped_volume_left, cropped_points_left)
+            aug_right_volume, aug_right_points = augment_fun(cropped_volume_right, cropped_points_right)
+            cropped_volumes.append(aug_left_volume)
+            cropped_volumes.append(aug_right_volume)
+            cropped_points.append(aug_left_points)
+            cropped_points.append(aug_right_points)
 
     print(len(cropped_volumes))
     print(len(cropped_points))
-    print(len(cropped_length))
 
-    cropped_volumes = np.asarray(cropped_volumes).reshape((20, 200, 200, 160, 1))
-    cropped_points = np.asarray(cropped_points).reshape((20, 2, 3))
-    cropped_length = np.asarray(cropped_length).reshape((20, 2, 3))
+    cropped_volumes = np.asarray(cropped_volumes).reshape((4000, 200, 200, 160, 1))
+    cropped_points = np.asarray(cropped_points).reshape((4000, 2, 3))
 
+    crop_size = "x100100y100100z8080"
+    has_trans = ""  # or ""
+    trans_tag = "no_trans_aug"
+    comb_tag = "truth"
+    save_comb_dir = f"/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/{crop_size}{has_trans}"
+    save_volume_path = f"{save_comb_dir}/cropped_volumes_{crop_size}_{comb_tag}_{trans_tag}.npy"
+    save_points_path = f"{save_comb_dir}/cropped_points_{crop_size}_{comb_tag}_{trans_tag}.npy"
+    np.save(save_volume_path, cropped_volumes)
+    print("saved: ", save_volume_path)
+    np.save(save_points_path, cropped_points)
+    print("saved: ", save_points_path)
+
+    return 1
 
 
 def load_dataset_divide(dataset_dir, rescaled_size, idx_splits, no_split=False):

@@ -65,7 +65,8 @@ def train_model(data_splits, args_dict, write_log=True):
     res_val = (np.ones((val_num, 1, 3)) * 0.15).astype('float32')
     res_test = (np.ones((test_num, 1, 3)) * 0.15).astype('float32')
 
-    np.save(f"{save_dir}/y_test_gt", y_test)
+    #np.save(f"{save_dir}/y_test_gt", y_test)
+    np.save(f"{save_dir}/x_test", x_test)
     exit()
 
     """ *** Training Process *** """

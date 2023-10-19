@@ -212,7 +212,7 @@ def get_pat_from_test_idx(idx, split=False):
             print("get_pat_from_test_idx: error idx!", idx)
             return
         pt_idx = np.floor(idx / 100).astype(int)
-        pt_aug_id = np.ceil(idx % 100 / 2).astype(int)
+        pt_aug_id = np.floor(idx % 100 / 2).astype(int) + 1
 
     pt_name = patient_names[test_pat_idx[pt_idx]]
 
