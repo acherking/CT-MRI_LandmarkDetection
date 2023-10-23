@@ -200,15 +200,16 @@ def augment_fun(volume, points):
 def augment_cropped_patches(x_dir, y_dir):
     pat_names = MyDataset.get_pat_names()
 
-    # Combine cropped volumes
-    cropped_volumes = []
-    cropped_points = []
-
     # augment num
     aug_num = 50
+    base_dir = "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/augment_exp_pythong"
 
     for pat_name in pat_names:
         aug_id = 1
+        # Combine cropped volumes for patient
+        cropped_volumes = []
+        cropped_points = []
+
         print("**************" + pat_name + "__" + str(aug_id) + "***************")
         cropped_volume_left_path = x_dir + pat_name + "_augVolume_" + str(aug_id) + "_cropped_left.npy"
         cropped_volume_right_path = x_dir + pat_name + "_augVolume_" + str(aug_id) + "_cropped_right.npy"
@@ -233,25 +234,31 @@ def augment_cropped_patches(x_dir, y_dir):
             cropped_points.append(aug_left_points)
             cropped_points.append(aug_right_points)
 
-    print(len(cropped_volumes))
-    print(len(cropped_points))
+        cropped_volumes = np.asarray(cropped_volumes).reshape((100, 200, 200, 160, 1))
+        cropped_points = np.asarray(cropped_points).reshape((100, 2, 3))
+        save_volume_path = f"{base_dir}/{pat_name}_volume_patch_aug_{aug_id}.npy"
+        save_points_path = f"{base_dir}/{pat_name}_points_aug_{aug_id}.npy"
+        np.save(save_volume_path, cropped_volumes)
+        np.save(save_points_path, cropped_points)
+        print("saved: ", save_volume_path)
+        print("saved: ", save_points_path)
 
-    cropped_volumes = np.asarray(cropped_volumes).reshape((4000, 200, 200, 160, 1))
-    cropped_points = np.asarray(cropped_points).reshape((4000, 2, 3))
+    return 0
 
-    crop_size = "x100100y100100z8080"
-    has_trans = ""  # or ""
-    trans_tag = "no_trans_aug"
-    comb_tag = "truth"
-    save_comb_dir = f"/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/{crop_size}{has_trans}"
-    save_volume_path = f"{save_comb_dir}/cropped_volumes_{crop_size}_{comb_tag}_{trans_tag}.npy"
-    save_points_path = f"{save_comb_dir}/cropped_points_{crop_size}_{comb_tag}_{trans_tag}.npy"
-    np.save(save_volume_path, cropped_volumes)
-    print("saved: ", save_volume_path)
-    np.save(save_points_path, cropped_points)
-    print("saved: ", save_points_path)
 
-    return 1
+def load_patch_augmentation():
+    pat_names = MyDataset.get_pat_names()
+    base_dir = "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/augment_exp_pythong"
+
+    for pat_name in pat_names:
+        aug_id = 1
+        # Combine cropped volumes
+        cropped_volumes = []
+        cropped_points = []
+
+        print("**************" + pat_name + "__" + str(aug_id) + "***************")
+        cropped_volume_left_path = base_dir + pat_name + "_augVolume_" + str(aug_id) + "_cropped_left.npy"
+        cropped_volume_right_path = base_dir + pat_name + "_augVolume_" + str(aug_id) + "_cropped_right.npy"
 
 
 def load_dataset_divide(dataset_dir, rescaled_size, idx_splits, no_split=False):
