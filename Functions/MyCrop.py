@@ -232,6 +232,39 @@ def crop_outside_layers(x_volumes_org, y_landmarks_org, length_org, crop_layers,
     return x_dataset, y_dataset, length_dataset
 
 
+def crop_outside_layers_no_length(x_volumes_org, y_landmarks_org, crop_layers, keep_blank=True):
+    x_dataset = np.copy(x_volumes_org)
+    y_dataset = np.copy(y_landmarks_org)
+
+    instances_num = x_dataset.shape[0]
+
+    row_num = x_dataset.shape[1]
+    column_num = x_dataset.shape[2]
+    slice_num = x_dataset.shape[3]
+
+    if keep_blank:
+        fill_val = np.min(x_dataset)
+        x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
+        x_dataset_corroded[:,
+        crop_layers[0][0]:(row_num - crop_layers[0][1]),
+        crop_layers[1][0]:(column_num - crop_layers[1][1]),
+        crop_layers[2][0]:(slice_num - crop_layers[2][1]), :] = \
+            x_dataset[:,
+            crop_layers[0][0]:(row_num - crop_layers[0][1]),
+            crop_layers[1][0]:(column_num - crop_layers[1][1]),
+            crop_layers[2][0]:(slice_num - crop_layers[2][1]), :]
+        # to make the return consistent
+        x_dataset = x_dataset_corroded
+    else:
+        x_dataset = x_dataset[:,
+                    crop_layers[0][0]:(row_num - crop_layers[0][1]),
+                    crop_layers[1][0]:(column_num - crop_layers[1][1]),
+                    crop_layers[2][0]:(slice_num - crop_layers[2][1]), :]
+        y_dataset = y_dataset - [crop_layers[1, 0], crop_layers[0, 0], crop_layers[2, 0]]
+
+    return x_dataset, y_dataset
+
+
 # x_volumes_org: (instance_num, row_num, column_num, slice_num, 1)
 # y_landmarks_org: (instance_num, landmarks_num ,dimensions_num)
 # length_org: (instance_num, landmarks_num, dimensions_num)

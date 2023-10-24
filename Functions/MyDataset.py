@@ -151,15 +151,16 @@ def get_pat_splits(static=False):
     return pat_splits
 
 
-def get_data_splits(pat_splits, split=False):
+def get_data_splits(pat_splits, split=False, aug_num=50):
 
     if split:
-        idx_splits = [[list(range(i * 100, i * 100 + 100)) for i in j] for j in pat_splits]
+        double_aug_num = aug_num * 2
+        idx_splits = [[list(range(i * double_aug_num, i * double_aug_num + double_aug_num)) for i in j] for j in pat_splits]
         for i in range(0, 3):
             idx_splits[i] = [num for sublist in idx_splits[i] for num in sublist]
             idx_splits[i] = np.asarray(idx_splits[i])
     else:
-        idx_splits = [[list(range(i * 50, i * 50 + 50)) for i in j] for j in pat_splits]
+        idx_splits = [[list(range(i * aug_num, i * aug_num + aug_num)) for i in j] for j in pat_splits]
         for i in range(0, 3):
             idx_splits[i] = [num for sublist in idx_splits[i] for num in sublist]
             idx_splits[i] = np.asarray(idx_splits[i])
