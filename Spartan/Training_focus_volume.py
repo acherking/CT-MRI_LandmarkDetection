@@ -65,6 +65,11 @@ def train_model(data_splits, args_dict, write_log=True):
     res_val = (np.ones((val_num, 1, 3)) * 0.15).astype('float32')
     res_test = (np.ones((test_num, 1, 3)) * 0.15).astype('float32')
 
+    # tmp for results review
+    np.save(f"{save_dir}/y_test_gt.npy", y_test)
+    np.save(f"{save_dir}/x_test.npy", x_test)
+    exit(0)
+
     """ *** Training Process *** """
 
     batch_size = args_dict.get("batch_size", 2)

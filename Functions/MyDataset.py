@@ -199,21 +199,22 @@ def get_pat_from_idx(idx, split=False):
     return patient_names[pt_idx], pt_aug_id
 
 
-def get_pat_from_test_idx(idx, split=False):
+def get_pat_from_test_idx(idx, split=False, aug_num=50):
     test_pat_idx = get_pat_splits(static=True)[2]  # 0: train, 1: val, 2: test
 
     if not split:
-        if idx >= 200:
+        if idx >= aug_num * 4:
             print("get_pat_from_test_idx: error idx!", idx)
             return
-        pt_idx = np.floor(idx / 50).astype(int)
-        pt_aug_id = idx % 50 + 1
+        pt_idx = np.floor(idx / aug_num).astype(int)
+        pt_aug_id = idx % aug_num + 1
     else:
-        if idx >= 400:
+        d_aug_num = aug_num * 2
+        if idx >= d_aug_num * 4:
             print("get_pat_from_test_idx: error idx!", idx)
             return
-        pt_idx = np.floor(idx / 100).astype(int)
-        pt_aug_id = np.floor(idx % 100 / 2).astype(int) + 1
+        pt_idx = np.floor(idx / d_aug_num).astype(int)
+        pt_aug_id = np.floor(idx % d_aug_num / 2).astype(int) + 1
 
     pt_name = patient_names[test_pat_idx[pt_idx]]
 
