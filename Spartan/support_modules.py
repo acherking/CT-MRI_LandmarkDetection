@@ -202,46 +202,53 @@ def augment_fun(volume, points):
     # max rotation angle: 15 Degrees; change to Radian
     max_rot_angle = 15
     # random rotation angle: -max to +max
-    rand_angle = 2 * np.random.rand() * max_rot_angle - max_rot_angle
+    rand_angle_xy = 2 * np.random.rand() * max_rot_angle - max_rot_angle
+    rand_angle_yz = 2 * np.random.rand() * max_rot_angle - max_rot_angle
+    rand_angle_xz = 2 * np.random.rand() * max_rot_angle - max_rot_angle
 
-    v_left_15 = ndimage.rotate(volume, rand_angle, axes=(0, 1), reshape=False)
-    v_left_15 = ndimage.rotate(v_left_15, rand_angle, axes=(0, 2), reshape=False)
-    v_left_15 = ndimage.rotate(v_left_15, rand_angle, axes=(1, 2), reshape=False)
+    v_left_15 = ndimage.rotate(volume, rand_angle_xy, axes=(0, 1), reshape=False)
+    v_left_15 = ndimage.rotate(v_left_15, rand_angle_yz, axes=(0, 2), reshape=False)
+    v_left_15 = ndimage.rotate(v_left_15, rand_angle_xz, axes=(1, 2), reshape=False)
 
     org_centre = np.asarray([200, 200, 160]) / 2.
     rot_centre = np.asarray(v_left_15.shape) / 2.
 
     v = points - org_centre
 
-    rand_angle_xy = rand_angle * math.pi / 180
+    rand_angle_xy_r = rand_angle_xy * math.pi / 180
     axis_0 = np.asarray([100, 100, 70]) - org_centre
-    p_new = np.dot(rotation_matrix(axis_0, rand_angle_xy), v.T)
+    p_new = np.dot(rotation_matrix(axis_0, rand_angle_xy_r), v.T)
 
-    rand_angle_yz = rand_angle * math.pi / 180
+    rand_angle_yz_r = rand_angle_yz * math.pi / 180
     axis_1 = np.asarray([110, 100, 80]) - org_centre
-    p_new = np.dot(rotation_matrix(axis_1, rand_angle_yz), p_new)
+    p_new = np.dot(rotation_matrix(axis_1, rand_angle_yz_r), p_new)
 
-    rand_angle_xz = rand_angle * math.pi / 180
+    rand_angle_xz_r = rand_angle_xz * math.pi / 180
     axis_2 = np.asarray([100, 90, 80]) - org_centre
-    p_new = np.dot(rotation_matrix(axis_2, rand_angle_xz), p_new)
+    p_new = np.dot(rotation_matrix(axis_2, rand_angle_xz_r), p_new)
 
     p_new = p_new.T + rot_centre
 
-    return v_left_15, p_new
+    return v_left_15, p_new, np.asarray([rand_angle_xy_r, rand_angle_yz_r, rand_angle_xz_r])
 
 
 def augment_cropped_patches(x_dir, y_dir):
     pat_names = MyDataset.get_pat_names()
 
     # augment num
-    aug_num = 100
+    aug_num = 50
     base_dir = "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/augment_exp_pythong"
+
+    # landmarks diff
+    diff = np.load("/data/gpfs/projects/punim1836/Training/res/diff_flip.npy")
+    p_id = 0
 
     for pat_name in pat_names:
         aug_id = 1
         # Combine cropped volumes for patient
         cropped_volumes = []
         cropped_points = []
+        rand_angle = []
 
         print("**************" + pat_name + "__" + str(aug_id) + "***************")
         cropped_volume_left_path = x_dir + pat_name + "_augVolume_" + str(aug_id) + "_cropped_left.npy"
@@ -252,29 +259,43 @@ def augment_cropped_patches(x_dir, y_dir):
         cropped_volume_right = np.load(cropped_volume_right_path)
         cropped_points_left = np.load(cropped_points_left_path)
         cropped_points_right = np.load(cropped_points_right_path)
+        # for diff
+        cropped_points_left = cropped_points_left - diff[p_id, 0:2, :]
+        cropped_points_right = cropped_points_right - diff[p_id, 2:4, :]
+        p_id = p_id + 1
+
         cropped_volumes.append(cropped_volume_left)
         cropped_volumes.append(cropped_volume_right)
         cropped_points.append(cropped_points_left)
         cropped_points.append(cropped_points_right)
+        rand_angle.append(np.asarray([0, 0, 0]))
+        rand_angle.append(np.asarray([0, 0, 0]))
 
         # augmentation
         for re_aug_id in range(1, aug_num):
             print("re_aug Id: ", re_aug_id)
-            aug_left_volume, aug_left_points = augment_fun(cropped_volume_left, cropped_points_left)
-            aug_right_volume, aug_right_points = augment_fun(cropped_volume_right, cropped_points_right)
+            aug_left_volume, aug_left_points, rand_angle_r_left = augment_fun(cropped_volume_left, cropped_points_left)
+            aug_right_volume, aug_right_points, rand_angle_r_right = augment_fun(cropped_volume_right, cropped_points_right)
+
             cropped_volumes.append(aug_left_volume)
             cropped_volumes.append(aug_right_volume)
             cropped_points.append(aug_left_points)
             cropped_points.append(aug_right_points)
+            rand_angle.append(rand_angle_r_left)
+            rand_angle.append(rand_angle_r_right)
 
-        cropped_volumes = np.asarray(cropped_volumes).reshape((200, 200, 200, 160, 1))
-        cropped_points = np.asarray(cropped_points).reshape((200, 2, 3))
-        save_volume_path = f"{base_dir}/{pat_name}_volume_patch_aug_{aug_id}.npy"
-        save_points_path = f"{base_dir}/{pat_name}_points_aug_{aug_id}.npy"
+        cropped_volumes = np.asarray(cropped_volumes).reshape((aug_num*2, 200, 200, 160, 1))
+        cropped_points = np.asarray(cropped_points).reshape((aug_num*2, 2, 3))
+        rand_angle = np.asarray(rand_angle).reshape((aug_num*2, 3))
+        save_volume_path = f"{base_dir}/{pat_name}_volume_patch_aug_{aug_num*2}.npy"
+        save_points_path = f"{base_dir}/{pat_name}_points_aug_{aug_num*2}.npy"
+        save_angle_path = f"{base_dir}/{pat_name}_angles_aug_{aug_num*2}.npy"
         np.save(save_volume_path, cropped_volumes)
         np.save(save_points_path, cropped_points)
+        np.save(save_angle_path, rand_angle)
         print("saved: ", save_volume_path)
         print("saved: ", save_points_path)
+        print("saved: ", save_angle_path)
 
     return 0
 
@@ -284,38 +305,47 @@ def load_patch_augmentation():
     base_dir = "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/augment_exp_pythong"
     save_dir = f"{base_dir}/x7575y7575z5050"
 
-    aug_id = 1
+    aug_num = 50
     # Combine cropped volumes
     cropped_volumes = []
     cropped_points = []
+    rand_angles = []
 
     crop_outside = np.asarray([[25, 25], [25, 25], [30, 30]])
 
     for pat_name in pat_names:
-        print("**************" + pat_name + "__" + str(aug_id) + "***************")
-        cropped_volume_path = base_dir + "/" + pat_name + "_volume_patch_aug_" + str(aug_id) + ".npy"
-        cropped_points_path = base_dir + "/" + pat_name + "_points_aug_" + str(aug_id) + ".npy"
+        print("**************" + pat_name + "__" + str(aug_num*2) + "***************")
+        cropped_volume_path = base_dir + "/" + pat_name + "_volume_patch_aug_" + str(aug_num*2) + ".npy"
+        cropped_points_path = base_dir + "/" + pat_name + "_points_aug_" + str(aug_num*2) + ".npy"
+        rand_angle_path = base_dir + "/" + pat_name + "_angles_aug_" + str(aug_num*2) + ".npy"
 
         volumes = np.load(cropped_volume_path)
         points = np.load(cropped_points_path)
+        angles = np.load(rand_angle_path)
         # crop first for memory saving
         volumes, points = MyCrop.crop_outside_layers_no_length(volumes, points, crop_outside, keep_blank=False)
         if len(cropped_volumes) == 0:
             cropped_volumes = volumes
             cropped_points = points
+            rand_angles = angles
         else:
             cropped_volumes = np.concatenate((cropped_volumes, volumes), axis=0)
             cropped_points = np.concatenate((cropped_points, points), axis=0)
+            rand_angles = np.concatenate((rand_angles, angles), axis=0)
 
     print("Volumes Shape: ", cropped_volumes.shape)
     print("Points Shape: ", cropped_points.shape)
+    print("Rand angles Shape: ", rand_angles.shape)
 
-    save_volumes_path = f"{save_dir}/volumes_4k.npy"
-    save_points_path = f"{save_dir}/points_4k.npy"
+    save_volumes_path = f"{save_dir}/volumes_2k.npy"
+    save_points_path = f"{save_dir}/points_RoI_Medium_6_2k.npy"
+    save_angles_path = f"{save_dir}/angles_RoI_2k.npy"
     np.save(save_volumes_path, cropped_volumes)
     np.save(save_points_path, cropped_points)
+    np.save(save_angles_path, rand_angles)
     print("saved: ", save_volumes_path)
     print("saved: ", save_points_path)
+    print("saved: ", save_angles_path)
 
     return 0
 
