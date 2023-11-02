@@ -32,8 +32,8 @@ def train_model(data_splits, args_dict, write_log=True):
 
     # x_path = f"{base_dir}/{crop_tag_dir}/cropped_volumes_{crop_tag}_truth_{trans_tag}.npy"
     # y_path = f"{base_dir}/{crop_tag_dir}/cropped_points_{crop_tag}_truth_{trans_tag}.npy"
-    x_path = f"{base_dir}/{crop_tag}/volumes_2k.npy"
-    y_path = f"{base_dir}/{crop_tag}/points_RoI_Medium_6_2k.npy"
+    x_path = f"{base_dir}/{crop_tag}/volumes_4k.npy"
+    y_path = f"{base_dir}/{crop_tag}/points_RoI_Medium_6_4k.npy"
 
     print("Read Volumes from:   ", x_path)
     print("Read Points from:    ", y_path)
@@ -234,7 +234,7 @@ if __name__ == "__main__":
         # "cut_layers": [39, 39, 39, 39, 26, 26],
         "cut_layers": [25, 25, 25, 25, 0, 0],
         "has_trans": "",
-        "trans_tag": "no_trans",
+        "trans_tag": "no_trans_100aug_6medium",
         "base_dir": "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/augment_exp_pythong",
         # training
         "batch_size": 2,
@@ -247,7 +247,7 @@ if __name__ == "__main__":
         "save_dir_extend": "",  # can be used for cross validation
     }
 
-    d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True, aug_num=50)
+    d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True, aug_num=100)
     print("Using static dataset split: Train, Val, Test")
 
     train_model(d_splits, args, write_log=True)

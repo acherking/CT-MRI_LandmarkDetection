@@ -305,7 +305,7 @@ def load_patch_augmentation():
     base_dir = "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/augment_exp_pythong"
     save_dir = f"{base_dir}/x7575y7575z5050"
 
-    aug_num = 50
+    aug_num = 100
     # Combine cropped volumes
     cropped_volumes = []
     cropped_points = []
@@ -337,9 +337,9 @@ def load_patch_augmentation():
     print("Points Shape: ", cropped_points.shape)
     print("Rand angles Shape: ", rand_angles.shape)
 
-    save_volumes_path = f"{save_dir}/volumes_2k.npy"
-    save_points_path = f"{save_dir}/points_RoI_Medium_6_2k.npy"
-    save_angles_path = f"{save_dir}/angles_RoI_2k.npy"
+    save_volumes_path = f"{save_dir}/volumes_4k.npy"
+    save_points_path = f"{save_dir}/points_RoI_Medium_6_4k.npy"
+    save_angles_path = f"{save_dir}/angles_RoI_4k.npy"
     np.save(save_volumes_path, cropped_volumes)
     np.save(save_points_path, cropped_points)
     np.save(save_angles_path, rand_angles)
