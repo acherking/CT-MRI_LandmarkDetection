@@ -66,7 +66,7 @@ def train_model(data_splits, args_dict, write_log=True):
     res_test = (np.ones((test_num, 1, 3)) * 0.15).astype('float32')
 
     # tmp for results review
-    # np.save(f"{save_dir}/y_test_gt.npy", y_test)
+    np.save(f"{save_dir}/y_test_gt.npy", y_test)
     # np.save(f"{save_dir}/x_test.npy", x_test)
     # exit(0)
 
@@ -234,7 +234,7 @@ if __name__ == "__main__":
         # "cut_layers": [39, 39, 39, 39, 26, 26],
         "cut_layers": [25, 25, 25, 25, 0, 0],
         "has_trans": "",
-        "trans_tag": "no_trans_100aug_6medium",
+        "trans_tag": "no_trans_50aug_6medium",
         "base_dir": "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/augment_exp_pythong",
         # training
         "batch_size": 2,
@@ -247,7 +247,7 @@ if __name__ == "__main__":
         "save_dir_extend": "",  # can be used for cross validation
     }
 
-    d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True, aug_num=100)
+    d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True, aug_num=50)
     print("Using static dataset split: Train, Val, Test")
 
     train_model(d_splits, args, write_log=True)

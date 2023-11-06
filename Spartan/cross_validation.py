@@ -3,6 +3,7 @@ import sys
 import Functions.MyDataset as MyDataset
 import Training_divided_volume
 import Training_cropped_volume
+import Training_focus_volume
 
 
 def train_divided(k_cross_num, k_cross_idx):
@@ -37,10 +38,11 @@ def train_cropped(k_cross_num, k_cross_idx):
         # prepare Dataset
         "dataset_tag": "cropped",
         "crop_dataset_size": [75, 75, 75, 75, 50, 50],
+        # "cut_layers": [39, 39, 39, 39, 26, 26],
         "cut_layers": [25, 25, 25, 25, 0, 0],
-        "has_trans": "_trans/tmp",
-        "trans_tag": "s1_test_dis",
-        "base_dir": "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth",
+        "has_trans": "",
+        "trans_tag": "no_trans_50aug_6medium",
+        "base_dir": "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/augment_exp_pythong",
         # training
         "batch_size": 2,
         "epochs": 100,
@@ -48,14 +50,14 @@ def train_cropped(k_cross_num, k_cross_idx):
         "model_name": "straight_model",
         "model_output_num": 1,
         # record
-        "y_tag": "one_landmark_res",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
+        "y_tag": "one_landmark",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
         "save_dir_extend": "",  # can be used for cross validation
     }
 
     save_dir_extend = {"save_dir_extend": f"{k_cross_num}_cross/{k_cross_idx}"}
     args.update(save_dir_extend)
 
-    Training_cropped_volume.train_model(k_idx_splits[k_cross_idx], args)
+    Training_focus_volume.train_model(k_idx_splits[k_cross_idx], args)
 
 
 if __name__ == "__main__":
