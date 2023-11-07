@@ -1,6 +1,7 @@
 from os import listdir
 from os.path import isfile, join
 import numpy as np
+from random import shuffle
 import h5py
 
 from scipy.ndimage import zoom
@@ -27,7 +28,8 @@ k_folds_10 = [['LP', 'JM'],
               ['DE', 'PH'],
               ['HH', 'DM2']]
 
-k_folds_20 = np.reshape(patient_names, (20, 1))
+k_folds_20 = [['AH'], ['AZ'], ['DE'], ['DM'], ['DM2'], ['DGL'], ['FA'], ['GE'], ['GM'], ['GP'], ['HB'], ['HH'],
+              ['JH'], ['JM'], ['LG'], ['LP'], ['MJ'], ['NV'], ['PH'], ['SM']]
 
 
 # Load Mat data for single patient
@@ -233,7 +235,7 @@ def get_k_folds(k):
         return []
 
 
-def get_k_folds_data_splits(k):
+def get_k_folds_pat_splits(k):
     k_folds = get_k_folds(k)
     print("K folds: ", k_folds)
 
@@ -248,10 +250,11 @@ def get_k_folds_data_splits(k):
         training_pats_id = [patient_names.index(name) for name in training_pats]
 
         # add val dataset
+        shuffle(training_pats_id)
         val_pats_id = training_pats_id[0:2]
         training_pats_id = training_pats_id[2:]
 
         pat_splits = [training_pats_id, val_pats_id, test_pats_id]
-        k_folds_idx_splits.append(get_data_splits(pat_splits, split=True))
+        k_folds_idx_splits.append(pat_splits)
 
     return k_folds_idx_splits

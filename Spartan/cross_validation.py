@@ -7,7 +7,10 @@ import Training_focus_volume
 
 
 def train_divided(k_cross_num, k_cross_idx):
-    k_idx_splits = MyDataset.get_k_folds_data_splits(k_cross_num)
+    k_pat_splits = MyDataset.get_k_folds_pat_splits(k_cross_num)
+    print("K folds patients split: ", k_pat_splits[k_cross_idx])
+
+    idx_split = MyDataset.get_data_splits(k_pat_splits[k_cross_idx], split=True, aug_num=50)
 
     args = {
         # prepare Dataset
@@ -28,11 +31,14 @@ def train_divided(k_cross_num, k_cross_idx):
     save_dir_extend = {"save_dir_extend": f"{k_cross_num}_cross/{k_cross_idx}"}
     args.update(save_dir_extend)
 
-    Training_divided_volume.train_model(k_idx_splits[k_cross_idx], args)
+    Training_divided_volume.train_model(idx_split, args)
 
 
 def train_cropped(k_cross_num, k_cross_idx):
-    k_idx_splits = MyDataset.get_k_folds_data_splits(k_cross_num)
+    k_pat_splits = MyDataset.get_k_folds_pat_splits(k_cross_num)
+    print("K folds patients split: ", k_pat_splits[k_cross_idx])
+
+    idx_split = MyDataset.get_data_splits(k_pat_splits[k_cross_idx], split=True, aug_num=50)
 
     args = {
         # prepare Dataset
@@ -57,7 +63,7 @@ def train_cropped(k_cross_num, k_cross_idx):
     save_dir_extend = {"save_dir_extend": f"{k_cross_num}_cross/{k_cross_idx}"}
     args.update(save_dir_extend)
 
-    Training_focus_volume.train_model(k_idx_splits[k_cross_idx], args)
+    Training_focus_volume.train_model(idx_split, args)
 
 
 if __name__ == "__main__":

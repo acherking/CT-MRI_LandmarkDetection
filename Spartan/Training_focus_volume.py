@@ -32,8 +32,8 @@ def train_model(data_splits, args_dict, write_log=True):
 
     # x_path = f"{base_dir}/{crop_tag_dir}/cropped_volumes_{crop_tag}_truth_{trans_tag}.npy"
     # y_path = f"{base_dir}/{crop_tag_dir}/cropped_points_{crop_tag}_truth_{trans_tag}.npy"
-    x_path = f"{base_dir}/{crop_tag}/volumes_4k.npy"
-    y_path = f"{base_dir}/{crop_tag}/points_RoI_Medium_6_4k.npy"
+    x_path = f"{base_dir}/{crop_tag}/volumes_2k.npy"
+    y_path = f"{base_dir}/{crop_tag}/points_RoI_Medium_6_2k.npy"
 
     print("Read Volumes from:   ", x_path)
     print("Read Points from:    ", y_path)
