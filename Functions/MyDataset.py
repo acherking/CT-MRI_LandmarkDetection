@@ -250,9 +250,12 @@ def get_k_folds_pat_splits(k):
         training_pats_id = [patient_names.index(name) for name in training_pats]
 
         # add val dataset
-        shuffle(training_pats_id)
-        val_pats_id = training_pats_id[0:2]
-        training_pats_id = training_pats_id[2:]
+        # shuffle(training_pats_id)
+        # val_pats_id = training_pats_id[0:2]
+        # training_pats_id = training_pats_id[2:]
+
+        # no val dataset
+        val_pats_id = list.copy(training_pats_id)
 
         pat_splits = [training_pats_id, val_pats_id, test_pats_id]
         k_folds_idx_splits.append(pat_splits)
