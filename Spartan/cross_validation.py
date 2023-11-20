@@ -38,7 +38,7 @@ def train_cropped(k_cross_num, k_cross_idx):
     k_pat_splits = MyDataset.get_k_folds_pat_splits(k_cross_num)
     print("K folds patients split: ", k_pat_splits[k_cross_idx])
 
-    idx_split = MyDataset.get_data_splits(k_pat_splits[k_cross_idx], split=True, aug_num=50)
+    idx_split = MyDataset.get_data_splits(k_pat_splits[k_cross_idx], split=True, aug_num=100)
 
     args = {
         # prepare Dataset
@@ -47,7 +47,7 @@ def train_cropped(k_cross_num, k_cross_idx):
         # "cut_layers": [39, 39, 39, 39, 26, 26],
         "cut_layers": [25, 25, 25, 25, 0, 0],
         "has_trans": "",
-        "trans_tag": "no_trans_50aug_6medium",
+        "trans_tag": "no_trans_100aug_6medium",
         "base_dir": "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/augment_exp_pythong",
         # training
         "batch_size": 2,
