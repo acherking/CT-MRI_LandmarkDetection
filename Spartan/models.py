@@ -1422,7 +1422,7 @@ def get_model(model_name, input_shape, model_output_num, batch_size=2):
         model = cov_only_dsnt_model(input_shape[0], input_shape[1], input_shape[2],
                                     kernel_size, model_output_num, batch_size)
     elif model_name == "cov_only_fc":
-        kernel_size = 7
+        kernel_size = 3
         model = cov_only_fc_model(input_shape[0], input_shape[1], input_shape[2], kernel_size, model_output_num)
     elif model_name == "u_net":
         model = u_net_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)

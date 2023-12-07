@@ -53,7 +53,7 @@ def train_cropped(k_cross_num, k_cross_idx):
         "batch_size": 2,
         "epochs": 100,
         # model
-        "model_name": "straight_model_short",
+        "model_name": "cov_only_fc",
         "model_output_num": 1,
         # record
         "y_tag": "one_landmark",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
