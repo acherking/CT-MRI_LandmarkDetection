@@ -45,7 +45,7 @@ def train_cropped(k_cross_num, k_cross_idx):
         "dataset_tag": "cropped",
         "crop_dataset_size": [75, 75, 75, 75, 50, 50],
         # "cut_layers": [39, 39, 39, 39, 26, 26],
-        "cut_layers": [25, 25, 25, 25, 0, 0],
+        "cut_layers": [47, 47, 49, 49, 34, 34],
         "has_trans": "",
         "trans_tag": "no_trans_100aug_6medium",
         "base_dir": "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/augment_exp_pythong",
