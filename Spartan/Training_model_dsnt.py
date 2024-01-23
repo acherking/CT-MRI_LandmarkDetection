@@ -85,16 +85,16 @@ def train_model(data_splits, args_dict, write_log=True):
     crop_tag = f"x{crop_size[0]}{crop_size[1]}y{crop_size[2]}{crop_size[3]}z{crop_size[4]}{crop_size[5]}"
     crop_tag_dir = crop_tag + has_trans
 
-    x_path = f"{base_dir}/{crop_tag_dir}/cropped_volumes_{crop_tag}_truth_{trans_tag}.npy"
-    y_path = f"{base_dir}/{crop_tag_dir}/cropped_points_{crop_tag}_truth_{trans_tag}.npy"
-    cropped_length_path = f"{base_dir}/{crop_tag_dir}/cropped_length_{crop_tag}_truth_{trans_tag}.npy"
+    # x_path = f"{base_dir}/{crop_tag_dir}/cropped_volumes_{crop_tag}_truth_{trans_tag}.npy"
+    # y_path = f"{base_dir}/{crop_tag_dir}/cropped_points_{crop_tag}_truth_{trans_tag}.npy"
+    x_path = f"{base_dir}/{crop_tag}/volumes_4k.npy"
+    y_path = f"{base_dir}/{crop_tag}/points_RoI_Medium_6_4k.npy"
 
     print("Read Volumes from:   ", x_path)
     print("Read Points from:    ", y_path)
-    print("Read Length from:    ", cropped_length_path)
 
-    x_train, y_train, length_train, x_val, y_val, length_val, x_test, y_test, length_test = \
-        support_modules.load_dataset_crop(x_path, y_path, cropped_length_path, data_splits, crop_layers)
+    x_train, y_train, x_val, y_val, x_test, y_test = \
+        support_modules.load_dataset_crop_no_length(x_path, y_path, data_splits, crop_layers)
 
     train_num = x_train.shape[0]
     val_num = x_val.shape[0]
@@ -105,10 +105,13 @@ def train_model(data_splits, args_dict, write_log=True):
     slice_size = x_train.shape[3]
     print(f"Train Volume Shape: row [{row_size}], column [{column_size}], slice [{slice_size}]")
 
-    # shift origin to centre
-    y_train = (y_train - [column_size/2, row_size/2, slice_size/2]).astype('float32')
-    y_val = (y_val - [column_size/2, row_size/2, slice_size/2]).astype('float32')
-    y_test = (y_test - [column_size/2, row_size/2, slice_size/2]).astype('float32')
+    # adjust the Y
+    y_train = ((2*y_train - [column_size+1, row_size+1, slice_size+1]) /
+               [column_size, row_size, slice_size]).astype('float32')
+    y_val = ((2*y_val - [column_size+1, row_size+1, slice_size+1]) /
+             [column_size, row_size, slice_size]).astype('float32')
+    y_test = ((2*y_test - [column_size+1, row_size+1, slice_size+1]) /
+              [column_size, row_size, slice_size]).astype('float32')
 
     model_output_num = args_dict.get("model_output_num")
     print("Landmarks Num: ", model_output_num)
@@ -289,21 +292,21 @@ if __name__ == "__main__":
         "crop_dataset_size": [75, 75, 75, 75, 50, 50],
         # "cut_layers": [11, 11, 11, 11, 18, 18],
         "cut_layers": [25, 25, 25, 25, 0, 0],
-        "has_trans": "_trans/tmp",
-        "trans_tag": "s1_test_dis",
-        "base_dir": "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth",
+        "has_trans": "",
+        "trans_tag": "no_trans_100aug_6medium",
+        "base_dir": "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/augment_exp_pythong",
         # training
         "batch_size": 2,
         "epochs": 100,
         # model
-        "model_name": "cov_only_fc",
+        "model_name": "cov_only_dsnt",
         "model_output_num": 1,
         # record
-        "y_tag": "one_landmark_res",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
-        "save_dir_extend": "kernel_size_7",  # can be used for cross validation
+        "y_tag": "one_landmark",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
+        "save_dir_extend": "kernel_size_5",  # can be used for cross validation
     }
 
-    d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True)
+    d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True, aug_num=100)
     print("Using static dataset split: Train, Val, Test")
 
-    train_model(d_splits, args, write_log=True)
+    train_model(d_splits, args, write_log=False)

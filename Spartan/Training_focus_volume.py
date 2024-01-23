@@ -250,4 +250,4 @@ if __name__ == "__main__":
     d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True, aug_num=100)
     print("Using static dataset split: Train, Val, Test")
 
-    train_model(d_splits, args, write_log=True)
+    train_model(d_splits, args, write_log=False)
