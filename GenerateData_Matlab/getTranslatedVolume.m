@@ -1,8 +1,8 @@
 function [transVol, transPts] = getTranslatedVolume(rotVol, rotPts)
 
-% get random translation, Shawn: what is translation used for?
+% get random translation
 maxTrans = 5;
-randTans = rand(1, 3);
+randTans = rand(1, 3)
 trans = round(2 * maxTrans .* randTans - maxTrans);
 
 % define translated rotVolume

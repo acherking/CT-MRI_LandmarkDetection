@@ -52,10 +52,10 @@ while idx <= nAug
     origBase = "F:\Data\augmentation_exp";
 
     augFile = origBase + "\original_divided_augmentation\" + patName + '_aug_' + strIdx + '.mat';
-    save(augFile, 'augLeftVol', 'augLeftPts', 'augLeftVolSize', ...
-        'augRightVol', 'augRightPts', 'augRightVolSize', '-v7.3');
+    %save(augFile, 'augLeftVol', 'augLeftPts', 'augLeftVolSize', ...
+    %    'augRightVol', 'augRightPts', 'augRightVolSize', '-v7.3');
 
-    fprintf("Saved augmentation vol for patient: %s -- %d \n To Path: %s\n", patName, idx, augFile)
+    %fprintf("Saved augmentation vol for patient: %s -- %d \n To Path: %s\n", patName, idx, augFile)
 
     % reduce size
     for s = imgSize
