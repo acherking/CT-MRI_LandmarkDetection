@@ -13,6 +13,7 @@ for idx=0:7
    vertArray(idx+1, :) = int2bit(idx, 3).' .* sz;
 end
 vertArray(find(vertArray == 0)) = 1; % from 0-indexing to 1-indexing
+vertArray(:, [1, 2]) = vertArray(:, [2, 1]);
 
 % convert to new coordinates
 for idx = 1:8

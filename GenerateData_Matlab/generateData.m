@@ -65,10 +65,6 @@ testIdx = setdiff(diffIdx, valIdx);
 imgNameList = roiStr(:, 1);
 
 for pIdx = 1:nPat
-%for pIdx = 14:14
-    if pIdx == 14
-        continue;
-    end
     patName = patList{pIdx};    
     imgIdx = find(strcmp(imgNameList, patName));
     ptNames = roiStr(imgIdx:imgIdx+3, 2);
