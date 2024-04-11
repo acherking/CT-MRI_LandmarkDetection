@@ -4,10 +4,10 @@ close all;
 % reset random value generator
 rng default
 
-roiFile = 'D:/PhD/Project/Resources/ROI_CT.xlsx'; % median is better
+roiFile = 'F:\Code\CT-MRI_LandmarkDetection\Resources\ROI_CT_one_name.xlsx'; % median is better
 %roiFile = '.\Data\ROI\ROI JM.xlsx';
-strFile = 'D:\PhD\Project\Resources/nameStrings.xlsx';
-imageDataPath = 'D:\PhD\Project\Date\CT_MRI_Pre_Post/'; % change as required
+strFile = 'F:\Code\CT-MRI_LandmarkDetection\Resources\nameStrings.xlsx';
+imageDataPath = 'F:\Data\CT_MRI_Pre_Post\'; % change as required
 augPath = '/Volumes/Shawn_HDD/PhD/Project/Date/augmentation_from_matlab/'; % change as required
 trainPath = [augPath 're_aug/'];
 valPath = [augPath 're_aug/'];
@@ -20,7 +20,7 @@ outputOrigFolder = 'OutputOrig/';
 trainRat = 0.7;
 valRat = 0.1;
 rotAng = 20;
-nAug = 100;
+nAug = 50;
 refSc = 0.2604;
 
 % data tags

@@ -11,7 +11,7 @@ end
 
 orig = mean(pts);
 
-idx = 2;
+idx = 1;
 while idx <= nAug
 
     strIdx = string(idx);
@@ -46,8 +46,7 @@ while idx <= nAug
     origBase = "F:\Data\augmentation_exp";
 
     augFile = origBase + "\original_divided_augmentation\" + patName + '_aug_' + strIdx + '.mat';
-    save(augFile, 'augLeftVol', 'augLeftPts', 'augLeftVolSize', ...
-        'augRightVol', 'augRightPts', 'augRightVolSize', '-v7.3');
+    save(augFile, 'augVol', 'augPts', 'augVolSize', '-v7.3');
 
     fprintf("Saved augmentation vol for patient: %s -- %d \n To Path: %s\n", patName, idx, augFile)
 
