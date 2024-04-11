@@ -4,7 +4,7 @@ close all;
 % reset random value generator
 rng default
 
-roiFile = 'F:\Code\CT-MRI_LandmarkDetection\Resources\ROI_CT_one_name.xlsx'; % median is better
+roiFile = 'F:\Code\CT-MRI_LandmarkDetection\Resources\ROI\ROI_CT_6.xlsx'; % median is better
 %roiFile = '.\Data\ROI\ROI JM.xlsx';
 strFile = 'F:\Code\CT-MRI_LandmarkDetection\Resources\nameStrings.xlsx';
 imageDataPath = 'F:\Data\CT_MRI_Pre_Post\'; % change as required
@@ -45,7 +45,7 @@ imageFiles = imageFiles(3:end);
 
 % get roi info
 [roiNum, roiStr] = xlsread(roiFile);
-roiNum = roiNum(:, 10:12); % select the median
+roiNum = roiNum(:, 1:3); % select the median
 roiStr = roiStr(3:end, 1:3);
 
 patList = roiStr(:, 1);

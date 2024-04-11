@@ -11,7 +11,7 @@ end
 
 orig = mean(pts);
 
-idx = 1;
+idx = 2;
 while idx <= nAug
 
     strIdx = string(idx);
