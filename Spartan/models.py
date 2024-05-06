@@ -1137,7 +1137,7 @@ def u_net_dsnt_model(height=176, width=176, depth=48, points_num=2, batch_size=2
 
     base_cor_rcs = coordinate_3d(batch_size, points_num, height, width, depth)
 
-    pro_matrix = layers.Reshape((width, height, depth, points_num, 3)) \
+    pro_matrix = layers.Reshape((height, width, depth, points_num, 3)) \
         (tf.repeat(layers.Softmax(axis=[1, 2, 3], name="softmax")(heatmaps), repeats=3, axis=-1))
     outputs = tf.math.reduce_sum(layers.multiply([base_cor_rcs, pro_matrix]), axis=[1, 2, 3])
 

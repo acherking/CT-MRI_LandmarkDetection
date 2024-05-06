@@ -355,44 +355,36 @@ def load_dataset_divide(dataset_dir, rescaled_size, idx_splits, no_split=False):
 
     x_dataset_path = dataset_dir + "divided_volumes_" + size_str + ".npy"
     y_dataset_path = dataset_dir + "divided_points_" + size_str + ".npy"
-    length_dataset_path = dataset_dir + "divided_length_" + size_str + ".npy"
-    res_dataset_path = dataset_dir + "res_array_" + size_str + ".npy"
+    res_dataset_path = dataset_dir + "divided_res_" + size_str + ".npy"
 
     x_dataset = np.load(x_dataset_path)
     y_dataset = np.load(y_dataset_path).astype('float32')
-    length_dataset = np.load(length_dataset_path).astype('float32')
     res_dataset = np.load(res_dataset_path).astype('float32')
 
     res_dataset_rep = np.repeat(res_dataset, 2, axis=1).reshape(2000, 1, 3)
 
-    right_length = np.zeros(length_dataset.shape)
-    length_dataset = np.concatenate((length_dataset, right_length), axis=1).reshape((length_dataset.shape[0] * 2, 1))
-
     # without splitting to Train, Val and Test
     if no_split:
-        return x_dataset, y_dataset, res_dataset_rep, length_dataset
+        return x_dataset, y_dataset, res_dataset_rep
 
     train_idx = idx_splits[0]
     x_train = x_dataset[train_idx]
     y_train = y_dataset[train_idx]
     res_train = res_dataset_rep[train_idx]
-    length_train = length_dataset[train_idx]
 
     val_idx = idx_splits[1]
     x_val = x_dataset[val_idx]
     y_val = y_dataset[val_idx]
     res_val = res_dataset_rep[val_idx]
-    length_val = length_dataset[val_idx]
 
     test_idx = idx_splits[2]
     x_test = x_dataset[test_idx]
     y_test = y_dataset[test_idx]
     res_test = res_dataset_rep[test_idx]
-    length_test = length_dataset[test_idx]
 
-    return x_train, y_train, res_train, length_train, \
-        x_val, y_val, res_val, length_val, \
-        x_test, y_test, res_test, length_test
+    return x_train, y_train, res_train, \
+        x_val, y_val, res_val, \
+        x_test, y_test, res_test
 
 
 @tf.function
