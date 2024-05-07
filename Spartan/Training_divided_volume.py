@@ -10,13 +10,14 @@ import support_modules
 import models
 
 
-def train_model(data_splits, args_dict, dsnt=False):
+def train_model(data_splits, args_dict, dsnt=False, write_log=True):
     print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
     save_dir = get_record_dir(args_dict)
 
-    # log = open(f"{save_dir}/original_log_tmp", "w")
-    # sys.stdout = log
+    log = open(f"{save_dir}/original_log", "w")
+    if write_log:
+        sys.stdout = log
 
     dataset_tag = args_dict.get("dataset_tag")
     rescaled_size = args_dict.get("rescaled_size", (176, 176, 48))
@@ -47,12 +48,20 @@ def train_model(data_splits, args_dict, dsnt=False):
     print(f"Train Volume Shape: row [{row_size}], column [{column_size}], slice [{slice_size}]")
 
     if dsnt:
-        y_train = ((2*y_train - [column_size+1, row_size+1, slice_size+1]) /
-                [column_size, row_size, slice_size]).astype('float32')
-        y_val = ((2*y_val - [column_size+1, row_size+1, slice_size+1]) /
-                [column_size, row_size, slice_size]).astype('float32')
-        y_test = ((2*y_test - [column_size+1, row_size+1, slice_size+1]) /
-                [column_size, row_size, slice_size]).astype('float32')
+        # y_train = ((2*y_train - [column_size+1, row_size+1, slice_size+1]) /
+        #         [column_size, row_size, slice_size]).astype('float32')
+        # y_val = ((2*y_val - [column_size+1, row_size+1, slice_size+1]) /
+        #         [column_size, row_size, slice_size]).astype('float32')
+        # y_test = ((2*y_test - [column_size+1, row_size+1, slice_size+1]) /
+        #         [column_size, row_size, slice_size]).astype('float32')
+        # # adjust the res
+        # res_train = (res_train / [2/column_size, 2/row_size, 2/slice_size]).astype('float32')
+        # res_val = (res_val / [2/column_size, 2/row_size, 2/slice_size]).astype('float32')
+        # res_test = (res_test / [2/column_size, 2/row_size, 2/slice_size]).astype('float32')
+
+        y_train = (y_train - [column_size/2, row_size/2, slice_size/2]).astype('float32')
+        y_val = (y_val - [column_size/2, row_size/2, slice_size/2]).astype('float32')
+        y_test = (y_test - [column_size/2, row_size/2, slice_size/2]).astype('float32')
 
     """ *** Training Process *** """
 
@@ -115,7 +124,7 @@ def train_model(data_splits, args_dict, dsnt=False):
     model_size = f"{input_shape[0]}x{input_shape[1]}x{input_shape[2]}"
     model_label = f"{model_name}_{dataset_tag}_{model_size}"
 
-    #log.flush()
+    log.flush()
 
     train_err_array = np.zeros((2, epochs))  # 0: training err MSE over epoch, 1: val err MSE
     # Training loop
@@ -163,7 +172,7 @@ def train_model(data_splits, args_dict, dsnt=False):
             print("Validation (MSE with Res):       %.3f" % (float(val_mse_res),))
         print("Time taken:                      %.2fs" % (time.time() - start_time))
 
-        #log.flush()
+        log.flush()
 
     # Use Test Dataset to evaluate the final model, and save the Test results
     test_mse_res, y_test_pred = support_modules.my_evaluate(model, mse_with_res, test_mse_res_metric, test_dataset)
@@ -173,7 +182,7 @@ def train_model(data_splits, args_dict, dsnt=False):
     model.save(f"{save_dir}/final_{model_label}")
     np.save(f"{save_dir}/train_val_err_array", train_err_array)
 
-    #log.close()
+    log.close()
 
 
 def get_record_dir(args_dict):
@@ -211,22 +220,26 @@ if __name__ == "__main__":
         "model_output_num": 2,
         # record
         "y_tag": "two_landmarks",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
-        "save_dir_extend": "kcross20",  # can be used for cross validation
+        "save_dir_extend": "middleY_new_XYZ",  # can be used for cross validation
     }
 
     # argv[1]: model_output_num
     # argv[2]: y_tag
     # argv[3]: model_name
-    # model_output_num = {"model_output_num": sys.argv[1]}
-    # y_tag = {"y_tag": sys.argv[2]}
-    # model_name = {"model_name": sys.argv[3]}
-    # args.update(model_output_num)
-    # args.update(y_tag)
-    # args.update(model_name)
+    model_output_num = {"model_output_num": int(sys.argv[1])}
+    y_tag = {"y_tag": sys.argv[2]}
+    model_name = {"model_name": sys.argv[3]}
+    args.update(model_output_num)
+    args.update(y_tag)
+    args.update(model_name)
 
-    # d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True)
-    k_pat_splits = MyDataset.get_k_folds_pat_splits(20)
-    d_splits = MyDataset.get_data_splits(k_pat_splits[1], split=True, aug_num=50)
+    print(args)
+
+    d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True)
     print("Using static dataset split: Train, Val, Test")
 
-    train_model(d_splits, args, dsnt=True)
+    # k_pat_splits = MyDataset.get_k_folds_pat_splits(20)
+    # d_splits = MyDataset.get_data_splits(k_pat_splits[1], split=True, aug_num=50)
+    # print("Using k folds dataset split: Train, Val, Test")
+
+    train_model(d_splits, args, dsnt=True, write_log=False)
