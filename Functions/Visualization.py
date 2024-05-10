@@ -23,7 +23,7 @@ def show_pts(volume, pts, pixel_space):
     llscc_ant = Circle((pts[0, 0] * pixel_space[1], pts[0, 1] * pixel_space[0]), landmark_radius, facecolor='None',
                        edgecolor='r', lw=1)
     axs[0][0].add_patch(llscc_ant)
-    axs[0][0].invert_yaxis()
+    #axs[0][0].invert_yaxis()
 
     axs[0][1].set_title("LLSCC post")
     axs[0][1].set_aspect('equal', 'datalim')

@@ -48,20 +48,20 @@ def train_model(data_splits, args_dict, dsnt=False, write_log=True):
     print(f"Train Volume Shape: row [{row_size}], column [{column_size}], slice [{slice_size}]")
 
     if dsnt:
-        # y_train = ((2*y_train - [column_size+1, row_size+1, slice_size+1]) /
-        #         [column_size, row_size, slice_size]).astype('float32')
-        # y_val = ((2*y_val - [column_size+1, row_size+1, slice_size+1]) /
-        #         [column_size, row_size, slice_size]).astype('float32')
-        # y_test = ((2*y_test - [column_size+1, row_size+1, slice_size+1]) /
-        #         [column_size, row_size, slice_size]).astype('float32')
-        # # adjust the res
-        # res_train = (res_train / [2/column_size, 2/row_size, 2/slice_size]).astype('float32')
-        # res_val = (res_val / [2/column_size, 2/row_size, 2/slice_size]).astype('float32')
-        # res_test = (res_test / [2/column_size, 2/row_size, 2/slice_size]).astype('float32')
+        y_train = ((2*y_train - [column_size+1, row_size+1, slice_size+1]) /
+                [column_size, row_size, slice_size]).astype('float32')
+        y_val = ((2*y_val - [column_size+1, row_size+1, slice_size+1]) /
+                [column_size, row_size, slice_size]).astype('float32')
+        y_test = ((2*y_test - [column_size+1, row_size+1, slice_size+1]) /
+                [column_size, row_size, slice_size]).astype('float32')
+        # adjust the res
+        res_train = (res_train / [2/column_size, 2/row_size, 2/slice_size]).astype('float32')
+        res_val = (res_val / [2/column_size, 2/row_size, 2/slice_size]).astype('float32')
+        res_test = (res_test / [2/column_size, 2/row_size, 2/slice_size]).astype('float32')
 
-        y_train = (y_train - [column_size/2, row_size/2, slice_size/2]).astype('float32')
-        y_val = (y_val - [column_size/2, row_size/2, slice_size/2]).astype('float32')
-        y_test = (y_test - [column_size/2, row_size/2, slice_size/2]).astype('float32')
+        # y_train = (y_train - [column_size/2, row_size/2, slice_size/2]).astype('float32')
+        # y_val = (y_val - [column_size/2, row_size/2, slice_size/2]).astype('float32')
+        # y_test = (y_test - [column_size/2, row_size/2, slice_size/2]).astype('float32')
 
     """ *** Training Process *** """
 
@@ -220,7 +220,7 @@ if __name__ == "__main__":
         "model_output_num": 2,
         # record
         "y_tag": "two_landmarks",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
-        "save_dir_extend": "middleY_new_XYZ",  # can be used for cross validation
+        "save_dir_extend": "reverse_Y_centre_scale",  # can be used for cross validation
     }
 
     # argv[1]: model_output_num
