@@ -142,7 +142,7 @@ def coordinate_3d(batch_size, landmarks_num, row_size, clown_size, slice_size):
     matrix_y = np.copy(base_array)
     # c_1_v = [(2 * i - row_size - 1) / row_size for i in range(1, row_size + 1)]
     c_1_v = [(i - row_size/2) for i in range(1, row_size + 1)]
-    c_1_v.reverse()
+    # c_1_v.reverse()
     for i in range(row_size):
         matrix_y[i, :, :] = matrix_y[i, :, :] * c_1_v[i]
 

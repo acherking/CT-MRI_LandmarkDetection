@@ -220,7 +220,7 @@ if __name__ == "__main__":
         "model_output_num": 2,
         # record
         "y_tag": "two_landmarks",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
-        "save_dir_extend": "reverse_Y_centre_scale",  # can be used for cross validation
+        "save_dir_extend": "centre_scale",  # can be used for cross validation
     }
 
     # argv[1]: model_output_num
@@ -242,4 +242,4 @@ if __name__ == "__main__":
     # d_splits = MyDataset.get_data_splits(k_pat_splits[1], split=True, aug_num=50)
     # print("Using k folds dataset split: Train, Val, Test")
 
-    train_model(d_splits, args, dsnt=True, write_log=False)
+    train_model(d_splits, args, dsnt=True, write_log=True)
