@@ -11,7 +11,9 @@ sinteractive -p gpu-a100 --gres=gpu:1 -A ***
 module purge
 module load CUDA/11.7.0
 module load TensorFlow/2.11.0-CUDA-11.7.0
- 
+
+
+module load CUDA/11.7.0 SciPy-bundle/2022.05 Pillow/9.1.1
 
 # It seems this version was not compiled to use GPU
 module load tensorflow/2.7.1
@@ -37,6 +39,17 @@ tf.debugging.set_log_device_placement(True)
 *** Conda 
 # activate Env
 . /Users/achs/opt/anaconda3/bin/activate && conda activate /Users/achs/opt/anaconda3/envs/test;
+
+# use pip to install in conda
+https://stackoverflow.com/questions/41060382/using-pip-to-install-packages-to-anaconda-environment
+# unimelb spartan jupyter
+https://dashboard.hpc.unimelb.edu.au/webenvironments/openondemand/jupyter/
+
+# spartan login node
+module load Anaconda3/2024.02-1
+eval "$(conda shell.bash hook)"
+conda activate first_env
+pip install jupyterlab notebook
 
 *** Python crop and combine
 import support_modules

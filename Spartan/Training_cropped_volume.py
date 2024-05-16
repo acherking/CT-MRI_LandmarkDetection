@@ -10,7 +10,7 @@ import support_modules
 import models
 
 
-def train_model(data_splits, args_dict, write_log=True):
+def train_model(data_splits, args_dict, dsnt=False, write_log=True):
     print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
     save_dir = get_record_dir(args_dict)
@@ -64,6 +64,28 @@ def train_model(data_splits, args_dict, write_log=True):
     res_train = (np.ones((train_num, 1, 3)) * 0.15).astype('float32')
     res_val = (np.ones((val_num, 1, 3)) * 0.15).astype('float32')
     res_test = (np.ones((test_num, 1, 3)) * 0.15).astype('float32')
+
+    # adjust the Y for dsnt
+    row_size = x_train.shape[1]
+    column_size = x_train.shape[2]
+    slice_size = x_train.shape[3]
+    print(f"Train Volume Shape: row [{row_size}], column [{column_size}], slice [{slice_size}]")
+
+    if dsnt:
+        y_train = ((2*y_train - [column_size+1, row_size+1, slice_size+1]) /
+                   [column_size, row_size, slice_size]).astype('float32')
+        y_val = ((2*y_val - [column_size+1, row_size+1, slice_size+1]) /
+                 [column_size, row_size, slice_size]).astype('float32')
+        y_test = ((2*y_test - [column_size+1, row_size+1, slice_size+1]) /
+                  [column_size, row_size, slice_size]).astype('float32')
+        # adjust the res
+        res_train = (res_train / [2/column_size, 2/row_size, 2/slice_size]).astype('float32')
+        res_val = (res_val / [2/column_size, 2/row_size, 2/slice_size]).astype('float32')
+        res_test = (res_test / [2/column_size, 2/row_size, 2/slice_size]).astype('float32')
+
+        # y_train = (y_train - [column_size/2, row_size/2, slice_size/2]).astype('float32')
+        # y_val = (y_val - [column_size/2, row_size/2, slice_size/2]).astype('float32')
+        # y_test = (y_test - [column_size/2, row_size/2, slice_size/2]).astype('float32')
 
     """ *** Training Process *** """
 
@@ -225,22 +247,34 @@ if __name__ == "__main__":
     args = {
         # prepare Dataset
         "dataset_tag": "cropped",
-        "crop_dataset_size": [75, 75, 75, 75, 50, 50],
+        "crop_dataset_size": [100, 100, 100, 100, 80, 80],
         # "cut_layers": [39, 39, 39, 39, 26, 26],
-        "cut_layers": [25, 25, 25, 25, 0, 0],
-        "has_trans": "_trans/tmp",
-        "trans_tag": "s1_test_dis",
+        "cut_layers": [50, 50, 50, 50, 30, 30],
+        "has_trans": "",
+        "trans_tag": "none",
         "base_dir": "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth",
         # training
         "batch_size": 2,
         "epochs": 100,
         # model
         "model_name": "straight_model",
-        "model_output_num": 1,
+        "model_output_num": 2,
         # record
-        "y_tag": "one_landmark",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
+        "y_tag": "two_landmarks",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
         "save_dir_extend": "",  # can be used for cross validation
     }
+
+    # argv[1]: model_output_num
+    # argv[2]: y_tag
+    # argv[3]: model_name
+    # model_output_num = {"model_output_num": int(sys.argv[1])}
+    # y_tag = {"y_tag": sys.argv[2]}
+    # model_name = {"model_name": sys.argv[3]}
+    # args.update(model_output_num)
+    # args.update(y_tag)
+    # args.update(model_name)
+
+    print(args)
 
     d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True)
     print("Using static dataset split: Train, Val, Test")
