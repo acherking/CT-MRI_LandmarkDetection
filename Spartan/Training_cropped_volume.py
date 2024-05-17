@@ -19,6 +19,9 @@ def train_model(data_splits, args_dict, dsnt=False, write_log=True):
     if write_log:
         sys.stdout = log
 
+    print("********** Input args **********")
+    print(args)
+
     dataset_tag = args_dict.get("dataset_tag")
     crop_size = args_dict.get("crop_dataset_size")
     cut = args_dict.get("cut_layers")
@@ -247,17 +250,17 @@ if __name__ == "__main__":
     args = {
         # prepare Dataset
         "dataset_tag": "cropped",
-        "crop_dataset_size": [100, 100, 100, 100, 80, 80],
+        "crop_dataset_size": [75, 75, 75, 75, 50, 50],
         # "cut_layers": [39, 39, 39, 39, 26, 26],
-        "cut_layers": [50, 50, 50, 50, 30, 30],
+        "cut_layers": [25, 25, 25, 25, 0, 0],
         "has_trans": "",
-        "trans_tag": "none",
+        "trans_tag": "no_trans",
         "base_dir": "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth",
         # training
         "batch_size": 2,
         "epochs": 100,
         # model
-        "model_name": "straight_model",
+        "model_name": "cov_only_dsnt",
         "model_output_num": 2,
         # record
         "y_tag": "two_landmarks",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
@@ -274,9 +277,7 @@ if __name__ == "__main__":
     # args.update(y_tag)
     # args.update(model_name)
 
-    print(args)
-
     d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True)
     print("Using static dataset split: Train, Val, Test")
 
-    train_model(d_splits, args, write_log=True)
+    train_model(d_splits, args, dsnt=True, write_log=True)
