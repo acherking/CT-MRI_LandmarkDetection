@@ -1,18 +1,10 @@
-.idea/
-
-Resources/~*
-
-GenerateData_Matlab/*.mat
-GenerateData_Matlab/*.asv
 
 Preparation/__pycache__
-Preparation/data
 Spartan/__pycache__
 Functions/__pycache__
 
-Spartan/Output
-Spartan/trained_models
-Spartan/trained_models_12oct2023
-Spartan/trained_models_history
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
 
-venv
+data/*
+models/*
