@@ -3,8 +3,8 @@ import math
 from scipy import ndimage
 import tensorflow as tf
 
-import Functions.MyDataset as MyDataset
-import Functions.MyCrop as MyCrop
+import common.MyDataset as MyDataset
+import common.MyCrop as MyCrop
 
 
 # load dataset from a single directory, each file contains both volume and pts (X & Y).
@@ -353,9 +353,9 @@ def load_patch_augmentation():
 def load_dataset_divide(dataset_dir, rescaled_size, idx_splits, no_split=False):
     size_str = f"{rescaled_size[0]}{rescaled_size[1]}{rescaled_size[2]}"
 
-    x_dataset_path = dataset_dir + "divided_volumes_" + size_str + ".npy"
-    y_dataset_path = dataset_dir + "divided_points_" + size_str + ".npy"
-    res_dataset_path = dataset_dir + "divided_res_" + size_str + ".npy"
+    x_dataset_path = dataset_dir + "divided_volumes_" + size_str + "_pad.npy"
+    y_dataset_path = dataset_dir + "divided_points_" + size_str + "_pad.npy"
+    res_dataset_path = dataset_dir + "divided_res_" + size_str + "_pad.npy"
 
     x_dataset = np.load(x_dataset_path)
     y_dataset = np.load(y_dataset_path).astype('float32')
