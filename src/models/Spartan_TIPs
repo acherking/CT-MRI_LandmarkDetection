@@ -51,6 +51,11 @@ eval "$(conda shell.bash hook)"
 conda activate first_env
 pip install jupyterlab notebook
 
+# jupyter notebook (kernel)
+jupyter kernelspec list
+# ipython
+https://ipython.readthedocs.io/en/latest/install/kernel_install.html#kernels-for-different-environments
+
 *** Python crop and combine
 import support_modules
 import numpy as np

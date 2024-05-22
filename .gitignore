@@ -1,10 +1,7 @@
-
-Preparation/__pycache__
-Spartan/__pycache__
-Functions/__pycache__
-
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
+
+.idea
 
 data/*
 models/*
