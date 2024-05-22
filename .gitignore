@@ -1,7 +1,5 @@
-
-Preparation/__pycache__
-Spartan/__pycache__
-Functions/__pycache__
+src/common/__pycache__
+src/models/__pycache__
 
 .ipynb_checkpoints
 */.ipynb_checkpoints/*

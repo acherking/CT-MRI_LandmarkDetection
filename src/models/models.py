@@ -1532,5 +1532,6 @@ def get_model(model_name, input_shape, model_output_num, batch_size=2):
                                         transformer_units, mlp_head_units, input_shape, model_output_num)
     else:
         print("There is no model: ", model_name)
+        exit(1)
 
     return model

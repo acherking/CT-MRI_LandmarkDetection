@@ -5,7 +5,10 @@ import time
 import os
 import sys
 
-import Functions.MyDataset as MyDataset
+print(sys.path)
+sys.path.append('/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/src')
+
+import common.MyDataset as MyDataset
 import support_modules
 import models
 
@@ -23,7 +26,8 @@ def train_model(data_splits, args_dict, dsnt=False, write_log=True):
     rescaled_size = args_dict.get("rescaled_size", (176, 176, 48))
     base_dir = args_dict.get("base_dir", "/data/gpfs/projects/punim1836/Data")
 
-    dataset_dir = f"{base_dir}/{dataset_tag}/{str(rescaled_size[0])}{str(rescaled_size[1])}{str(rescaled_size[2])}/"
+    #dataset_dir = f"{base_dir}/{dataset_tag}/{str(rescaled_size[0])}{str(rescaled_size[1])}{str(rescaled_size[2])}/"
+    dataset_dir = f"{base_dir}/{dataset_tag}/reduce_size_normalize/"
     print("Read dataset from: ", dataset_dir)
 
     x_train, y_train, res_train, x_val, y_val, res_val, x_test, y_test, res_test = \
@@ -190,8 +194,10 @@ def get_record_dir(args_dict):
     model_name = args_dict.get("model_name")
     # y_tag: "one_landmark", "two_landmarks", "mean_two_landmarks"
     y_tag = args_dict.get("y_tag")
+    data_size = args_dict.get("rescaled_size")
+    data_size_str = f"{data_size[0]}x{int(data_size[1]/2)}x{data_size[2]}"
 
-    save_dir = f"/data/gpfs/projects/punim1836/Training/trained_models/{dataset_tag}_dataset/{model_name}/{y_tag}"
+    save_dir = f"/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/models/{dataset_tag}_dataset/{model_name}/{y_tag}/{data_size_str}"
     save_dir_extend = args_dict.get("save_dir_extend")
     save_dir = f"{save_dir}/{save_dir_extend}"
 
@@ -222,7 +228,7 @@ if __name__ == "__main__":
         "y_tag": "two_landmarks",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
         "save_dir_extend": "centre_scale",  # can be used for cross validation
     }
-
+    
     # argv[1]: model_output_num
     # argv[2]: y_tag
     # argv[3]: model_name
@@ -242,4 +248,4 @@ if __name__ == "__main__":
     # d_splits = MyDataset.get_data_splits(k_pat_splits[1], split=True, aug_num=50)
     # print("Using k folds dataset split: Train, Val, Test")
 
-    train_model(d_splits, args, dsnt=True, write_log=True)
+    train_model(d_splits, args, dsnt=False, write_log=True)
