@@ -5,15 +5,19 @@ import time
 import os
 import sys
 
+print("###########")
 print(sys.path)
+print("###########")
 sys.path.append('/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/src')
+print(sys.path)
+print("###########")
 
 import common.MyDataset as MyDataset
 import support_modules
 import models
 
 
-def train_model(data_splits, args_dict, dsnt=False, write_log=True):
+def train_model(data_splits, args_dict, write_log=True):
     print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
     save_dir = get_record_dir(args_dict)
@@ -45,13 +49,17 @@ def train_model(data_splits, args_dict, dsnt=False, write_log=True):
         y_val = np.mean(y_val, axis=1).reshape((val_num, 1, 3))
         y_test = np.mean(y_test, axis=1).reshape((test_num, 1, 3))
 
-    # adjust the Y for dsnt
+
     row_size = x_train.shape[1]
     column_size = x_train.shape[2]
     slice_size = x_train.shape[3]
     print(f"Train Volume Shape: row [{row_size}], column [{column_size}], slice [{slice_size}]")
 
-    if dsnt:
+
+    model_tag = args_dict.get("model_name").split('_')[-1]
+    print("The model tag is: ", model_tag)
+    # adjust the Y for dsnt
+    if model_tag == "dsnt":
         y_train = ((2*y_train - [column_size+1, row_size+1, slice_size+1]) /
                 [column_size, row_size, slice_size]).astype('float32')
         y_val = ((2*y_val - [column_size+1, row_size+1, slice_size+1]) /
@@ -216,7 +224,7 @@ if __name__ == "__main__":
     args = {
         # prepare Dataset
         "dataset_tag": "divided",
-        "rescaled_size":  (176, 176, 48),
+        "rescaled_size":  (176, 176, 96),
         "base_dir": "/data/gpfs/projects/punim1836/Data",
         # training
         "batch_size": 2,
@@ -248,4 +256,4 @@ if __name__ == "__main__":
     # d_splits = MyDataset.get_data_splits(k_pat_splits[1], split=True, aug_num=50)
     # print("Using k folds dataset split: Train, Val, Test")
 
-    train_model(d_splits, args, dsnt=False, write_log=True)
+    train_model(d_splits, args, write_log=True)
