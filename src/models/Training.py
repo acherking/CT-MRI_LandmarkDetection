@@ -1,79 +1,23 @@
-import tensorflow as tf
-from tensorflow import keras
-import numpy as np
-import time
 import os
 import sys
+import time
 
-print("###########")
-print(sys.path)
-print("###########")
-sys.path.append('/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/src')
-print(sys.path)
-print("###########")
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
 
-import common.MyDataset as MyDataset
-import support_modules
+# following modules are within this project
 import models
+from src.models.common import TrainingSupport, MyDataset
 
 
-def train_model(data_splits, args_dict, write_log=True):
-    print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+def train_model(args_dict):
+    print("whole parameters: ", args_dict)
+    save_dir = TrainingSupport.get_record_dir(args_dict)
 
-    save_dir = get_record_dir(args_dict)
-
-    log = open(f"{save_dir}/original_log", "w")
-    if write_log:
+    if args_dict.get("write_log", True):
+        log = open(f"{save_dir}/original_log", "w")
         sys.stdout = log
-
-    dataset_tag = args_dict.get("dataset_tag")
-    rescaled_size = args_dict.get("rescaled_size", (176, 176, 48))
-    base_dir = args_dict.get("base_dir", "/data/gpfs/projects/punim1836/Data")
-
-    #dataset_dir = f"{base_dir}/{dataset_tag}/{str(rescaled_size[0])}{str(rescaled_size[1])}{str(rescaled_size[2])}/"
-    dataset_dir = f"{base_dir}/{dataset_tag}/reduce_size_normalize/"
-    print("Read dataset from: ", dataset_dir)
-
-    x_train, y_train, res_train, x_val, y_val, res_val, x_test, y_test, res_test = \
-        support_modules.load_dataset_divide(dataset_dir, rescaled_size, data_splits)
-
-    model_output_num = args_dict.get("model_output_num")
-
-    train_num = x_train.shape[0]
-    val_num = x_val.shape[0]
-    test_num = x_test.shape[0]
-
-    # use landmarks mean as Y
-    if model_output_num == 1:
-        y_train = np.mean(y_train, axis=1).reshape((train_num, 1, 3))
-        y_val = np.mean(y_val, axis=1).reshape((val_num, 1, 3))
-        y_test = np.mean(y_test, axis=1).reshape((test_num, 1, 3))
-
-
-    row_size = x_train.shape[1]
-    column_size = x_train.shape[2]
-    slice_size = x_train.shape[3]
-    print(f"Train Volume Shape: row [{row_size}], column [{column_size}], slice [{slice_size}]")
-
-
-    model_tag = args_dict.get("model_name").split('_')[-1]
-    print("The model tag is: ", model_tag)
-    # adjust the Y for dsnt
-    if model_tag == "dsnt":
-        y_train = ((2*y_train - [column_size+1, row_size+1, slice_size+1]) /
-                [column_size, row_size, slice_size]).astype('float32')
-        y_val = ((2*y_val - [column_size+1, row_size+1, slice_size+1]) /
-                [column_size, row_size, slice_size]).astype('float32')
-        y_test = ((2*y_test - [column_size+1, row_size+1, slice_size+1]) /
-                [column_size, row_size, slice_size]).astype('float32')
-        # adjust the res
-        res_train = (res_train / [2/column_size, 2/row_size, 2/slice_size]).astype('float32')
-        res_val = (res_val / [2/column_size, 2/row_size, 2/slice_size]).astype('float32')
-        res_test = (res_test / [2/column_size, 2/row_size, 2/slice_size]).astype('float32')
-
-        # y_train = (y_train - [column_size/2, row_size/2, slice_size/2]).astype('float32')
-        # y_val = (y_val - [column_size/2, row_size/2, slice_size/2]).astype('float32')
-        # y_test = (y_test - [column_size/2, row_size/2, slice_size/2]).astype('float32')
 
     """ *** Training Process *** """
 
@@ -197,63 +141,26 @@ def train_model(data_splits, args_dict, write_log=True):
     log.close()
 
 
-def get_record_dir(args_dict):
-    dataset_tag = args_dict.get("dataset_tag")
-    model_name = args_dict.get("model_name")
-    # y_tag: "one_landmark", "two_landmarks", "mean_two_landmarks"
-    y_tag = args_dict.get("y_tag")
-    data_size = args_dict.get("rescaled_size")
-    data_size_str = f"{data_size[0]}x{int(data_size[1]/2)}x{data_size[2]}"
-
-    save_dir = f"/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/models/{dataset_tag}_dataset/{model_name}/{y_tag}/{data_size_str}"
-    save_dir_extend = args_dict.get("save_dir_extend")
-    save_dir = f"{save_dir}/{save_dir_extend}"
-
-    # create the dir if not exist
-    if os.path.exists(save_dir):
-        print("Save model to: ", save_dir)
-    else:
-        os.makedirs(save_dir)
-        print("Create dir and save model in it: ", save_dir)
-
-    return save_dir
-
-
 if __name__ == "__main__":
 
     args = {
         # prepare Dataset
-        "dataset_tag": "divided",
-        "rescaled_size":  (176, 176, 96),
-        "base_dir": "/data/gpfs/projects/punim1836/Data",
+        "dataset_tag":          "divided",
+        "rescaled_size":        (176, 176, 96),
+        "dataset_label_1":      "identical_voxel_distance",  # "none", "identical_voxel_distance", "variable_voxel_distance"
+        "base_dir":             "/data/gpfs/projects/punim1836/Data",
+        "data_split_tag":       "general",  # "general" - train 14, val 2, test 4; "cross_val"
+        "data_split_static":    True,
         # training
-        "batch_size": 2,
-        "epochs": 100,
+        "write_log":            True,
+        "batch_size":           2,
+        "epochs":               100,
         # model
-        "model_name": "u_net_dsnt",
-        "model_output_num": 2,
+        "model_name":           "u_net_dsnt",
+        "model_output_num":     2,
         # record
-        "y_tag": "two_landmarks",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
-        "save_dir_extend": "centre_scale",  # can be used for cross validation
+        "y_tag":                "two_landmarks",  # "one_landmark_[1/2]", "two_landmarks", "mean_two_landmarks"
+        "save_dir_extend":      "centre_scale",  # can be used for cross validation
     }
-    
-    # argv[1]: model_output_num
-    # argv[2]: y_tag
-    # argv[3]: model_name
-    model_output_num = {"model_output_num": int(sys.argv[1])}
-    y_tag = {"y_tag": sys.argv[2]}
-    model_name = {"model_name": sys.argv[3]}
-    args.update(model_output_num)
-    args.update(y_tag)
-    args.update(model_name)
 
-    print(args)
-
-    d_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=True), split=True)
-    print("Using static dataset split: Train, Val, Test")
-
-    # k_pat_splits = MyDataset.get_k_folds_pat_splits(20)
-    # d_splits = MyDataset.get_data_splits(k_pat_splits[1], split=True, aug_num=50)
-    # print("Using k folds dataset split: Train, Val, Test")
-
-    train_model(d_splits, args, write_log=True)
+    train_model(args)

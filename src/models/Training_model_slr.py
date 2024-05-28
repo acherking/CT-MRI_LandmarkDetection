@@ -6,7 +6,7 @@ import os
 import sys
 
 import Functions.MyDataset as MyDataset
-import support_modules
+from src.models.common import TrainingSupport
 import models
 
 dsnt = True

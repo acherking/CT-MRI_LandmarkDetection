@@ -13,7 +13,7 @@ print(sys.path)
 print("###########")
 
 import common.MyDataset as MyDataset
-import support_modules
+from src.models.common import TrainingSupport
 import models
 
 

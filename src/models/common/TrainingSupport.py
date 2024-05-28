@@ -1,16 +1,98 @@
-import numpy as np
+import os
+import sys
 import math
-from scipy import ndimage
+
+import numpy as np
 import tensorflow as tf
+from scipy import ndimage
 
-import common.MyDataset as MyDataset
-import common.MyCrop as MyCrop
+import MyCrop
+import MyDataset
 
 
-# load dataset from a single directory, each file contains both volume and pts (X & Y).
-def load_dataset():
+# prepare the recording directory
+def get_record_dir(args_dict):
+    dataset_tag = args_dict.get("dataset_tag")
+    model_name = args_dict.get("model_name")
+    # y_tag: "one_landmark", "two_landmarks", "mean_two_landmarks"
+    y_tag = args_dict.get("y_tag")
+    data_size = args_dict.get("rescaled_size")
+    data_size_str = f"{data_size[0]}x{int(data_size[1] / 2)}x{data_size[2]}"
 
-    return
+    save_dir = f"/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/models/{dataset_tag}_dataset/{model_name}/{y_tag}/{data_size_str}"
+    save_dir_extend = args_dict.get("save_dir_extend")
+    save_dir = f"{save_dir}/{save_dir_extend}"
+
+    # create the dir if not exist
+    if os.path.exists(save_dir):
+        print("Save model to: ", save_dir)
+    else:
+        os.makedirs(save_dir)
+        print("Create dir and save model in it: ", save_dir)
+
+    return save_dir
+
+
+# prepare the train_dataset, val_dataset and test_dataset for all the Training
+def load_dataset_manager(args_dict):
+    ## load dataset
+    dataset_tag = args_dict.get("dataset_tag", "divided")
+    base_dir = args_dict.get("base_dir", "/data/gpfs/projects/punim1836/Data")
+    model_output_num = args_dict.get("model_output_num")
+
+    if dataset_tag == "divided":
+        rescaled_size = args_dict.get("rescaled_size", (176, 88, 48))
+        rescaled_size_str = f"{str(rescaled_size[0])}x{str(rescaled_size[1])}x{str(rescaled_size[2])}"
+        label_1 = args_dict.get("dataset_label_1")
+
+        dataset_dir = f"{base_dir}/{dataset_tag}/{rescaled_size_str}/{label_1}"
+        print("Read dataset from: ", dataset_dir)
+
+        x_dataset_path = dataset_dir + "divided_volumes_" + rescaled_size_str + ".npy"
+        y_dataset_path = dataset_dir + "divided_points_" + rescaled_size_str + ".npy"
+        res_dataset_path = dataset_dir + "divided_res_" + rescaled_size_str + ".npy"
+
+        x_dataset = np.load(x_dataset_path)
+        y_dataset = np.load(y_dataset_path)
+        instances_num = x_dataset.shape[0]
+        res_dataset = np.repeat(np.load(res_dataset_path), 2, axis=1).reshape(instances_num, 1, 3)
+
+        if model_output_num == 1:
+            model_y_tag = args_dict.get("y_tag")
+            if model_y_tag == "one_landmark_1":
+                y_dataset = np.asarray(y_dataset)[:, 0, :].reshape((instances_num, 1, 3))
+            elif model_y_tag == "two_landmark_2":
+                y_dataset = np.asarray(y_dataset)[:, 1, :].reshape((instances_num, 1, 3))
+            elif model_y_tag == "mean_two_landmarks":
+                y_dataset = np.mean(y_dataset, axis=1).reshape((instances_num, 1, 3))
+            else:
+                print("Error Y tag: ", model_y_tag)
+
+        model_tag = args_dict.get("model_name").split('_')[-1]
+        # adjust Y for dsnt if you know, the model is dsnt haha
+        if model_tag == "dsnt":
+            (row_size, column_size, slice_size) = (x_dataset.shape[1], x_dataset.shape[2], x_dataset.shape[3])
+            y_dataset = (2 * y_dataset - [column_size + 1, row_size + 1, slice_size + 1]) / [column_size, row_size,
+                                                                                             slice_size]
+            res_dataset = (res_dataset / [2 / column_size, 2 / row_size, 2 / slice_size])
+
+    ## get dataset splits
+    data_split_tag = args_dict.get("data_split_tag")
+    data_split_static = args_dict.get("data_split_static")
+    if data_split_tag == "general":
+        data_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=data_split_static), split=True)
+        if data_split_tag == "train": print("Using static dataset split: Train, Val, Test")
+    elif data_split_tag == "cross_val":
+        data_splits = []
+        print("This fun can not deal with cross_val data splits yet!")
+        exit(0)
+
+    (train_idx, val_idx, test_idx) = (data_splits[0], data_splits[1], data_splits[2])
+    train_dataset = (x_dataset[train_idx], y_dataset[train_idx], res_dataset[train_idx])
+    val_dataset = (x_dataset[val_idx], y_dataset[val_idx], res_dataset[val_idx])
+    test_dataset = (x_dataset[test_idx], y_dataset[test_idx], res_dataset[test_idx])
+
+    return train_dataset, val_dataset, test_dataset
 
 
 # load dataset from the combination data files: X and Y
@@ -275,7 +357,8 @@ def augment_cropped_patches(x_dir, y_dir):
         for re_aug_id in range(1, aug_num):
             print("re_aug Id: ", re_aug_id)
             aug_left_volume, aug_left_points, rand_angle_r_left = augment_fun(cropped_volume_left, cropped_points_left)
-            aug_right_volume, aug_right_points, rand_angle_r_right = augment_fun(cropped_volume_right, cropped_points_right)
+            aug_right_volume, aug_right_points, rand_angle_r_right = augment_fun(cropped_volume_right,
+                                                                                 cropped_points_right)
 
             cropped_volumes.append(aug_left_volume)
             cropped_volumes.append(aug_right_volume)
@@ -284,12 +367,12 @@ def augment_cropped_patches(x_dir, y_dir):
             rand_angle.append(rand_angle_r_left)
             rand_angle.append(rand_angle_r_right)
 
-        cropped_volumes = np.asarray(cropped_volumes).reshape((aug_num*2, 200, 200, 160, 1))
-        cropped_points = np.asarray(cropped_points).reshape((aug_num*2, 2, 3))
-        rand_angle = np.asarray(rand_angle).reshape((aug_num*2, 3))
-        save_volume_path = f"{base_dir}/{pat_name}_volume_patch_aug_{aug_num*2}.npy"
-        save_points_path = f"{base_dir}/{pat_name}_points_aug_{aug_num*2}.npy"
-        save_angle_path = f"{base_dir}/{pat_name}_angles_aug_{aug_num*2}.npy"
+        cropped_volumes = np.asarray(cropped_volumes).reshape((aug_num * 2, 200, 200, 160, 1))
+        cropped_points = np.asarray(cropped_points).reshape((aug_num * 2, 2, 3))
+        rand_angle = np.asarray(rand_angle).reshape((aug_num * 2, 3))
+        save_volume_path = f"{base_dir}/{pat_name}_volume_patch_aug_{aug_num * 2}.npy"
+        save_points_path = f"{base_dir}/{pat_name}_points_aug_{aug_num * 2}.npy"
+        save_angle_path = f"{base_dir}/{pat_name}_angles_aug_{aug_num * 2}.npy"
         np.save(save_volume_path, cropped_volumes)
         np.save(save_points_path, cropped_points)
         np.save(save_angle_path, rand_angle)
@@ -314,10 +397,10 @@ def load_patch_augmentation():
     crop_outside = np.asarray([[25, 25], [25, 25], [30, 30]])
 
     for pat_name in pat_names:
-        print("**************" + pat_name + "__" + str(aug_num*2) + "***************")
-        cropped_volume_path = base_dir + "/" + pat_name + "_volume_patch_aug_" + str(aug_num*2) + ".npy"
-        cropped_points_path = base_dir + "/" + pat_name + "_points_aug_" + str(aug_num*2) + ".npy"
-        rand_angle_path = base_dir + "/" + pat_name + "_angles_aug_" + str(aug_num*2) + ".npy"
+        print("**************" + pat_name + "__" + str(aug_num * 2) + "***************")
+        cropped_volume_path = base_dir + "/" + pat_name + "_volume_patch_aug_" + str(aug_num * 2) + ".npy"
+        cropped_points_path = base_dir + "/" + pat_name + "_points_aug_" + str(aug_num * 2) + ".npy"
+        rand_angle_path = base_dir + "/" + pat_name + "_angles_aug_" + str(aug_num * 2) + ".npy"
 
         volumes = np.load(cropped_volume_path)
         points = np.load(cropped_points_path)
