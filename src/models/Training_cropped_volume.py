@@ -145,7 +145,7 @@ def train_model(data_splits, args_dict, dsnt=False, write_log=True):
                    crop_size[2]+crop_size[3]-crop_layers[1, 0]-crop_layers[1, 1],
                    crop_size[4]+crop_size[5]-crop_layers[2, 0]-crop_layers[2, 1])
 
-    model = models.get_model(model_name, input_shape, model_output_num)
+    model = models.model_manager(model_name, input_shape, model_output_num)
     model.summary()
 
     model_size = f"{input_shape[0]}x{input_shape[1]}x{input_shape[2]}"

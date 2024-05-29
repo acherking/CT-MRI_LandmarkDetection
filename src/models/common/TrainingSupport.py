@@ -12,16 +12,21 @@ import MyDataset
 
 # prepare the recording directory
 def get_record_dir(args_dict):
+    save_base_dir = args_dict.get("save_base_dir")
     dataset_tag = args_dict.get("dataset_tag")
     model_name = args_dict.get("model_name")
-    # y_tag: "one_landmark", "two_landmarks", "mean_two_landmarks"
+    # y_tag: "one_landmark_[1/2]", "two_landmarks", "mean_two_landmarks"
     y_tag = args_dict.get("y_tag")
-    data_size = args_dict.get("rescaled_size")
-    data_size_str = f"{data_size[0]}x{int(data_size[1] / 2)}x{data_size[2]}"
+    data_size = args_dict.get("input_shape")
+    data_size_str = f"{data_size[0]}x{data_size[1]}x{data_size[2]}"
+    label_1 = args_dict.get("model_label_1")
+    label_2 = args_dict.get("model_label_2")
 
-    save_dir = f"/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/models/{dataset_tag}_dataset/{model_name}/{y_tag}/{data_size_str}"
-    save_dir_extend = args_dict.get("save_dir_extend")
-    save_dir = f"{save_dir}/{save_dir_extend}"
+    save_dir = f"{save_base_dir}/{dataset_tag}/{data_size_str}/{y_tag}/{model_name}"
+    if len(label_1) > 0:
+        save_dir = f"{save_dir}/{label_1}"
+    if len(label_2) > 0:
+        save_dir = f"{save_dir}/{label_2}"
 
     # create the dir if not exist
     if os.path.exists(save_dir):
@@ -37,44 +42,56 @@ def get_record_dir(args_dict):
 def load_dataset_manager(args_dict):
     ## load dataset
     dataset_tag = args_dict.get("dataset_tag", "divided")
+    input_shape = args_dict.get("input_shape", (176, 88, 48))
+    input_shape_str = f"{str(input_shape[0])}x{str(input_shape[1])}x{str(input_shape[2])}"
     base_dir = args_dict.get("base_dir", "/data/gpfs/projects/punim1836/Data")
-    model_output_num = args_dict.get("model_output_num")
+    label_1 = args_dict.get("dataset_label_1")
+
+    dataset_dir = f"{base_dir}/{dataset_tag}/{input_shape_str}/{label_1}"
+    print("Read dataset from: ", dataset_dir)
+
+    x_dataset_path = dataset_dir + f"{dataset_tag}_volumes_" + input_shape_str + ".npy"
+    y_dataset_path = dataset_dir + f"divided_points_" + input_shape_str + ".npy"
+    res_dataset_path = dataset_dir + f"divided_res_" + input_shape_str + ".npy"
+
+    x_dataset = np.load(x_dataset_path)
+    y_dataset = np.load(y_dataset_path)
+    instances_num = x_dataset.shape[0]
+    res_dataset = np.repeat(np.load(res_dataset_path), 2, axis=1).reshape(instances_num, 1, 3)
 
     if dataset_tag == "divided":
-        rescaled_size = args_dict.get("rescaled_size", (176, 88, 48))
-        rescaled_size_str = f"{str(rescaled_size[0])}x{str(rescaled_size[1])}x{str(rescaled_size[2])}"
-        label_1 = args_dict.get("dataset_label_1")
+        print("No more cook for divided dataset.")
+    elif dataset_tag == "cropped":
+        cut_layers = args_dict.get("cut_layers")
+        if not np.all(cut_layers == 0):
+            x_dataset, y_dataset = \
+                MyCrop.crop_outside_layers_no_length(x_dataset, y_dataset, cut_layers, keep_blank=False)
+    else:
+        print("Unknown dataset tag: ", dataset_tag)
+        exit(0)
 
-        dataset_dir = f"{base_dir}/{dataset_tag}/{rescaled_size_str}/{label_1}"
-        print("Read dataset from: ", dataset_dir)
+    model_output_num = args_dict.get("model_output_num")
+    if model_output_num == 1:
+        model_y_tag = args_dict.get("y_tag")
+        if model_y_tag == "one_landmark_1":
+            y_dataset = np.asarray(y_dataset)[:, 0, :].reshape((instances_num, 1, 3))
+        elif model_y_tag == "two_landmark_2":
+            y_dataset = np.asarray(y_dataset)[:, 1, :].reshape((instances_num, 1, 3))
+        elif model_y_tag == "mean_two_landmarks":
+            y_dataset = np.mean(y_dataset, axis=1).reshape((instances_num, 1, 3))
+        else:
+            print("Error Y tag: ", model_y_tag)
 
-        x_dataset_path = dataset_dir + "divided_volumes_" + rescaled_size_str + ".npy"
-        y_dataset_path = dataset_dir + "divided_points_" + rescaled_size_str + ".npy"
-        res_dataset_path = dataset_dir + "divided_res_" + rescaled_size_str + ".npy"
+    model_tag = args_dict.get("model_name").split('_')[-1]
+    # adjust Y for dsnt you know, if the model is dsnt haha
+    if model_tag == "dsnt":
+        (row_size, column_size, slice_size) = (x_dataset.shape[1], x_dataset.shape[2], x_dataset.shape[3])
+        y_dataset = (2 * y_dataset - [column_size + 1, row_size + 1, slice_size + 1]) / [column_size, row_size,
+                                                                                         slice_size]
+        res_dataset = (res_dataset / [2 / column_size, 2 / row_size, 2 / slice_size])
 
-        x_dataset = np.load(x_dataset_path)
-        y_dataset = np.load(y_dataset_path)
-        instances_num = x_dataset.shape[0]
-        res_dataset = np.repeat(np.load(res_dataset_path), 2, axis=1).reshape(instances_num, 1, 3)
-
-        if model_output_num == 1:
-            model_y_tag = args_dict.get("y_tag")
-            if model_y_tag == "one_landmark_1":
-                y_dataset = np.asarray(y_dataset)[:, 0, :].reshape((instances_num, 1, 3))
-            elif model_y_tag == "two_landmark_2":
-                y_dataset = np.asarray(y_dataset)[:, 1, :].reshape((instances_num, 1, 3))
-            elif model_y_tag == "mean_two_landmarks":
-                y_dataset = np.mean(y_dataset, axis=1).reshape((instances_num, 1, 3))
-            else:
-                print("Error Y tag: ", model_y_tag)
-
-        model_tag = args_dict.get("model_name").split('_')[-1]
-        # adjust Y for dsnt if you know, the model is dsnt haha
-        if model_tag == "dsnt":
-            (row_size, column_size, slice_size) = (x_dataset.shape[1], x_dataset.shape[2], x_dataset.shape[3])
-            y_dataset = (2 * y_dataset - [column_size + 1, row_size + 1, slice_size + 1]) / [column_size, row_size,
-                                                                                             slice_size]
-            res_dataset = (res_dataset / [2 / column_size, 2 / row_size, 2 / slice_size])
+    y_dataset = y_dataset.astype(np.float32)
+    res_dataset = res_dataset.astype(np.float32)
 
     ## get dataset splits
     data_split_tag = args_dict.get("data_split_tag")
@@ -85,6 +102,9 @@ def load_dataset_manager(args_dict):
     elif data_split_tag == "cross_val":
         data_splits = []
         print("This fun can not deal with cross_val data splits yet!")
+        exit(0)
+    else:
+        print("Unknown data_split_tag: ", data_split_tag)
         exit(0)
 
     (train_idx, val_idx, test_idx) = (data_splits[0], data_splits[1], data_splits[2])

@@ -205,20 +205,20 @@ def crop_outside_layers(x_volumes_org, y_landmarks_org, length_org, crop_layers,
         fill_val = np.min(x_dataset)
         x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
         x_dataset_corroded[:,
+        crop_layers[0][0]:(row_num - crop_layers[0][1]),
+        crop_layers[1][0]:(column_num - crop_layers[1][1]),
+        crop_layers[2][0]:(slice_num - crop_layers[2][1]), :] = \
+            x_dataset[:,
             crop_layers[0][0]:(row_num - crop_layers[0][1]),
             crop_layers[1][0]:(column_num - crop_layers[1][1]),
-            crop_layers[2][0]:(slice_num - crop_layers[2][1]), :] = \
-            x_dataset[:,
-                crop_layers[0][0]:(row_num - crop_layers[0][1]),
-                crop_layers[1][0]:(column_num - crop_layers[1][1]),
-                crop_layers[2][0]:(slice_num - crop_layers[2][1]), :]
+            crop_layers[2][0]:(slice_num - crop_layers[2][1]), :]
         # to make the return consistent
         x_dataset = x_dataset_corroded
     else:
         x_dataset = x_dataset[:,
-                crop_layers[0][0]:(row_num - crop_layers[0][1]),
-                crop_layers[1][0]:(column_num - crop_layers[1][1]),
-                crop_layers[2][0]:(slice_num - crop_layers[2][1]), :]
+                    crop_layers[0][0]:(row_num - crop_layers[0][1]),
+                    crop_layers[1][0]:(column_num - crop_layers[1][1]),
+                    crop_layers[2][0]:(slice_num - crop_layers[2][1]), :]
         y_dataset = y_dataset - [crop_layers[1, 0], crop_layers[0, 0], crop_layers[2, 0]]
         # y_dataset = y_dataset.astype('float32')
         # left ear
@@ -246,9 +246,9 @@ def crop_outside_layers_no_length(x_volumes_org, y_landmarks_org, crop_layers, k
         fill_val = np.min(x_dataset)
         x_dataset_corroded = np.ones(x_dataset.shape) * fill_val
         x_dataset_corroded[:,
-        crop_layers[0][0]:(row_num - crop_layers[0][1]),
-        crop_layers[1][0]:(column_num - crop_layers[1][1]),
-        crop_layers[2][0]:(slice_num - crop_layers[2][1]), :] = \
+            crop_layers[0][0]:(row_num - crop_layers[0][1]),
+            crop_layers[1][0]:(column_num - crop_layers[1][1]),
+            crop_layers[2][0]:(slice_num - crop_layers[2][1]), :] = \
             x_dataset[:,
             crop_layers[0][0]:(row_num - crop_layers[0][1]),
             crop_layers[1][0]:(column_num - crop_layers[1][1]),
@@ -329,9 +329,9 @@ def crop_outside_layers_trans(x_volumes_org, y_landmarks_org, length_org,
         if idx % 100 == 0:
             print("Crop volume: ", idx)
         x_dataset_corroded[idx] = x_dataset[idx,
-                                  crop_start_array[idx, 0, 0]:(crop_start_array[idx, 0, 0]+target_shape[0]),
-                                  crop_start_array[idx, 0, 1]:(crop_start_array[idx, 0, 1]+target_shape[1]),
-                                  crop_start_array[idx, 0, 2]:(crop_start_array[idx, 0, 2]+target_shape[2]), :]
+                                  crop_start_array[idx, 0, 0]:(crop_start_array[idx, 0, 0] + target_shape[0]),
+                                  crop_start_array[idx, 0, 1]:(crop_start_array[idx, 0, 1] + target_shape[1]),
+                                  crop_start_array[idx, 0, 2]:(crop_start_array[idx, 0, 2] + target_shape[2]), :]
 
     return x_dataset_corroded, y_dataset, length_dataset
 

@@ -130,7 +130,7 @@ def train_model(data_splits, args_dict, write_log=True):
     input_shape = (rescaled_size[0], np.ceil(rescaled_size[1] / 2).astype(int), rescaled_size[2])
     model_output_num = args_dict.get("model_output_num")
 
-    model = models.get_model(model_name, input_shape, model_output_num)
+    model = models.model_manager(model_name, input_shape, model_output_num)
     model.summary()
 
     model_size = f"{input_shape[0]}x{input_shape[1]}x{input_shape[2]}"
