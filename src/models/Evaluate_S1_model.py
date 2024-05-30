@@ -5,7 +5,7 @@ import numpy as np
 
 import Functions.MyDataset as MyDataset
 import Functions.MyCrop as MyCrop
-from src.models.common import TrainingSupport as supporter
+from src.models import TrainingSupport as supporter
 
 
 @tf.function

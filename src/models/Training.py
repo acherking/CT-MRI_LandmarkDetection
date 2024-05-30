@@ -6,18 +6,22 @@ import tensorflow as tf
 from tensorflow import keras
 
 # following modules are within this project
-import loss_optimizer
 import models
-from src.models.common import TrainingSupport
+import loss_optimizer
+import TrainingSupport
 
 
 def train_model(args_dict):
-    print("whole parameters: ", args_dict)
     save_dir = TrainingSupport.get_record_dir(args_dict)
 
     if args_dict.get("write_log", True):
         log = open(f"{save_dir}/original_log", "w")
         sys.stdout = log
+
+    # record the whole parameters
+    print("*** whole parameters ***")
+    print(args_dict)
+    print("*** *** *** *** *** ***")
 
     # load dataset
     train_dataset, val_dataset, test_dataset = TrainingSupport.load_dataset_manager(args_dict)
@@ -27,8 +31,6 @@ def train_model(args_dict):
     batch_size = args_dict.get("batch_size", 2)
     epochs = args_dict.get("epochs", 100)
     min_val_mse_res = 100  # just a big number
-
-    print(f"training process: batch_size[{batch_size}], epochs[{epochs}]")
 
     # Prepare dataset used in the training process
     train_num = train_dataset[0].shape[0]
@@ -41,23 +43,24 @@ def train_model(args_dict):
 
     test_dataset = tf.data.Dataset.from_tensor_slices(test_dataset).batch(batch_size)
 
-    # Check these datasets
+    # Review these datasets before the training
+    print("*** review the dataset ***")
     for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset):
         print("train_dataset, step: ", step)
         print("x shape: ", x_batch_train.shape, type(x_batch_train))
-        print("y shape: ", y_batch_train.shape, type(y_batch_train))
+        print("y value: ", y_batch_train)
         print("res: ", res_batch_train)
         break
 
     for step, (x_batch_val, y_batch_val, res_batch_val) in enumerate(val_dataset):
         print("val_dataset, step: ", step)
         print("x shape: ", x_batch_val.shape, type(x_batch_val))
-        print("y shape: ", y_batch_val.shape, type(y_batch_val))
+        print("y value: ", y_batch_val)
         print("res: ", res_batch_val)
         break
+    print("*** *** *** *** *** ***")
 
     optimizer = loss_optimizer.optimizer_manager(args_dict)
-
     loss = loss_optimizer.loss_manager(args_dict)
 
     # Instantiate a metric object
@@ -71,7 +74,47 @@ def train_model(args_dict):
     if args_dict.get("write_log", True):
         log.flush()
 
-    train_err_array = np.zeros((2, epochs))  # 0: training err MSE over epoch, 1: val err MSE
+    # record the training process, for visualizing purpose
+    # 0: training err MSE over epoch, 1: val err MSE
+    train_err_array = np.zeros((2, epochs))
+
+    @tf.function
+    def train_step(x, y, res):
+        with tf.GradientTape() as tape:
+            y_pred = model(x, training=True)
+            mse_res = loss(y, y_pred, res)
+        gradients = tape.gradient(mse_res, model.trainable_weights)
+        optimizer.apply_gradients(zip(gradients, model.trainable_weights))
+        train_metric.update_state(mse_res)
+        return mse_res
+
+    @tf.function
+    def val_step(x, y, res):
+        y_pred = model(x, training=False)
+        mse_res = loss(y, y_pred, res)
+        val_metric.update_state(mse_res)
+        return y_pred
+
+    @tf.function
+    def test_step(x, y, res):
+        y_pred = model(x, training=False)
+        mse_res = loss(y, y_pred, res)
+        test_metric.update_state(mse_res)
+        return y_pred
+
+    def my_evaluate(eval_dataset):
+        # Run a test loop when meet the best val result.
+        for s, (x_batch_test, y_batch_test, res_batch_test) in enumerate(eval_dataset):
+            if s == 0:
+                y_test_p = test_step(x_batch_test, y_batch_test, res_batch_test)
+            else:
+                y_test = test_step(x_batch_test, y_batch_test, res_batch_test)
+                y_test_p = np.concatenate((y_test_p, y_test), axis=0)
+
+        eval_metric_result = test_metric.result()
+        test_metric.reset_states()
+        return eval_metric_result, y_test_p
+
     # Training loop
     for epoch in range(epochs):
         print("\nStart of epoch %d" % (epoch,))
@@ -79,8 +122,7 @@ def train_model(args_dict):
 
         # Iterate over the batches of a dataset.
         for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset):
-            loss_mse = TrainingSupport.train_step(model, loss, train_metric, optimizer,
-                                                  x_batch_train, y_batch_train, res_batch_train)
+            loss_mse = train_step(x_batch_train, y_batch_train, res_batch_train)
 
             # Logging every *** batches
             if step % 100 == 0:
@@ -98,19 +140,18 @@ def train_model(args_dict):
 
         # Run a validation loop at the end of each epoch.
         for step, (x_batch_val, y_batch_val, res_batch_val) in enumerate(val_dataset):
-            TrainingSupport.val_step(model, loss, val_metric, x_batch_val, y_batch_val, res_batch_val)
+            val_step(x_batch_val, y_batch_val, res_batch_val)
 
         val_mse_res = val_metric.result()
         train_err_array[1][epoch] = float(val_mse_res)
         val_metric.reset_states()
 
-        # Try to save the Trained Model with the best Val results
+        # Show best Val results
         if val_mse_res < min_val_mse_res:
             min_val_mse_res = val_mse_res
             # Use Test Dataset to evaluate the best Val model (at the moment), and save the Test results
-            test_mse_res, y_test_pred = TrainingSupport.my_evaluate(model, loss, test_metric, test_dataset)
+            test_mse_res, y_test_pred = my_evaluate(test_dataset)
             np.save(f"{save_dir}/best_val_Y_test_pred", y_test_pred)
-            model.save(f"{save_dir}/best_val_model")
             print("Validation (MSE with Res, saved):%.3f" % (float(val_mse_res),))
             print("Test (MSE with Res), bestVa      %.3f" % (float(test_mse_res),))
         else:
@@ -121,11 +162,10 @@ def train_model(args_dict):
             log.flush()
 
     # Use Test Dataset to evaluate the final model, and save the Test results
-    test_mse_res, y_test_pred = TrainingSupport.my_evaluate(model, loss, test_metric, test_dataset)
+    test_mse_res, y_test_pred = my_evaluate(test_dataset)
     np.save(f"{save_dir}/final_Y_test", y_test_pred)
     print("Test (MSE with Res), final       %.3f" % (float(test_mse_res),))
 
-    model.save(f"{save_dir}/final_model")
     np.save(f"{save_dir}/train_val_err_array", train_err_array)
 
     if args_dict.get("write_log", True):

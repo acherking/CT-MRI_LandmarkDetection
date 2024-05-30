@@ -1,13 +1,12 @@
-import os
-import sys
 import math
+import os
 
 import numpy as np
 import tensorflow as tf
 from scipy import ndimage
 
-import MyCrop
-import MyDataset
+from common import MyCrop
+from common import MyDataset
 
 
 # prepare the recording directory
@@ -19,10 +18,11 @@ def get_record_dir(args_dict):
     y_tag = args_dict.get("y_tag")
     data_size = args_dict.get("input_shape")
     data_size_str = f"{data_size[0]}x{data_size[1]}x{data_size[2]}"
+    dataset_label_1 = args_dict.get("dataset_label_1")
     label_1 = args_dict.get("model_label_1")
     label_2 = args_dict.get("model_label_2")
 
-    save_dir = f"{save_base_dir}/{dataset_tag}/{data_size_str}/{y_tag}/{model_name}"
+    save_dir = f"{save_base_dir}/{dataset_tag}/{data_size_str}/{dataset_label_1}/{y_tag}/{model_name}"
     if len(label_1) > 0:
         save_dir = f"{save_dir}/{label_1}"
     if len(label_2) > 0:
@@ -47,7 +47,7 @@ def load_dataset_manager(args_dict):
     base_dir = args_dict.get("base_dir", "/data/gpfs/projects/punim1836/Data")
     label_1 = args_dict.get("dataset_label_1")
 
-    dataset_dir = f"{base_dir}/{dataset_tag}/{input_shape_str}/{label_1}"
+    dataset_dir = f"{base_dir}/{dataset_tag}/{input_shape_str}/{label_1}/"
     print("Read dataset from: ", dataset_dir)
 
     x_dataset_path = dataset_dir + f"{dataset_tag}_volumes_" + input_shape_str + ".npy"
@@ -75,7 +75,7 @@ def load_dataset_manager(args_dict):
         model_y_tag = args_dict.get("y_tag")
         if model_y_tag == "one_landmark_1":
             y_dataset = np.asarray(y_dataset)[:, 0, :].reshape((instances_num, 1, 3))
-        elif model_y_tag == "two_landmark_2":
+        elif model_y_tag == "one_landmark_2":
             y_dataset = np.asarray(y_dataset)[:, 1, :].reshape((instances_num, 1, 3))
         elif model_y_tag == "mean_two_landmarks":
             y_dataset = np.mean(y_dataset, axis=1).reshape((instances_num, 1, 3))

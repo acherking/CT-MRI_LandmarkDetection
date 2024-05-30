@@ -5,7 +5,7 @@ from tensorflow import keras
 import numpy as np
 
 import Functions.MyDataset as MyDataset
-from src.models.common import TrainingSupport as supporter
+from src.models import TrainingSupport as supporter
 import models
 
 mse = tf.keras.losses.MeanSquaredError()
