@@ -1,5 +1,6 @@
 import math
 import os
+import time
 
 import numpy as np
 import tensorflow as tf
@@ -27,6 +28,9 @@ def get_record_dir(args_dict):
         save_dir = f"{save_dir}/{label_1}"
     if len(label_2) > 0:
         save_dir = f"{save_dir}/{label_2}"
+
+    time_tag = time.strftime("%d%b%Y%H%M")
+    save_dir = f"{save_dir}/{time_tag}"
 
     # create the dir if not exist
     if os.path.exists(save_dir):

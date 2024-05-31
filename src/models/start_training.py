@@ -65,6 +65,8 @@ def train_unet_model(idx=-1):
 
 def train_unet_dsnt_model(idx=-1):
     update_args_dict_list = [
+        {"model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001"},
         {"model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
          "model_label_1": "learning_rate", "model_label_2": "0.00005"},
         {"model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00001,
@@ -72,7 +74,18 @@ def train_unet_dsnt_model(idx=-1):
         {"model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.000005,
          "model_label_1": "learning_rate", "model_label_2": "0.000005"},
         {"model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.000001,
-         "model_label_1": "learning_rate", "model_label_2": "0.000001"}]
+         "model_label_1": "learning_rate", "model_label_2": "0.000001"},
+        {"model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_label_1": "variable_voxel_distance"},
+        {"model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
+         "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_label_1": "variable_voxel_distance"},
+        {"model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00001,
+         "model_label_1": "learning_rate", "model_label_2": "0.00001", "dataset_label_1": "variable_voxel_distance"},
+        {"model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.000005,
+         "model_label_1": "learning_rate", "model_label_2": "0.000005", "dataset_label_1": "variable_voxel_distance"},
+        {"model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.000001,
+         "model_label_1": "learning_rate", "model_label_2": "0.000001", "dataset_label_1": "variable_voxel_distance"}
+    ]
 
     if idx < 0:
         for i in range(len(update_args_dict_list)):
