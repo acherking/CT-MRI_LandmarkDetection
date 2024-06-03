@@ -11,6 +11,8 @@ def loss_manager(args_dict):
 
     if loss_name == 'MSE_res':
         loss_fn = mse_with_res
+    elif loss_name == 'MSE':
+        loss_fn = mse
     else:
         print("Unknown loss function", loss_name)
         exit(0)
@@ -67,6 +69,19 @@ def two_stage_mse_loss(y_true, y_pred, res):
     return [loss_s1, loss_s2]
 
 
+def mse(y_true, y_pred, res):
+    """
+    :param y_true: [batch_size, num_landmarks, dimension(column, row, slice)]
+    :param y_pred: [batch_size, num_landmarks, dimension(column, row, slice)]
+    :return: mean square error along batch_size (mm^2)
+    """
+    with tf.name_scope('mse_res_loss'):
+        err_diff = y_true - y_pred
+        err_diff_p2 = tf.pow(err_diff, 2)
+        mse_loss = tf.reduce_mean(tf.reduce_sum(err_diff_p2, axis=[1, 2]), axis=0)
+        return mse_loss
+
+
 def mse_with_res(y_true, y_pred, res):
     """
     :param y_true: [batch_size, num_landmarks, dimension(column, row, slice)]
@@ -80,10 +95,10 @@ def mse_with_res(y_true, y_pred, res):
         num_landmarks = err_diff.shape[1]
         rep_res = tf.repeat(res, num_landmarks, axis=1)
         # change pixel distance to mm (kind of normalization I think)
-        losses = err_diff * rep_res
-        square_losses = tf.pow(losses, 2)
-        loss = tf.reduce_mean(tf.reduce_sum(square_losses, axis=[1, 2]), axis=0)
-        return loss
+        err_dis = err_diff * rep_res
+        err_dis_p2 = tf.pow(err_dis, 2)
+        mse_res_loss = tf.reduce_mean(tf.reduce_sum(err_dis_p2, axis=[1, 2]), axis=0)
+        return mse_res_loss
 
 
 # optimizer

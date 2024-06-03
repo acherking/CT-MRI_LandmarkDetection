@@ -101,8 +101,8 @@ def load_dataset_manager(args_dict):
     data_split_tag = args_dict.get("data_split_tag")
     data_split_static = args_dict.get("data_split_static")
     if data_split_tag == "general":
+        if data_split_static: print("Using static dataset split: Train, Val, Test")
         data_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=data_split_static), split=True)
-        if data_split_tag == "train": print("Using static dataset split: Train, Val, Test")
     elif data_split_tag == "cross_val":
         data_splits = []
         print("This fun can not deal with cross_val data splits yet!")
@@ -458,11 +458,11 @@ def load_patch_augmentation():
 
 
 def load_dataset_divide(dataset_dir, rescaled_size, idx_splits, no_split=False):
-    size_str = f"{rescaled_size[0]}{rescaled_size[1]}{rescaled_size[2]}"
+    size_str = f"{rescaled_size[0]}x{rescaled_size[1]}x{rescaled_size[2]}"
 
-    x_dataset_path = dataset_dir + "divided_volumes_" + size_str + "_pad.npy"
-    y_dataset_path = dataset_dir + "divided_points_" + size_str + "_pad.npy"
-    res_dataset_path = dataset_dir + "divided_res_" + size_str + "_pad.npy"
+    x_dataset_path = dataset_dir + "divided_volumes_" + size_str + ".npy"
+    y_dataset_path = dataset_dir + "divided_points_" + size_str + ".npy"
+    res_dataset_path = dataset_dir + "divided_res_" + size_str + ".npy"
 
     x_dataset = np.load(x_dataset_path)
     y_dataset = np.load(y_dataset_path).astype('float32')

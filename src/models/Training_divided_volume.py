@@ -5,15 +5,9 @@ import time
 import os
 import sys
 
-print("###########")
-print(sys.path)
-print("###########")
-sys.path.append('/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/src')
-print(sys.path)
-print("###########")
-
-import common.MyDataset as MyDataset
 import models
+import TrainingSupport
+import common.MyDataset as MyDataset
 
 
 def train_model(data_splits, args_dict, write_log=True):
@@ -26,15 +20,15 @@ def train_model(data_splits, args_dict, write_log=True):
         sys.stdout = log
 
     dataset_tag = args_dict.get("dataset_tag")
-    rescaled_size = args_dict.get("rescaled_size", (176, 176, 48))
+    rescaled_size = args_dict.get("rescaled_size", (176, 88, 48))
     base_dir = args_dict.get("base_dir", "/data/gpfs/projects/punim1836/Data")
 
     #dataset_dir = f"{base_dir}/{dataset_tag}/{str(rescaled_size[0])}{str(rescaled_size[1])}{str(rescaled_size[2])}/"
-    dataset_dir = f"{base_dir}/{dataset_tag}/reduce_size_normalize/"
+    dataset_dir = f"{base_dir}/{dataset_tag}/176x88x48/variable_voxel_distance/"
     print("Read dataset from: ", dataset_dir)
 
     x_train, y_train, res_train, x_val, y_val, res_val, x_test, y_test, res_test = \
-        support_modules.load_dataset_divide(dataset_dir, rescaled_size, data_splits)
+        TrainingSupport.load_dataset_divide(dataset_dir, rescaled_size, data_splits)
 
     model_output_num = args_dict.get("model_output_num")
 
@@ -48,12 +42,10 @@ def train_model(data_splits, args_dict, write_log=True):
         y_val = np.mean(y_val, axis=1).reshape((val_num, 1, 3))
         y_test = np.mean(y_test, axis=1).reshape((test_num, 1, 3))
 
-
     row_size = x_train.shape[1]
     column_size = x_train.shape[2]
     slice_size = x_train.shape[3]
     print(f"Train Volume Shape: row [{row_size}], column [{column_size}], slice [{slice_size}]")
-
 
     model_tag = args_dict.get("model_name").split('_')[-1]
     print("The model tag is: ", model_tag)
@@ -126,10 +118,10 @@ def train_model(data_splits, args_dict, write_log=True):
 
     # Get model.
     model_name = args_dict.get("model_name")
-    input_shape = (rescaled_size[0], np.ceil(rescaled_size[1] / 2).astype(int), rescaled_size[2])
+    input_shape = (rescaled_size[0], rescaled_size[1], rescaled_size[2])
     model_output_num = args_dict.get("model_output_num")
 
-    model = models.model_manager(model_name, input_shape, model_output_num)
+    model = models.model_manager(args_dict)
     model.summary()
 
     model_size = f"{input_shape[0]}x{input_shape[1]}x{input_shape[2]}"
@@ -145,7 +137,7 @@ def train_model(data_splits, args_dict, write_log=True):
 
         # Iterate over the batches of a dataset.
         for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset):
-            loss_mse = support_modules.train_step(model, mse_with_res, train_mse_res_metric, optimizer,
+            loss_mse = TrainingSupport.train_step(model, mse_with_res, train_mse_res_metric, optimizer,
                                                   x_batch_train, y_batch_train, res_batch_train)
 
             # Logging every *** batches
@@ -164,7 +156,7 @@ def train_model(data_splits, args_dict, write_log=True):
 
         # Run a validation loop at the end of each epoch.
         for step, (x_batch_val, y_batch_val, res_batch_val) in enumerate(val_dataset):
-            support_modules.val_step(model, mse_with_res, val_mse_res_metric, x_batch_val, y_batch_val, res_batch_val)
+            TrainingSupport.val_step(model, mse_with_res, val_mse_res_metric, x_batch_val, y_batch_val, res_batch_val)
 
         val_mse_res = val_mse_res_metric.result()
         train_err_array[1][epoch] = float(val_mse_res)
@@ -174,7 +166,7 @@ def train_model(data_splits, args_dict, write_log=True):
         if val_mse_res < min_val_mse_res:
             min_val_mse_res = val_mse_res
             # Use Test Dataset to evaluate the best Val model (at the moment), and save the Test results
-            test_mse_res, y_test_pred = support_modules.my_evaluate(model, mse_with_res, test_mse_res_metric, test_dataset)
+            test_mse_res, y_test_pred = TrainingSupport.my_evaluate(model, mse_with_res, test_mse_res_metric, test_dataset)
             np.save(f"{save_dir}/bestVal_{model_label}_y_test", y_test_pred)
             model.save(f"{save_dir}/bestVal_{model_label}")
             print("Validation (MSE with Res, saved):%.3f" % (float(val_mse_res),))
@@ -186,7 +178,7 @@ def train_model(data_splits, args_dict, write_log=True):
         log.flush()
 
     # Use Test Dataset to evaluate the final model, and save the Test results
-    test_mse_res, y_test_pred = support_modules.my_evaluate(model, mse_with_res, test_mse_res_metric, test_dataset)
+    test_mse_res, y_test_pred = TrainingSupport.my_evaluate(model, mse_with_res, test_mse_res_metric, test_dataset)
     np.save(f"{save_dir}/final_{model_label}_y_test", y_test_pred)
     print("Test (MSE with Res), final       %.3f" % (float(test_mse_res),))
 
@@ -223,7 +215,8 @@ if __name__ == "__main__":
     args = {
         # prepare Dataset
         "dataset_tag": "divided",
-        "rescaled_size":  (176, 176, 96),
+        "rescaled_size":  (176, 88, 48),
+        "input_shape":  (176, 88, 48),
         "base_dir": "/data/gpfs/projects/punim1836/Data",
         # training
         "batch_size": 2,
@@ -233,18 +226,8 @@ if __name__ == "__main__":
         "model_output_num": 2,
         # record
         "y_tag": "two_landmarks",  # "one_landmark", "two_landmarks", "mean_two_landmarks"
-        "save_dir_extend": "centre_scale",  # can be used for cross validation
+        "save_dir_extend": "base",  # can be used for cross validation
     }
-    
-    # argv[1]: model_output_num
-    # argv[2]: y_tag
-    # argv[3]: model_name
-    model_output_num = {"model_output_num": int(sys.argv[1])}
-    y_tag = {"y_tag": sys.argv[2]}
-    model_name = {"model_name": sys.argv[3]}
-    args.update(model_output_num)
-    args.update(y_tag)
-    args.update(model_name)
 
     print(args)
 
@@ -255,4 +238,4 @@ if __name__ == "__main__":
     # d_splits = MyDataset.get_data_splits(k_pat_splits[1], split=True, aug_num=50)
     # print("Using k folds dataset split: Train, Val, Test")
 
-    train_model(d_splits, args, write_log=True)
+    train_model(d_splits, args, write_log=False)

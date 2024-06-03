@@ -5,8 +5,9 @@ import time
 import os
 import sys
 
-import Functions.MyDataset as MyDataset
+import common.MyDataset as MyDataset
 import models
+import TrainingSupport
 
 
 def train_model(data_splits, args_dict, dsnt=False, write_log=True):
@@ -41,7 +42,7 @@ def train_model(data_splits, args_dict, dsnt=False, write_log=True):
     print("Read Length from:    ", cropped_length_path)
 
     x_train, y_train, length_train, x_val, y_val, length_val, x_test, y_test, length_test = \
-        support_modules.load_dataset_crop(x_path, y_path, cropped_length_path, data_splits, crop_layers)
+        TrainingSupport.load_dataset_crop(x_path, y_path, cropped_length_path, data_splits, crop_layers)
 
     train_num = x_train.shape[0]
     val_num = x_val.shape[0]

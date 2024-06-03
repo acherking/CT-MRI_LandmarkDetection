@@ -14,8 +14,10 @@ import TrainingSupport
 def train_model(args_dict):
     save_dir = TrainingSupport.get_record_dir(args_dict)
 
+    orig_stdout = sys.stdout
     if args_dict.get("write_log", True):
         log = open(f"{save_dir}/original_log", "w")
+        sys.stdout.flush()
         sys.stdout = log
 
     # record the whole parameters
@@ -62,6 +64,7 @@ def train_model(args_dict):
 
     optimizer = loss_optimizer.optimizer_manager(args_dict)
     loss = loss_optimizer.loss_manager(args_dict)
+    mse_res_fn = loss_optimizer.mse_with_res
 
     # Instantiate a metric object
     train_metric = keras.metrics.Mean()
@@ -82,23 +85,24 @@ def train_model(args_dict):
     def train_step(x, y, res):
         with tf.GradientTape() as tape:
             y_pred = model(x, training=True)
-            mse_res = loss(y, y_pred, res)
-        gradients = tape.gradient(mse_res, model.trainable_weights)
+            loss_val = loss(y, y_pred, res)
+        gradients = tape.gradient(loss_val, model.trainable_weights)
         optimizer.apply_gradients(zip(gradients, model.trainable_weights))
+        mse_res = mse_res_fn(y, y_pred, res)
         train_metric.update_state(mse_res)
         return mse_res
 
     @tf.function
     def val_step(x, y, res):
         y_pred = model(x, training=False)
-        mse_res = loss(y, y_pred, res)
+        mse_res = mse_res_fn(y, y_pred, res)
         val_metric.update_state(mse_res)
         return y_pred
 
     @tf.function
     def test_step(x, y, res):
         y_pred = model(x, training=False)
-        mse_res = loss(y, y_pred, res)
+        mse_res = mse_res_fn(y, y_pred, res)
         test_metric.update_state(mse_res)
         return y_pred
 
@@ -168,6 +172,7 @@ def train_model(args_dict):
 
     np.save(f"{save_dir}/train_val_err_array", train_err_array)
 
+    sys.stdout = orig_stdout
     if args_dict.get("write_log", True):
         log.close()
 
