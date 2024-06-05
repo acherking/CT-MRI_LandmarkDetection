@@ -32,7 +32,6 @@ def train_model(args_dict):
 
     batch_size = args_dict.get("batch_size", 2)
     epochs = args_dict.get("epochs", 100)
-    min_val_mse_res = 100  # just a big number
 
     # Prepare dataset used in the training process
     train_num = train_dataset[0].shape[0]
@@ -55,7 +54,8 @@ def train_model(args_dict):
 
     optimizer = loss_optimizer.optimizer_manager(args_dict)
     loss = loss_optimizer.loss_manager(args_dict)
-    mse_res_fn = loss_optimizer.mse_with_res
+    train_eval_fn = loss_optimizer.mean_dis_mm
+    eval_metrics_fn = loss_optimizer.eval_metric_manager(args_dict)
 
     # Instantiate a metric object
     train_metric = keras.metrics.Mean()
@@ -73,7 +73,7 @@ def train_model(args_dict):
             loss_val = loss(y, y_pred, res)
         gradients = tape.gradient(loss_val, model.trainable_weights)
         optimizer.apply_gradients(zip(gradients, model.trainable_weights))
-        mse_res = mse_res_fn(y, y_pred, res)
+        mse_res = train_eval_fn(y, y_pred, res)
         train_metric.update_state(mse_res)
         return mse_res
 
@@ -86,19 +86,15 @@ def train_model(args_dict):
         # evaluate the val or test dataset
         for s, (x_batch_test, y_batch_test, res_batch_test) in enumerate(eval_dataset):
             if s == 0:
-                y_pred = test_step(x_batch_test)
-                y_true = y_batch_test
-                res = res_batch_test
+                (y_pred, y_true, res) = (test_step(x_batch_test), y_batch_test, res_batch_test)
             else:
-                y_pred = np.concatenate((y_pred, test_step(x_batch_test, y_batch_test, res_batch_test)), axis=0)
+                y_pred = np.concatenate((y_pred, test_step(x_batch_test)), axis=0)
                 y_true = np.concatenate((y_true, y_batch_test), axis=0)
                 res = np.concatenate((res, res_batch_test), axis=0)
         # prepare the evaluation metrics
-        err_diff = y_true - y_pred
-        num_landmarks = err_diff.shape[1]
-        rep_res = tf.repeat(res, num_landmarks, axis=1)
+        evms = eval_metrics_fn(y_true, y_pred, res, args_dict)
 
-        return y_pred
+        return evms, y_true, y_pred, res
 
     # Training loop
     for epoch in range(epochs):
@@ -112,38 +108,61 @@ def train_model(args_dict):
             # Logging every *** batches
             if step % 100 == 0:
                 print("********Step ", step, " ********")
-                print("Training loss (MSE with Res):    %.3f" % loss_mse.numpy())
+                print("Training loss (mean distance):    %.3f" % loss_mse.numpy())
                 print("Seen so far: %d samples" % ((step + 1) * batch_size))
 
+        end_time = time.time()
         # Display metrics at the end of each epoch.
         train_mse_res = train_metric.result()
-        print("Training (MSE Res) over epoch:   %.4f" % (float(train_mse_res),))
+        print("Training over epoch:              %.4f" % (float(train_mse_res),))
 
         # Reset the metric's state at the end of an epoch
         train_metric.reset_states()
 
-        # Run a validation loop at the end of each epoch.
+        print("Time taken:                      %.2fs" % (end_time - start_time))
 
+        # Run a validation loop at the end of each epoch.
+        val_eval = my_evaluate(val_dataset)
+        print("Val : ", val_eval[0])
 
         # Show best Val results
+        min_val_mse_res = 100  # just a big number
+        val_mse_res = val_eval[0].get("mean_dis_all")
         if val_mse_res < min_val_mse_res:
             min_val_mse_res = val_mse_res
             # Use Test Dataset to evaluate the best Val model (at the moment), and save the Test results
-            test_mse_res, y_test_pred = my_evaluate(test_dataset)
-            np.save(f"{save_dir}/best_val_Y_test_pred", y_test_pred)
-            print("Validation (MSE with Res, saved):%.3f" % (float(val_mse_res),))
-            print("Test (MSE with Res), bestVa      %.3f" % (float(test_mse_res),))
-        else:
-            print("Validation (MSE with Res):       %.3f" % (float(val_mse_res),))
-        print("Time taken:                      %.2fs" % (time.time() - start_time))
+            test_eval = my_evaluate(test_dataset)
+            np.save(f"{save_dir}/best_val_Y_test_pred", test_eval[2])
+            if args_dict.get("save_model", True): model.save(f"{save_dir}/best_val_model")
+            print("Test: ", test_eval[0])
 
         if args_dict.get("write_log", True):
             log.flush()
 
     # Use Test Dataset to evaluate the final model, and save the Test results
-    test_mse_res, y_test_pred = my_evaluate(test_dataset)
-    np.save(f"{save_dir}/final_Y_test", y_test_pred)
-    print("Test (MSE with Res), final       %.3f" % (float(test_mse_res),))
+    print("*** End Training ***")
+    final_test_eval = my_evaluate(test_dataset)
+    print("Test final: ", final_test_eval[0])
+
+    np.save(f"{save_dir}/final_Y_test_pred", final_test_eval[2])
+    np.save(f"{save_dir}/Y_test_true", final_test_eval[1])
+    np.save(f"{save_dir}/res_test", final_test_eval[3])
+    if args_dict.get("save_model", True): model.save(f"{save_dir}/final_model")
+
+    # gather results into one file (for convenient)
+    dataset_tag = args_dict.get("dataset_tag")
+    model_name = args_dict.get("model_name")
+    train_id = str(args_dict.get("train_id"))
+    save_base_dir = args_dict.get("save_base_dir")
+    gather_file = open(f"{save_base_dir}/{dataset_tag}/results_all", "a")
+    time_tag = time.strftime("%d%b%Y%H%M")
+    gather_file.write(f"*** {model_name} *** train_id[{train_id}] *** {time_tag}\n")
+    gather_file.write(f"save in: {save_dir}\n")
+    gather_file.write("*** best val *** \n")
+    gather_file.write(str(test_eval[0]) + "\n")
+    gather_file.write("*** final *** \n")
+    gather_file.write(str(final_test_eval[0]) + "\n")
+    gather_file.close()
 
     sys.stdout = orig_stdout
     if args_dict.get("write_log", True):

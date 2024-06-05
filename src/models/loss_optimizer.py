@@ -101,7 +101,67 @@ def mse_with_res(y_true, y_pred, res):
         return mse_res_loss
 
 
+# mean error distance in mm for each landmark
+def mean_dis_mm(y_true, y_pred, res):
+    """
+    :param y_true: [batch_size, num_landmarks, dimension(column, row, slice)]
+    :param y_pred: [batch_size, num_landmarks, dimension(column, row, slice)]
+    :param res: Pixel distance in mm, [batch_size, 1, dimension(column, row, slice)]
+    :return: mean square error along batch_size (mm^2)
+    """
+    with tf.name_scope('mse_res_loss'):
+        err_diff = y_true - y_pred
+        # repeat res to make a convenient calculation follow
+        num_landmarks = err_diff.shape[1]
+        rep_res = tf.repeat(res, num_landmarks, axis=1)
+        # change pixel distance to mm (kind of normalization I think)
+        err_dis = err_diff * rep_res
+        err_dis_p2 = tf.pow(err_dis, 2)
+        mean_dis = tf.reduce_mean(tf.pow(tf.reduce_sum(err_dis_p2, axis=2), 1/2), axis=[0, 1])
+        return mean_dis
+
+
+def my_eval(y_true, y_pred, res, args_dict):
+    metrics = {}
+    err_diff = y_true - y_pred
+    # repeat res to make a convenient calculation follow
+    num_landmarks = err_diff.shape[1]
+    rep_res = tf.repeat(res, num_landmarks, axis=1)
+    # change pixel distance to mm (kind of normalization I think)
+    err_dis_xyz = err_diff * rep_res
+    # Euclidean Distance
+    eu_dis = tf.pow(tf.reduce_sum(tf.pow(err_dis_xyz, 2), axis=2), 1/2)
+    mean_dis_all = tf.reduce_mean(eu_dis)
+    std_dev_all = tf.math.reduce_std(eu_dis)
+    metrics['mean_dis_all'] = float("{:.3f}".format(mean_dis_all))
+    metrics['std_dev_all'] = float("{:.3f}".format(std_dev_all))
+    if num_landmarks == 1:
+        metrics.update({"y_tag": args_dict['y_tag']})
+    else:
+        mean_dis_each = tf.reduce_mean(eu_dis, axis=0)
+        std_dev_each = tf.math.reduce_std(eu_dis, axis=0)
+        metrics['mean_dis_1'] = float("{:.3f}".format(mean_dis_each[0]))
+        metrics['std_dev_2'] = float("{:.3f}".format(std_dev_each[1]))
+        metrics['mean_dis_2'] = float("{:.3f}".format(mean_dis_each[1]))
+        metrics['std_dev_1'] = float("{:.3f}".format(std_dev_each[0]))
+
+    return metrics
+
+
+# evaluation metrics
+def eval_metric_manager(args_dict):
+    eval_name = args_dict.get('eval_name', "my_eval")
+
+    eval_fn = my_eval
+    if eval_name == 'my_eval':
+        eval_fn = my_eval
+    else:
+        print("Unknown eval metric name", eval_name)
+
+    return eval_fn
+
 # optimizer
+
 
 def optimizer_manager(args_dict):
     optimizer_name = args_dict.get("optimizer")

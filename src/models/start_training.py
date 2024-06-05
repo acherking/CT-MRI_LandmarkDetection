@@ -29,10 +29,11 @@ base_args = {
     "y_tag": "two_landmarks",  # "one_landmark_[1/2]", "two_landmarks", "mean_two_landmarks"
     "model_label_1": "",  # Cross validation, different parameter...
     "model_label_2": "",
-    "save_model": True,
+    "save_model": False,
 }
 
 
+## straight_model
 def train_straight_model():
     # record the args?
     update_args_dict_list = [
