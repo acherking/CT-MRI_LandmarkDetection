@@ -32,6 +32,7 @@ def train_model(args_dict):
 
     batch_size = args_dict.get("batch_size", 2)
     epochs = args_dict.get("epochs", 100)
+    min_val_mean_dis = 100  # just a big number
 
     # Prepare dataset used in the training process
     train_num = train_dataset[0].shape[0]
@@ -119,17 +120,16 @@ def train_model(args_dict):
         # Reset the metric's state at the end of an epoch
         train_metric.reset_states()
 
-        print("Time taken:                      %.2fs" % (end_time - start_time))
+        print("Time taken:                       %.2fs" % (end_time - start_time))
 
         # Run a validation loop at the end of each epoch.
         val_eval = my_evaluate(val_dataset)
         print("Val : ", val_eval[0])
 
         # Show best Val results
-        min_val_mse_res = 100  # just a big number
-        val_mse_res = val_eval[0].get("mean_dis_all")
-        if val_mse_res < min_val_mse_res:
-            min_val_mse_res = val_mse_res
+        val_mean_disl = val_eval[0].get("mean_dis_all")
+        if val_mean_disl < min_val_mean_dis:
+            min_val_mse_res = val_mean_disl
             # Use Test Dataset to evaluate the best Val model (at the moment), and save the Test results
             test_eval = my_evaluate(test_dataset)
             np.save(f"{save_dir}/best_val_Y_test_pred", test_eval[2])
@@ -162,6 +162,7 @@ def train_model(args_dict):
     gather_file.write(str(test_eval[0]) + "\n")
     gather_file.write("*** final *** \n")
     gather_file.write(str(final_test_eval[0]) + "\n")
+    gather_file.write("*** *** *** *** *** ***")
     gather_file.close()
 
     sys.stdout = orig_stdout

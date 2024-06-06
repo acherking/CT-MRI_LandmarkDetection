@@ -270,7 +270,7 @@ def crop_outside_layers_no_length(x_volumes_org, y_landmarks_org, crop_layers, k
 # length_org: (instance_num, landmarks_num, dimensions_num)
 # centre_shift: (instance_num, 1, dimensions_num); in mm; '+' --> shift in descending order, '-' opposite
 def crop_outside_layers_trans(x_volumes_org, y_landmarks_org, length_org,
-                              centre_shift, target_shape=(150, 150, 100)):
+                              centre_shift, target_shape=(100, 100, 100)):
     x_dataset = x_volumes_org
     y_dataset = y_landmarks_org
     length_dataset = length_org
@@ -323,7 +323,7 @@ def crop_outside_layers_trans(x_volumes_org, y_landmarks_org, length_org,
 
     # calculate the cropped volume
     fill_val = np.min(x_dataset)
-    x_dataset_corroded = np.ones((x_dataset.shape[0], 150, 150, 100, 1)) * fill_val
+    x_dataset_corroded = np.ones((x_dataset.shape[0], target_shape[0], target_shape[1], target_shape[2], 1)) * fill_val
 
     for idx in range(0, x_dataset.shape[0]):
         if idx % 100 == 0:
