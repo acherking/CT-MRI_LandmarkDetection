@@ -129,7 +129,7 @@ def train_model(args_dict):
         # Show best Val results
         val_mean_disl = val_eval[0].get("mean_dis_all")
         if val_mean_disl < min_val_mean_dis:
-            min_val_mse_res = val_mean_disl
+            min_val_mean_dis = val_mean_disl
             # Use Test Dataset to evaluate the best Val model (at the moment), and save the Test results
             test_eval = my_evaluate(test_dataset)
             np.save(f"{save_dir}/best_val_Y_test_pred", test_eval[2])
@@ -162,7 +162,7 @@ def train_model(args_dict):
     gather_file.write(str(test_eval[0]) + "\n")
     gather_file.write("*** final *** \n")
     gather_file.write(str(final_test_eval[0]) + "\n")
-    gather_file.write("*** *** *** *** *** ***")
+    gather_file.write("*** *** *** *** *** ***\n")
     gather_file.close()
 
     sys.stdout = orig_stdout
