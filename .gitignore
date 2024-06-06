@@ -6,6 +6,8 @@ src/models/__pycache__
 
 .idea
 
+.virtual_documents
+
 data/*
 models/*
 

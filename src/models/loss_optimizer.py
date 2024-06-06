@@ -141,9 +141,9 @@ def my_eval(y_true, y_pred, res, args_dict):
         mean_dis_each = tf.reduce_mean(eu_dis, axis=0)
         std_dev_each = tf.math.reduce_std(eu_dis, axis=0)
         metrics['mean_dis_1'] = float("{:.3f}".format(mean_dis_each[0]))
-        metrics['std_dev_2'] = float("{:.3f}".format(std_dev_each[1]))
-        metrics['mean_dis_2'] = float("{:.3f}".format(mean_dis_each[1]))
         metrics['std_dev_1'] = float("{:.3f}".format(std_dev_each[0]))
+        metrics['mean_dis_2'] = float("{:.3f}".format(mean_dis_each[1]))
+        metrics['std_dev_2'] = float("{:.3f}".format(std_dev_each[1]))
 
     return metrics
 
