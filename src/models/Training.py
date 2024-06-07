@@ -99,6 +99,7 @@ def train_model(args_dict):
 
     # Training loop
     for epoch in range(epochs):
+        train_eval = {}
         print("\nStart of epoch %d" % (epoch,))
         start_time = time.time()
 
@@ -114,13 +115,18 @@ def train_model(args_dict):
 
         end_time = time.time()
         # Display metrics at the end of each epoch.
-        train_mse_res = train_metric.result()
-        print("Training over epoch:              %.4f" % (float(train_mse_res),))
+        train_mean_dis_all = float(train_metric.result())
+        train_eval["mean_dis_all"] = float("{:.3f}".format(train_mean_dis_all))
+        print("Training over epoch:              %.4f" % (train_mean_dis_all,))
 
         # Reset the metric's state at the end of an epoch
         train_metric.reset_states()
 
-        print("Time taken:                       %.2fs" % (end_time - start_time))
+        epoch_time = end_time - start_time
+        print("Time taken:                       %.2fs" % epoch_time)
+
+        train_eval["epoch"] = epoch
+        train_eval["time(h)"] = float("{:.2f}".format(epoch_time * (epoch+1) / 3600))
 
         # Run a validation loop at the end of each epoch.
         val_eval = my_evaluate(val_dataset)
@@ -133,8 +139,10 @@ def train_model(args_dict):
             # Use Test Dataset to evaluate the best Val model (at the moment), and save the Test results
             test_eval = my_evaluate(test_dataset)
             np.save(f"{save_dir}/best_val_Y_test_pred", test_eval[2])
-            if args_dict.get("save_model", True): model.save(f"{save_dir}/best_val_model")
+            if args_dict.get("save_model", True): model.save_weights(f"{save_dir}/best_val_model.weights.h5")
             print("Test: ", test_eval[0])
+            # for reviewing ...
+            best_val = [train_eval.copy(), val_eval[0].copy(), test_eval[0].copy()]
 
         if args_dict.get("write_log", True):
             log.flush()
@@ -147,7 +155,7 @@ def train_model(args_dict):
     np.save(f"{save_dir}/final_Y_test_pred", final_test_eval[2])
     np.save(f"{save_dir}/Y_test_true", final_test_eval[1])
     np.save(f"{save_dir}/res_test", final_test_eval[3])
-    if args_dict.get("save_model", True): model.save(f"{save_dir}/final_model")
+    if args_dict.get("save_model", True): model.save_weights(f"{save_dir}/final_model.weights.h5")
 
     # gather results into one file (for convenient)
     dataset_tag = args_dict.get("dataset_tag")
@@ -159,10 +167,12 @@ def train_model(args_dict):
     gather_file.write(f"*** {model_name} *** train_id[{train_id}] *** {time_tag}\n")
     gather_file.write(f"save in: {save_dir}\n")
     gather_file.write("*** best val *** \n")
-    gather_file.write(str(test_eval[0]) + "\n")
+    gather_file.write("Train: " + str(best_val[0]) + "\n")
+    gather_file.write("Val:   " + str(best_val[1]) + "\n")
+    gather_file.write("Test:  " + str(best_val[2]) + "\n")
     gather_file.write("*** final *** \n")
-    gather_file.write(str(final_test_eval[0]) + "\n")
-    gather_file.write("*** *** *** *** *** ***\n")
+    gather_file.write("Test:  " + str(final_test_eval[0]) + "\n")
+    gather_file.write("*** *** *** *** *** ***\n*** *** *** *** *** ***\n\n")
     gather_file.close()
 
     sys.stdout = orig_stdout
