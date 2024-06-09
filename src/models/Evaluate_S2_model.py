@@ -2,37 +2,13 @@ import tensorflow as tf
 from tensorflow import keras
 import numpy as np
 
-import Functions.MyDataset as MyDataset
-from src.models import TrainingSupport as supporter
+import common.MyDataset as MyDataset
+import TrainingSupport
 import models
 
 mse = tf.keras.losses.MeanSquaredError()
 mse_res = models.mse_with_res
 test_mse_metric = keras.metrics.Mean()
-
-
-@tf.function
-def test_step(x, y, res, eva_model):
-    y_pred = eva_model(x, training=False)
-    mse_pixel = mse_res(y, y_pred, res)
-    err_mm = mse_pixel
-    # Update test metrics
-    test_mse_metric.update_state(mse_pixel)
-    return y_pred
-
-
-def my_evaluate(eva_model, test_dataset):
-    # Run a test loop when meet the best val result.
-    for step, (x_batch_test, y_batch_test, res_batch_test) in enumerate(test_dataset):
-        y = test_step(x_batch_test, y_batch_test, res_batch_test, eva_model)
-        if step == 0:
-            y_test_pred = np.copy(y)
-        else:
-            y_test_pred = np.concatenate((y_test_pred, np.copy(y)), axis=0)
-
-    test_mse_res_f = test_mse_metric.result()
-    test_mse_metric.reset_states()
-    return test_mse_res_f.numpy(), y_test_pred
 
 
 def corrode_sym_rcs(x_dataset, y_dataset, res_dataset, model_f, err_array_file_f):
