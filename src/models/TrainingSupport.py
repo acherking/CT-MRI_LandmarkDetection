@@ -11,7 +11,7 @@ from common import MyDataset
 
 
 # prepare the recording directory
-def get_record_dir(args_dict):
+def get_record_dir(args_dict, get_dir=False):
     save_base_dir = args_dict.get("save_base_dir")
     dataset_tag = args_dict.get("dataset_tag")
     model_name = args_dict.get("model_name")
@@ -29,15 +29,18 @@ def get_record_dir(args_dict):
     if len(label_2) > 0:
         save_dir = f"{save_dir}/{label_2}"
 
-    time_tag = time.strftime("%d%b%Y%H%M")
-    save_dir = f"{save_dir}/{time_tag}"
+    train_id_str = str(args_dict.get("train_id", -1))
+    train_id_tag = f"trainID-{train_id_str}"
+    time_tag = time.strftime("%d%b%Y-%H:%M:%S")
+    save_dir = f"{save_dir}/{time_tag}-{train_id_tag}"
 
-    # create the dir if not exist
-    if os.path.exists(save_dir):
-        print("Save model to: ", save_dir)
-    else:
-        os.makedirs(save_dir)
-        print("Create dir and save model in it: ", save_dir)
+    if not get_dir:
+        # create the dir if not exist
+        if os.path.exists(save_dir):
+            print("Save model to: ", save_dir)
+        else:
+            os.makedirs(save_dir)
+            print("Create dir and save model in it: ", save_dir)
 
     return save_dir
 

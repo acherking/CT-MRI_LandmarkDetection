@@ -37,7 +37,7 @@ base_args = {
 def train_straight_model():
     # record the args?
     update_args_dict_list = [
-        # divided data
+        # divided data, 176x88x48
         ## Identical Voxel distance with MSE_res
         {"train_id": 0, "model_name": "straight_model", "model_output_num": 1, "y_tag": "mean_two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001"},
@@ -50,7 +50,7 @@ def train_straight_model():
          "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_label_1": "variable_voxel_distance"},
         {"train_id": 4, "model_name": "straight_model", "model_output_num": 1, "y_tag": "mean_two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "loss_name": "MSE"},
-        # cropped data
+        # cropped data 100x100x100
         {"train_id": 5, "model_name": "straight_model", "model_output_num": 1, "y_tag": "one_landmark_1", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]]},
@@ -63,6 +63,16 @@ def train_straight_model():
         {"train_id": 8, "model_name": "straight_model", "model_output_num": 1, "y_tag": "mean_two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]]},
+        # divided data, 176x88x96
+        ## Identical Voxel distance with MSE_res
+        {"train_id": 9, "model_name": "straight_model", "model_output_num": 1, "y_tag": "mean_two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "input_shape": (176, 88, 96)},
+        {"train_id": 10, "model_name": "straight_model", "model_output_num": 1, "y_tag": "one_landmark_1", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "input_shape": (176, 88, 96)},
+        {"train_id": 11, "model_name": "straight_model", "model_output_num": 1, "y_tag": "one_landmark_2", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "input_shape": (176, 88, 96)},
+        {"train_id": 12, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "input_shape": (176, 88, 96)},
     ]
     return update_args_dict_list
 
@@ -116,26 +126,26 @@ def train_unet_dsnt_model():
 def train_covonly_dsnt_model():
     update_args_dict_list = [
         ## Identical Voxel distance with MSE_res
-        {"model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+        {"train_id": 0, "model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate_K5", "model_label_2": "0.0001"},
-        {"model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
+        {"train_id": 1, "model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
          "model_label_1": "learning_rate_K5", "model_label_2": "0.00005"},
-        {"model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00001,
+        {"train_id": 2, "model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00001,
          "model_label_1": "learning_rate_K5", "model_label_2": "0.00001"},
-        {"model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.000005,
+        {"train_id": 3, "model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.000005,
          "model_label_1": "learning_rate_K5", "model_label_2": "0.000005"},
-        {"model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.000001,
+        {"train_id": 4, "model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.000001,
          "model_label_1": "learning_rate_K5", "model_label_2": "0.000001"},
         ## Variable Voxel distance with MSE_res
-        {"model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+        {"train_id": 5, "model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate_K5", "model_label_2": "0.0001", "dataset_label_1": "variable_voxel_distance"},
-        {"model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
+        {"train_id": 6, "model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
          "model_label_1": "learning_rate_K5", "model_label_2": "0.00005", "dataset_label_1": "variable_voxel_distance"},
-        {"model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00001,
+        {"train_id": 7, "model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00001,
          "model_label_1": "learning_rate_K5", "model_label_2": "0.00001", "dataset_label_1": "variable_voxel_distance"},
-        {"model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.000005,
+        {"train_id": 8, "model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.000005,
          "model_label_1": "learning_rate_K5", "model_label_2": "0.000005", "dataset_label_1": "variable_voxel_distance"},
-        {"model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.000001,
+        {"train_id": 9, "model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.000001,
          "model_label_1": "learning_rate_K5", "model_label_2": "0.000001", "dataset_label_1": "variable_voxel_distance"}
     ]
     return update_args_dict_list
@@ -143,6 +153,7 @@ def train_covonly_dsnt_model():
 
 # scn_dsnt
 def train_scn_dsnt_model():
+    # looks like learning_rate 0.0001 works best
     update_args_dict_list = [
         # cropped data
         {"train_id": 0, "model_name": "scn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
@@ -166,9 +177,14 @@ def train_scn_dsnt_model():
 
 if __name__ == "__main__":
     train_model_name = sys.argv[1]
-    train_id = int(sys.argv[2])
+    train_id_list = sys.argv.copy()
+    # remove function name and model name
+    train_id_list.pop(0)
+    train_id_list.pop(0)
+    # convert to int
+    train_id_list = [int(i) for i in train_id_list]
 
-    print(f"Training model: [{train_model_name}] with id: [{train_id}]")
+    print(f"Training model: [{train_model_name}] with ids_list: {train_id_list}.")
 
     if train_model_name == "straight_model":
         args_list = train_straight_model()
@@ -183,12 +199,10 @@ if __name__ == "__main__":
     else:
         print("Unknown model name: ", train_model_name)
 
-    if train_id < 0:
-        for i in range(len(args_list)):
+    for args_update in args_list:
+        train_id = args_update.get("train_id")
+        if train_id_list.count(train_id) == 1:
+            print(f"Found train_id: [{train_id}] in [{train_model_name}] args list, start training.")
             args = base_args.copy()
-            args.update(args_list[i])
+            args.update(args_update)
             Training.train_model(args)
-    else:
-        args = base_args.copy()
-        args.update(args_list[train_id])
-        Training.train_model(args)

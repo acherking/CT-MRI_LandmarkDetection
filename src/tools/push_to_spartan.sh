@@ -9,4 +9,5 @@ rsync -tv -e ssh ${local_base_dir}/*.py ${remote_base_dir}
 
 rsync -tv -e ssh ${local_base_dir}/common/*.py ${remote_base_dir}/common
 
-rsync -tv -e ssh ${local_base_dir}/slurm/*.slurm ${remote_base_dir}/slurm
+# update on spartan before each sbatch training
+# rsync -tv -e ssh ${local_base_dir}/slurm/*.slurm ${remote_base_dir}/slurm
