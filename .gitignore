@@ -8,6 +8,7 @@ src/models/__pycache__
 
 .virtual_documents
 
+data/processed/Y/~*
 models/*
 
 src/models/slurm/output/

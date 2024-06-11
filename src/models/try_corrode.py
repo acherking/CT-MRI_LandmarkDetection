@@ -362,7 +362,7 @@ def corrode_baseline(x_dataset, y_dataset, res_dataset, model_f, crop_layers):
 ###
 
 corrode_dataset = test_dataset
-err_array_file = f"{model_save_dir}/corrode_asym_rcs_50x4_best_val_test_dataset"
+err_array_file = f"{model_save_dir}/{date_tag}/corrode_asym_rcs_50x4_best_val_test_dataset"
 
 
 corrode_layers = np.asarray([50, 50, 50, 50, 50, 50])
