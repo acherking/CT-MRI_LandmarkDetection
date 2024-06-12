@@ -126,6 +126,7 @@ def train_unet_dsnt_model():
     return update_args_dict_list
 
 
+# cov_only_dsnt
 def train_covonly_dsnt_model():
     update_args_dict_list = [
         ## Identical Voxel distance with MSE_res
@@ -150,6 +151,8 @@ def train_covonly_dsnt_model():
          "model_label_1": "learning_rate_K5", "model_label_2": "0.000005", "dataset_label_1": "variable_voxel_distance"},
         {"train_id": 9, "model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.000001,
          "model_label_1": "learning_rate_K5", "model_label_2": "0.000001", "dataset_label_1": "variable_voxel_distance"}
+        # cropped dataset 100x100x100
+
     ]
     return update_args_dict_list
 
