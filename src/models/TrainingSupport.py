@@ -1,6 +1,7 @@
 import math
 import os
 import time
+from sys import exit
 
 import numpy as np
 import tensorflow as tf
