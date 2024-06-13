@@ -1211,10 +1211,10 @@ def u_net_Xception_model(height=176, width=176, depth=48, points_num=2):
 
 # Spatial Configuration Net: "Regressing Heatmaps for Multiple Landmark Localization Using CNNs"
 # https://github.com/christianpayer/MedicalDataAugmentationTool-HeatmapRegression/blob/master/hand_xray/network.py
-def sc_net(inputs, points_num, dsnt=False):
+def sc_net(inputs, points_num, dsnt=False, local_kernel_size=(3, 3, 3), spatial_kernel_size=(9, 9, 5)):
     num_filters = 128
-    local_kernel_size = (3, 3, 3)
-    spatial_kernel_size = (9, 9, 5)
+    local_kernel_size = local_kernel_size
+    spatial_kernel_size = spatial_kernel_size
     downsampling_factor = 4
     padding = 'same'
     kernel_initializer = tf.keras.initializers.HeNormal
@@ -1270,10 +1270,11 @@ def scn_model(height=176, width=176, depth=48, points_num=2):
     return model
 
 
-def scn_dsnt_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
+def scn_dsnt_model(height=176, width=176, depth=48, points_num=2, local_kernel_size=(3, 3, 3), spatial_kernel_size=(9, 9, 5), batch_size=2):
     inputs = keras.Input((height, width, depth, 1))
 
-    heatmaps = sc_net(inputs, points_num, dsnt=True)
+    dsnt_tag = True
+    heatmaps = sc_net(inputs, points_num, dsnt_tag, local_kernel_size, spatial_kernel_size)
 
     base_cor_rcs = coordinate_3d(batch_size, points_num, height, width, depth)
 
@@ -1440,7 +1441,9 @@ def model_manager(args_dict):
     elif model_name == "scn":
         model = scn_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     elif model_name == "scn_dsnt":
-        model = scn_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
+        local_ks = args_dict.get("local_kernel_size", (3, 3, 3))
+        spatial_ks = args_dict.get("spatial_kernel_size", (9, 9, 5))
+        model = scn_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, local_ks, spatial_ks, batch_size)
     elif model_name == "vit_C":
         image_size = (72, 72, 48)
         patch_size = (6, 6, 4)

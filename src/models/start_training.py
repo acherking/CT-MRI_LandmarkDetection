@@ -150,9 +150,11 @@ def train_covonly_dsnt_model():
         {"train_id": 8, "model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.000005,
          "model_label_1": "learning_rate_K5", "model_label_2": "0.000005", "dataset_label_1": "variable_voxel_distance"},
         {"train_id": 9, "model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.000001,
-         "model_label_1": "learning_rate_K5", "model_label_2": "0.000001", "dataset_label_1": "variable_voxel_distance"}
+         "model_label_1": "learning_rate_K5", "model_label_2": "0.000001", "dataset_label_1": "variable_voxel_distance"},
         # cropped dataset 100x100x100
-
+        {"train_id": 10, "model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]]},
     ]
     return update_args_dict_list
 
@@ -178,6 +180,16 @@ def train_scn_dsnt_model():
         {"train_id": 4, "model_name": "scn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]], "loss_name": "MSE"},
+        # try new local_kernel_size and spatial_kernel_size
+        {"train_id": 5, "model_name": "scn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "kernel_size", "model_label_2": "local_5x5x5_spatial_15x15x15", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]], "local_kernel_size": (5, 5, 5), "spatial_kernel_size": (15, 15, 15)},
+        {"train_id": 6, "model_name": "scn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "kernel_size", "model_label_2": "local_5x5x5_spatial_9x9x5", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]], "local_kernel_size": (5, 5, 5), "spatial_kernel_size": (9, 9, 5)},
+        {"train_id": 7, "model_name": "scn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "kernel_size", "model_label_2": "local_3x3x3_spatial_15x15x15", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]], "local_kernel_size": (3, 3, 3), "spatial_kernel_size": (15, 15, 15)},
     ]
     return update_args_dict_list
 
