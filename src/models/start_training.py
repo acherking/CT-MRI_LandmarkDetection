@@ -129,6 +129,7 @@ def train_unet_dsnt_model():
 # cov_only_dsnt
 def train_covonly_dsnt_model():
     update_args_dict_list = [
+        # it seems identical voxel distance works better (stable) for con_only
         ## Identical Voxel distance with MSE_res
         {"train_id": 0, "model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate_K5", "model_label_2": "0.0001"},
@@ -181,6 +182,7 @@ def train_scn_dsnt_model():
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]], "loss_name": "MSE"},
         # try new local_kernel_size and spatial_kernel_size
+        ## big local kernel size work better? seems
         {"train_id": 5, "model_name": "scn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "kernel_size", "model_label_2": "local_5x5x5_spatial_15x15x15", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]], "local_kernel_size": (5, 5, 5), "spatial_kernel_size": (15, 15, 15)},

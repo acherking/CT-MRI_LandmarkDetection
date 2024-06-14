@@ -22,15 +22,26 @@ module_name = sys.argv[1]
 train_id = int(sys.argv[2])
 date_tag = sys.argv[3]
 
+
+def get_train_id(tid, args_dict_list):
+    for args_dict in args_dict_list:
+        if args_dict["train_id"] == tid:
+            return args_dict
+
+
 if module_name == "straight_model":
-    args_updates = start_training.train_straight_model()[train_id]
+    args_updates_list = start_training.train_straight_model()
 elif module_name == "u_net_dsnt":
-    args_updates = start_training.train_unet_dsnt_model()[train_id]
+    args_updates_list = start_training.train_unet_dsnt_model()
 elif module_name == "scn_dsnt":
-    args_updates = start_training.train_scn_dsnt_model()[train_id]
+    args_updates_list = start_training.train_scn_dsnt_model()
+elif module_name == "cov_only_dsnt":
+    args_updates_list = start_training.train_covonly_dsnt_model()
 else:
     print("Unknown module name: ", module_name)
     exit(1)
+
+args_updates = get_train_id(train_id, args_updates_list)
 
 base_args.update(args_updates)
 
