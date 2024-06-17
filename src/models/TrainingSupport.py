@@ -271,14 +271,14 @@ def load_dataset_crop_dir(x_dir, y_dir, length_dir):
     cropped_length = np.asarray(cropped_length).reshape((instances_num, 2, 3))
 
     # read centre shift
-    centre_shift = np.load("/data/gpfs/projects/punim1836/Training/res/noises_s1_pred_test_dis.npy")
+    centre_shift = np.load("/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/data/processed/noises/noises_s1.5_test_dis.npy")
     # centre_shift = np.zeros((2000, 1, 3))
 
     cropped_volumes, cropped_points, cropped_length = \
         MyCrop.crop_outside_layers_trans(cropped_volumes, cropped_points, cropped_length, centre_shift)
 
     crop_size = "100x100x100"
-    dataset_tag = "noises_s1_test_dis"
+    dataset_tag = "noises_s1.5_test_dis"
     save_dir_base = f"/data/gpfs/projects/punim1836/Data/cropped/{crop_size}/{dataset_tag}"
     # create the dir if not exist
     if os.path.exists(save_dir_base): print("Save dataset to: ", save_dir_base)
