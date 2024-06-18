@@ -196,9 +196,14 @@ def train_scn_dsnt_model():
         {"train_id": 8, "model_name": "scn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "kernel_size", "model_label_2": "local_7x7x7_spatial_9x9x5", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]], "local_kernel_size": (7, 7, 7), "spatial_kernel_size": (9, 9, 5)},
-        {"train_id": 9, "model_name": "scn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
-         "model_label_1": "kernel_size", "model_label_2": "local_7x7x7_spatial_9x9x5", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
-         "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]], "local_kernel_size": (7, 7, 7), "spatial_kernel_size": (9, 9, 5)},
+        {"train_id": 9, "model_name": "scn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
+         "model_label_1": "learning_rate", "model_label_2": "LR_0.00005_local_7x7x7_spatial_9x9x5", "dataset_tag": "cropped",
+         "dataset_label_1": "noises_s1_test_dis", "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]],
+         "local_kernel_size": (7, 7, 7), "spatial_kernel_size": (9, 9, 5)},
+        {"train_id": 10, "model_name": "scn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0005,
+         "model_label_1": "learning_rate", "model_label_2": "LR_0.0005_local_7x7x7_spatial_9x9x5", "dataset_tag": "cropped",
+         "dataset_label_1": "noises_s1_test_dis", "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]],
+         "local_kernel_size": (7, 7, 7), "spatial_kernel_size": (9, 9, 5)},
     ]
     return update_args_dict_list
 
