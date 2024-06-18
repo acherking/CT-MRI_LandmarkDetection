@@ -1410,6 +1410,10 @@ def create_vit3D_regression(patch_size, patch_overlap, num_patches, projection_d
 def model_manager(args_dict):
     model_name = args_dict["model_name"]
     input_shape = args_dict["input_shape"]
+    cut_layers = args_dict["cut_layers"]
+    input_shape = (input_shape[0]-cut_layers[0][0] - cut_layers[0][1],
+                   input_shape[1]-cut_layers[1][0] - cut_layers[1][1],
+                   input_shape[2]-cut_layers[2][0] - cut_layers[2][1])
     model_output_num = args_dict["model_output_num"]
     batch_size = args_dict["batch_size"]
 
