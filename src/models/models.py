@@ -1081,6 +1081,31 @@ def upsample_block(x, conv_features, n_filters):
     return x
 
 
+def u_net_mini(inputs, points_num=2, dsnt=False):
+
+    # encoder: contracting path - downsample
+    # 1 - downsample
+    f1, p1 = downsample_block(inputs, 64)
+    # 2 - downsample
+    f2, p2 = downsample_block(p1, 128)
+
+    # 3 - bottleneck
+    bottleneck = double_conv_block(p2, 256)
+
+    # decoder: expanding path - upsample
+    # 4 - upsample
+    u4 = upsample_block(bottleneck, f2, 128)
+    # 5 - upsample
+    u5 = upsample_block(u4, f1, 64)
+
+    if dsnt:
+        heatmaps = layers.Conv3D(points_num, 1, padding="same", activation="softmax")(u5)
+    else:
+        heatmaps = layers.Conv3D(3, 3, strides=4, activation="relu")(u5)
+
+    return heatmaps
+
+
 def u_net(inputs, points_num=2, dsnt=False):
 
     # encoder: contracting path - downsample
@@ -1134,10 +1159,16 @@ def u_net_model(height=176, width=176, depth=48, points_num=2):
     return model
 
 
-def u_net_dsnt_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
+def u_net_dsnt_model(height=176, width=176, depth=48, points_num=2, batch_size=2, u_net_id=0):
     inputs = keras.Input((height, width, depth, 1))
 
-    heatmaps = u_net(inputs, points_num, dsnt=True)
+    if u_net_id == 0:
+        heatmaps = u_net(inputs, points_num, dsnt=True)
+    elif u_net_id == 1:
+        heatmaps = u_net_mini(inputs, points_num, dsnt=True)
+    else:
+        print("u_net_dsnt_model error, unknown u_net_id: ", u_net_id)
+        exit(0)
 
     base_cor_rcs = coordinate_3d(batch_size, points_num, height, width, depth)
 
@@ -1209,6 +1240,21 @@ def u_net_Xception_model(height=176, width=176, depth=48, points_num=2):
     return model
 
 
+# upsampling padding function
+def upsampling_padding(input_shape, downsampling_factor, features_downsampled):
+    paddings = input_shape % downsampling_factor
+    border_paddings = np.floor(paddings/2).astype("int")
+    end_paddings = paddings % 2
+    sum_padding = (
+        (border_paddings[0], border_paddings[0]+end_paddings[0]),
+        (border_paddings[1], border_paddings[1]+end_paddings[1]),
+        (border_paddings[2], border_paddings[2]+end_paddings[2]))
+
+    upsample_no_padding = layers.UpSampling3D(downsampling_factor, name='spatial_prediction')(features_downsampled)
+    upsample_padding = layers.ZeroPadding3D(sum_padding)(upsample_no_padding)
+    return upsample_padding
+
+
 # Spatial Configuration Net: "Regressing Heatmaps for Multiple Landmark Localization Using CNNs"
 # https://github.com/christianpayer/MedicalDataAugmentationTool-HeatmapRegression/blob/master/hand_xray/network.py
 def sc_net(inputs, points_num, dsnt=False, local_kernel_size=(3, 3, 3), spatial_kernel_size=(9, 9, 5)):
@@ -1240,7 +1286,8 @@ def sc_net(inputs, points_num, dsnt=False, local_kernel_size=(3, 3, 3), spatial_
             h_acc = layers.Conv3D(1, kernel_size=spatial_kernel_size, name='h_acc_'+str(i), activation=spatial_activation, kernel_initializer=heatmap_initializer, padding=padding)(local_heatmaps_except_i)
             spatial_heatmaps_downsampled_split.append(h_acc)
         spatial_heatmaps_downsampled = tf.concat(spatial_heatmaps_downsampled_split, name='spatial_heatmaps_downsampled', axis=channel_axis)
-        spatial_heatmaps = layers.UpSampling3D(downsampling_factor, name='spatial_prediction')(spatial_heatmaps_downsampled)
+        # spatial_heatmaps = layers.UpSampling3D(downsampling_factor, name='spatial_prediction')(spatial_heatmaps_downsampled)
+        spatial_heatmaps = upsampling_padding(np.asarray(inputs.shape[1:-1]), downsampling_factor, spatial_heatmaps_downsampled)
     with tf.name_scope('combination'):
         if dsnt:
             heatmaps = local_heatmaps * spatial_heatmaps
@@ -1278,7 +1325,7 @@ def scn_dsnt_model(height=176, width=176, depth=48, points_num=2, local_kernel_s
 
     base_cor_rcs = coordinate_3d(batch_size, points_num, height, width, depth)
 
-    pro_matrix = layers.Reshape((width, height, depth, points_num, 3)) \
+    pro_matrix = layers.Reshape((height, width, depth, points_num, 3)) \
         (tf.repeat(layers.Softmax(axis=[1, 2, 3], name="softmax")(heatmaps), repeats=3, axis=-1))
     outputs = tf.math.reduce_sum(layers.multiply([base_cor_rcs, pro_matrix]), axis=[1, 2, 3])
 
@@ -1441,7 +1488,9 @@ def model_manager(args_dict):
     elif model_name == "u_net":
         model = u_net_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     elif model_name == "u_net_dsnt":
-        model = u_net_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
+        model = u_net_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size, 0)
+    elif model_name == "u_net_mini_dsnt":
+        model = u_net_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size, 1)
     elif model_name == "scn":
         model = scn_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     elif model_name == "scn_dsnt":

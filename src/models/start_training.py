@@ -170,6 +170,7 @@ def train_straight_model():
         # dataset noises_s1.5_test_dis [[25, 27], [33, 29], [28, 30]]
         # *********
         ## S1
+        ### learning rate 0.0001 is better
         {"train_id": 41, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0003,
          "model_label_1": "learning_rate", "model_label_2": "0.0003", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]]},
@@ -177,12 +178,18 @@ def train_straight_model():
          "model_label_1": "learning_rate", "model_label_2": "0.00006", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]]},
         ## S1.5
+        ### 0.0003 same as 0.0001, 0.00006 little bit decrease, but not many differences. can stick on 0.0001
+        ### more stable than S1 seems
         {"train_id": 43, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0003,
          "model_label_1": "learning_rate", "model_label_2": "0.0003", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]]},
         {"train_id": 44, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00006,
          "model_label_1": "learning_rate", "model_label_2": "0.00006", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]]},
+        ## S1.5 with 100x100x100
+        {"train_id": 45, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]]},
     ]
     return update_args_dict_list
 
@@ -236,6 +243,7 @@ def train_unet_dsnt_model():
         # dataset noises_s1_test_dis   [[20, 17], [27, 23], [19, 20]]
         # dataset noises_s1.5_test_dis [[25, 27], [33, 29], [28, 30]]
         # *********
+        ### precision worse than 100x100x100, but less overfitting...
         ## S1
         {"train_id": 13, "model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
@@ -249,6 +257,15 @@ def train_unet_dsnt_model():
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]]},
         {"train_id": 16, "model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
          "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]]},
+        # u_net_mini_dsnt
+        ## S1
+        {"train_id": 17, "model_name": "u_net_mini_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]]},
+        ## S1.5
+        {"train_id": 18, "model_name": "u_net_mini_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]]},
     ]
     return update_args_dict_list
@@ -290,6 +307,7 @@ def train_covonly_dsnt_model():
         # dataset noises_s1.5_test_dis [[25, 27], [33, 29], [28, 30]]
         # *********
         ## S1
+        ### precision increased than 100x100x100 little bit, learning rate 0.0001 looks better
         {"train_id": 11, "model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]]},
@@ -297,12 +315,17 @@ def train_covonly_dsnt_model():
          "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]]},
         ## S1.5
+        ### precision much better, learning rate not very different seems
         {"train_id": 13, "model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]]},
         {"train_id": 14, "model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
          "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]]},
+        ## s1.5 with 100x100x100
+        {"train_id": 15, "model_name": "cov_only_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]]},
     ]
     return update_args_dict_list
 
