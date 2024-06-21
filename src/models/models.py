@@ -1037,24 +1037,28 @@ def cov_only_fc_model(height=176, width=176, depth=48, kernel_size=3, points_num
 # for Landmark Localization in 3D Medical Images"
 # not from the origin
 # https://pyimagesearch.com/2022/02/21/u-net-image-segmentation-in-keras/
-def double_conv_block(x, n_filters):
+def double_conv_block(x, n_filters, with_bn=False):
     # Conv3D then ReLU activation
-    x = layers.Conv3D(n_filters, 3, padding="same", activation="relu", kernel_initializer="he_normal")(x)
+    x = layers.Conv3D(n_filters, 3, padding="same", kernel_initializer="he_normal")(x)
+    if with_bn: x = layers.BatchNormalization()(x)
+    x = layers.ReLU()(x)
     # Conv3D then ReLU activation
-    x = layers.Conv3D(n_filters, 3, padding="same", activation="relu", kernel_initializer="he_normal")(x)
+    x = layers.Conv3D(n_filters, 3, padding="same", kernel_initializer="he_normal")(x)
+    if with_bn: x = layers.BatchNormalization()(x)
+    x = layers.ReLU()(x)
 
     return x
 
 
-def downsample_block(x, n_filters):
-    f = double_conv_block(x, n_filters)
+def downsample_block(x, n_filters, with_bn=False):
+    f = double_conv_block(x, n_filters, with_bn)
     p = layers.MaxPool3D(2)(f)
     p = layers.Dropout(0.3)(p)
 
     return f, p
 
 
-def upsample_block(x, conv_features, n_filters):
+def upsample_block(x, conv_features, n_filters, with_bn=False):
     # upsample
     x = layers.Conv3DTranspose(n_filters, 3, 2, padding="same")(x)
     # concatenate
@@ -1076,7 +1080,7 @@ def upsample_block(x, conv_features, n_filters):
     # dropout
     x = layers.Dropout(0.3)(x)
     # Conv3D twice with ReLU activation
-    x = double_conv_block(x, n_filters)
+    x = double_conv_block(x, n_filters, with_bn)
 
     return x
 
@@ -1097,6 +1101,31 @@ def u_net_mini(inputs, points_num=2, dsnt=False):
     u4 = upsample_block(bottleneck, f2, 128)
     # 5 - upsample
     u5 = upsample_block(u4, f1, 64)
+
+    if dsnt:
+        heatmaps = layers.Conv3D(points_num, 1, padding="same", activation="softmax")(u5)
+    else:
+        heatmaps = layers.Conv3D(3, 3, strides=4, activation="relu")(u5)
+
+    return heatmaps
+
+
+def u_net_mini_bn(inputs, points_num=2, dsnt=False):
+
+    # encoder: contracting path - downsample
+    # 1 - downsample
+    f1, p1 = downsample_block(inputs, 64, True)
+    # 2 - downsample
+    f2, p2 = downsample_block(p1, 128, True)
+
+    # 3 - bottleneck
+    bottleneck = double_conv_block(p2, 256, True)
+
+    # decoder: expanding path - upsample
+    # 4 - upsample
+    u4 = upsample_block(bottleneck, f2, 128, True)
+    # 5 - upsample
+    u5 = upsample_block(u4, f1, 64, True)
 
     if dsnt:
         heatmaps = layers.Conv3D(points_num, 1, padding="same", activation="softmax")(u5)
@@ -1166,6 +1195,8 @@ def u_net_dsnt_model(height=176, width=176, depth=48, points_num=2, batch_size=2
         heatmaps = u_net(inputs, points_num, dsnt=True)
     elif u_net_id == 1:
         heatmaps = u_net_mini(inputs, points_num, dsnt=True)
+    elif u_net_id == 2:
+        heatmaps = u_net_mini_bn(inputs, points_num, dsnt=True)
     else:
         print("u_net_dsnt_model error, unknown u_net_id: ", u_net_id)
         exit(0)
@@ -1491,6 +1522,8 @@ def model_manager(args_dict):
         model = u_net_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size, 0)
     elif model_name == "u_net_mini_dsnt":
         model = u_net_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size, 1)
+    elif model_name == "u_net_mini_bn_dsnt":
+        model = u_net_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size, 2)
     elif model_name == "scn":
         model = scn_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     elif model_name == "scn_dsnt":

@@ -164,6 +164,34 @@ def train_straight_model():
         {"train_id": 40, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 29], [34, 30], [29, 33]]},
+        # corrode exp with S1.5 noise
+        {"train_id": 46, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[9, 31], [19, 30], [28, 11]]},
+        {"train_id": 47, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[10, 35], [21, 31], [30, 13]]},
+        {"train_id": 48, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[12, 36], [21, 31], [31, 14]]},
+        {"train_id": 49, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[13, 37], [23, 32], [32, 15]]},
+        {"train_id": 50, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[14, 38], [25, 32], [32, 16]]},
+        {"train_id": 51, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[15, 38], [27, 32], [33, 16]]},
+        {"train_id": 52, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[16, 39], [37, 33], [34, 17]]},
+        {"train_id": 53, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[16, 39], [37, 33], [35, 17]]},
+        {"train_id": 54, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[18, 40], [39, 33], [35, 18]]},
         # *********
         # try to optimize the model with choice of cut layer
         # dataset noises_s1_test_dis   [[20, 17], [27, 23], [19, 20]]
@@ -260,13 +288,47 @@ def train_unet_dsnt_model():
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]]},
         # u_net_mini_dsnt
         ## S1
+        ### worse than u_net_dsnt
         {"train_id": 17, "model_name": "u_net_mini_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]]},
+        {"train_id": 19, "model_name": "u_net_mini_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
+         "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]]},
         ## S1.5
+        ### similar to u_net_dsnt
         {"train_id": 18, "model_name": "u_net_mini_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]]},
+        ## try 100x100x100
+        {"train_id": 20, "model_name": "u_net_mini_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]]},
+        {"train_id": 21, "model_name": "u_net_mini_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[5, 5], [5, 5], [5, 5]]},
+        {"train_id": 22, "model_name": "u_net_mini_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[10, 10], [10, 10], [10, 10]]},
+        {"train_id": 23, "model_name": "u_net_mini_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[15, 15], [15, 15], [15, 15]]},
+        # u_net_mini_bn_dsnt
+        ## S1
+        {"train_id": 24, "model_name": "u_net_mini_bn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]]},
+        {"train_id": 25, "model_name": "u_net_mini_bn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
+         "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]]},
+        ## S1.5
+        {"train_id": 26, "model_name": "u_net_mini_bn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]]},
+        ## try 100x100x100
+        {"train_id": 27, "model_name": "u_net_mini_bn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]]},
     ]
     return update_args_dict_list
 
@@ -382,6 +444,7 @@ def train_scn_dsnt_model():
         # use local (5,5,5), global (9, 9, 5)
         # *********
         ## S1
+        ### precision improved compare to 100x100x100 S1
         {"train_id": 11, "model_name": "scn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]],
@@ -391,6 +454,7 @@ def train_scn_dsnt_model():
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]],
          "local_kernel_size": (5, 5, 5), "spatial_kernel_size": (9, 9, 5)},
         ## S1.5
+        ### precision better than S1, learning rate 5E-5 seems better? not much different
         {"train_id": 13, "model_name": "scn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]],
@@ -398,6 +462,11 @@ def train_scn_dsnt_model():
         {"train_id": 14, "model_name": "scn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
          "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]],
+         "local_kernel_size": (5, 5, 5), "spatial_kernel_size": (9, 9, 5)},
+        ## S1.5 100x100x100
+        {"train_id": 15, "model_name": "scn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]],
          "local_kernel_size": (5, 5, 5), "spatial_kernel_size": (9, 9, 5)},
     ]
     return update_args_dict_list
