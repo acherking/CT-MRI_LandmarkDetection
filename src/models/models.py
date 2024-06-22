@@ -1058,9 +1058,12 @@ def downsample_block(x, n_filters, with_bn=False):
     return f, p
 
 
-def upsample_block(x, conv_features, n_filters, with_bn=False):
+def upsample_block(x, conv_features, n_filters, with_bn=False, up_sample_fn=0):
     # upsample
-    x = layers.Conv3DTranspose(n_filters, 3, 2, padding="same")(x)
+    if up_sample_fn == 0:
+        x = layers.Conv3DTranspose(n_filters, 3, 2, padding="same")(x)
+    elif up_sample_fn == 1:
+        x = layers.UpSampling3D(2, name='up_sampling_rep')(x)
     # concatenate
     if x.shape[1] < conv_features.shape[1]:
         p_r = (0, 1)
@@ -1135,6 +1138,31 @@ def u_net_mini_bn(inputs, points_num=2, dsnt=False):
     return heatmaps
 
 
+def u_net_mini_upsample_rep(inputs, points_num=2, dsnt=False):
+
+    # encoder: contracting path - downsample
+    # 1 - downsample
+    f1, p1 = downsample_block(inputs, 64, True)
+    # 2 - downsample
+    f2, p2 = downsample_block(p1, 128, True)
+
+    # 3 - bottleneck
+    bottleneck = double_conv_block(p2, 256, True)
+
+    # decoder: expanding path - upsample
+    # 4 - upsample
+    u4 = upsample_block(bottleneck, f2, 128, True, 1)
+    # 5 - upsample
+    u5 = upsample_block(u4, f1, 64, True, 1)
+
+    if dsnt:
+        heatmaps = layers.Conv3D(points_num, 1, padding="same", activation="softmax")(u5)
+    else:
+        heatmaps = layers.Conv3D(3, 3, strides=4, activation="relu")(u5)
+
+    return heatmaps
+
+
 def u_net(inputs, points_num=2, dsnt=False):
 
     # encoder: contracting path - downsample
@@ -1197,6 +1225,8 @@ def u_net_dsnt_model(height=176, width=176, depth=48, points_num=2, batch_size=2
         heatmaps = u_net_mini(inputs, points_num, dsnt=True)
     elif u_net_id == 2:
         heatmaps = u_net_mini_bn(inputs, points_num, dsnt=True)
+    elif u_net_id == 3:
+        heatmaps = u_net_mini_upsample_rep(inputs, points_num, dsnt=True)
     else:
         print("u_net_dsnt_model error, unknown u_net_id: ", u_net_id)
         exit(0)
@@ -1524,6 +1554,8 @@ def model_manager(args_dict):
         model = u_net_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size, 1)
     elif model_name == "u_net_mini_bn_dsnt":
         model = u_net_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size, 2)
+    elif model_name == "u_net_mini_upsample_rep_dsnt":
+        model = u_net_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size, 3)
     elif model_name == "scn":
         model = scn_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     elif model_name == "scn_dsnt":

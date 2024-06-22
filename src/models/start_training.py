@@ -288,7 +288,7 @@ def train_unet_dsnt_model():
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]]},
         # u_net_mini_dsnt
         ## S1
-        ### worse than u_net_dsnt
+        ### worse than u_net_dsnt, seems not because of the learning rate
         {"train_id": 17, "model_name": "u_net_mini_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]]},
@@ -315,6 +315,7 @@ def train_unet_dsnt_model():
          "input_shape": (100, 100, 100), "cut_layers": [[15, 15], [15, 15], [15, 15]]},
         # u_net_mini_bn_dsnt
         ## S1
+        ### precision not improved compare to without bn
         {"train_id": 24, "model_name": "u_net_mini_bn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]]},
@@ -322,6 +323,7 @@ def train_unet_dsnt_model():
          "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]]},
         ## S1.5
+        ### precision not improved compare to without bn
         {"train_id": 26, "model_name": "u_net_mini_bn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]]},
@@ -329,6 +331,13 @@ def train_unet_dsnt_model():
         {"train_id": 27, "model_name": "u_net_mini_bn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]]},
+        # u_net_mini_upsample_rep_dsnt
+        {"train_id": 28, "model_name": "u_net_mini_upsample_rep_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]]},
+        {"train_id": 29, "model_name": "u_net_mini_upsample_rep_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]]},
     ]
     return update_args_dict_list
 
@@ -454,7 +463,7 @@ def train_scn_dsnt_model():
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]],
          "local_kernel_size": (5, 5, 5), "spatial_kernel_size": (9, 9, 5)},
         ## S1.5
-        ### precision better than S1, learning rate 5E-5 seems better? not much different
+        ### precision better than S1, learning rate 5E-5 seems better? not much different; precision improved compare to 100x100x100 S1.5
         {"train_id": 13, "model_name": "scn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]],
