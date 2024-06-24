@@ -377,7 +377,7 @@ def cpn_fc_model(height=176, width=176, depth=48, points_num=2):
     outputs_s2 = layers.Dense(units=3*points_num)(x_hidden_s2)
     outputs_s2 = layers.Reshape((points_num, 3))(outputs_s2)
 
-    model = keras.Model(inputs, [outputs_s1, outputs_s2], name="cpn-fc-model")
+    model = keras.Model(inputs, outputs_s2, name="cpn-fc-model")
 
     return model
 
@@ -1063,7 +1063,7 @@ def upsample_block(x, conv_features, n_filters, with_bn=False, up_sample_fn=0):
     if up_sample_fn == 0:
         x = layers.Conv3DTranspose(n_filters, 3, 2, padding="same")(x)
     elif up_sample_fn == 1:
-        x = layers.UpSampling3D(2, name='up_sampling_rep')(x)
+        x = layers.UpSampling3D(2)(x)
     # concatenate
     if x.shape[1] < conv_features.shape[1]:
         p_r = (0, 1)
@@ -1318,7 +1318,7 @@ def upsampling_padding(input_shape, downsampling_factor, features_downsampled):
 
 # Spatial Configuration Net: "Regressing Heatmaps for Multiple Landmark Localization Using CNNs"
 # https://github.com/christianpayer/MedicalDataAugmentationTool-HeatmapRegression/blob/master/hand_xray/network.py
-def sc_net(inputs, points_num, dsnt=False, local_kernel_size=(3, 3, 3), spatial_kernel_size=(9, 9, 5)):
+def sc_net(inputs, points_num, dsnt=False, local_kernel_size=(5, 5, 5), spatial_kernel_size=(9, 9, 5)):
     num_filters = 128
     local_kernel_size = local_kernel_size
     spatial_kernel_size = spatial_kernel_size
@@ -1544,7 +1544,7 @@ def model_manager(args_dict):
         model = cov_only_dsnt_model(input_shape[0], input_shape[1], input_shape[2],
                                     kernel_size, model_output_num, batch_size)
     elif model_name == "cov_only_fc":
-        kernel_size = 3
+        kernel_size = 5
         model = cov_only_fc_model(input_shape[0], input_shape[1], input_shape[2], kernel_size, model_output_num)
     elif model_name == "u_net":
         model = u_net_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
@@ -1583,3 +1583,5 @@ def model_manager(args_dict):
         exit(1)
 
     return model
+
+#%%

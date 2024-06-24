@@ -174,6 +174,8 @@ def optimizer_manager(args_dict):
 
     if optimizer_name == 'Adam':
         optimizer = keras.optimizers.Adam(learning_rate=lr_schedule)
+    elif optimizer_name == 'SGD':
+        optimizer = keras.optimizers.SGD(learning_rate=lr_schedule)
     else:
         print("Unknown optimizer: {}".format(optimizer_name))
         exit(0)
