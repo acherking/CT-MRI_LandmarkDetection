@@ -377,19 +377,23 @@ def cpn_fc_model(height=176, width=176, depth=48, points_num=2):
     outputs_s2 = layers.Dense(units=3*points_num)(x_hidden_s2)
     outputs_s2 = layers.Reshape((points_num, 3))(outputs_s2)
 
-    model = keras.Model(inputs, outputs_s2, name="cpn-fc-model")
+    model = keras.Model(inputs, [outputs_s1, outputs_s2], name="cpn-fc-model")
 
     return model
 
 
-def cpn_dsnt_model(height=176, width=176, depth=48, points_num=2):
+def cpn_dsnt_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
 
     inputs = keras.Input((height, width, depth, 1))
     input_shape = (height, width, depth)
 
-    heatmap_s1, heatmap_s2 = cpn(inputs, input_shape, points_num, dsnt=False)
+    heatmap_s1, heatmap_s2 = cpn(inputs, input_shape, points_num, dsnt=True)
 
-    model = keras.Model(inputs, [heatmap_s1, heatmap_s2], name="cpn-dsnt-model")
+    base_cor_rcs = coordinate_3d(batch_size, points_num, height, width, depth)
+    output_s1 = dsnt_transfer(heatmap_s1, base_cor_rcs, "cpn-dsnt-s1")
+    output_s2 = dsnt_transfer(heatmap_s1, base_cor_rcs, "cpn-dsnt-s2")
+
+    model = keras.Model(inputs, [output_s1, output_s2], name="cpn-dsnt-model")
 
     return model
 
@@ -1536,7 +1540,7 @@ def model_manager(args_dict):
     elif model_name == "cpn_fc_model":
         model = cpn_fc_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     elif model_name == "cpn_dsnt_model":
-        model = cpn_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
+        model = cpn_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
     elif model_name == "slr_s1":
         model = cpn_s1(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
     elif model_name == "cov_only_dsnt":
@@ -1583,5 +1587,3 @@ def model_manager(args_dict):
         exit(1)
 
     return model
-
-#%%

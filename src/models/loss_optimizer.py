@@ -11,6 +11,8 @@ def loss_manager(args_dict):
 
     if loss_name == 'MSE_res':
         loss_fn = mse_with_res
+    elif loss_name == '2_MSE_res':
+        loss_fn = two_stage_mse_loss
     elif loss_name == 'MSE':
         loss_fn = mse
     else:
@@ -66,7 +68,7 @@ def two_stage_mse_loss(y_true, y_pred, res):
     loss_s1 = mse_with_res(y_true, y_stage1, res)
     loss_s2 = mse_with_res(y_true, y_stage2, res)
 
-    return [loss_s1, loss_s2]
+    return loss_s1 + loss_s2
 
 
 def mse(y_true, y_pred, res):
@@ -109,6 +111,9 @@ def mean_dis_mm(y_true, y_pred, res):
     :param res: Pixel distance in mm, [batch_size, 1, dimension(column, row, slice)]
     :return: mean square error along batch_size (mm^2)
     """
+    # for cpn
+    if isinstance(y_pred, list):
+        y_pred = y_pred[1]
     with tf.name_scope('mse_res_loss'):
         err_diff = y_true - y_pred
         # repeat res to make a convenient calculation follow
@@ -148,6 +153,11 @@ def my_eval(y_true, y_pred, res, args_dict):
     return metrics
 
 
+def my_eval_cpn(y_true, y_pred, res, args_dict):
+    # only evaluate the second stage prediction
+    return my_eval(y_true, y_pred[:, 1, :, :], res, args_dict)
+
+
 # evaluation metrics
 def eval_metric_manager(args_dict):
     eval_name = args_dict.get('eval_name', "my_eval")
@@ -155,6 +165,8 @@ def eval_metric_manager(args_dict):
     eval_fn = my_eval
     if eval_name == 'my_eval':
         eval_fn = my_eval
+    if eval_name == 'my_eval_cpn':
+        eval_fn = my_eval_cpn
     else:
         print("Unknown eval metric name", eval_name)
 
