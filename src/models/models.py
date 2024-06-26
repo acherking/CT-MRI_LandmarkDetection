@@ -537,9 +537,7 @@ def ResNet34(shape=(72, 72, 48, 1), points_num=4):
     return model
 
 
-def straight_model(height=176, width=176, depth=48, points_num=4):
-    inputs = keras.Input((height, width, depth, 1))
-
+def down_net(inputs, points_num=4, dsnt=False):
     # layer 1
     x_hidden = layers.Conv3D(filters=32, kernel_size=3, padding="same")(inputs)
     x_hidden = layers.BatchNormalization()(x_hidden)
@@ -600,97 +598,99 @@ def straight_model(height=176, width=176, depth=48, points_num=4):
     x_hidden = layers.ReLU()(x_hidden)
 
     # layer 12
-    x_hidden = layers.Conv3D(filters=256, kernel_size=3, padding="same")(x_hidden)
-    x_hidden = layers.BatchNormalization()(x_hidden)
-    x_hidden = layers.ReLU()(x_hidden)
+    if dsnt:
+        x_hidden = layers.Conv3D(filters=points_num, kernel_size=3, padding="same")(x_hidden)
+    else:
+        x_hidden = layers.Conv3D(filters=256, kernel_size=3, padding="same")(x_hidden)
+        x_hidden = layers.BatchNormalization()(x_hidden)
+        x_hidden = layers.ReLU()(x_hidden)
 
-    x_hidden = layers.Dropout(0.2)(x_hidden)
+    return x_hidden
+
+
+def down_net_model(height=176, width=176, depth=48, points_num=4):
+    inputs = keras.Input((height, width, depth, 1))
+    down_net_features = down_net(inputs, points_num=points_num, dsnt=False)
+
+    x_hidden = layers.Dropout(0.2)(down_net_features)
     x_hidden = layers.Flatten()(x_hidden)
     outputs = layers.Dense(units=points_num * 3, )(x_hidden)
-
     outputs = layers.Reshape((points_num, 3))(outputs)
 
     # Define the model.
     model = keras.Model(inputs, outputs, name="straight-3d-cnn")
+    return model
+
+
+def down_net_dsnt_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
+    inputs = keras.Input((height, width, depth, 1))
+
+    heatmap = down_net(inputs, points_num, dsnt=True)
+
+    base_cor_rcs = coordinate_3d(batch_size, points_num, heatmap.shape[1], heatmap.shape[2], heatmap.shape[3])
+    outputs = dsnt_transfer(heatmap, base_cor_rcs, "down-net-dsnt")
+
+    model = keras.Model(inputs, outputs, name="down-net-dsnt-model")
 
     return model
 
 
-def straight_model_short(height=176, width=176, depth=48, points_num=4):
-    inputs = keras.Input((height, width, depth, 1))
-
+def down_net_short(inputs, points_num=4, dsnt=False):
     # layer 1
-    x_hidden = layers.Conv3D(filters=16, kernel_size=3, padding="same")(inputs)
-    x_hidden = layers.BatchNormalization()(x_hidden)
-    x_hidden = layers.ReLU()(x_hidden)
+    x_hidden = layers.Conv3D(filters=64, kernel_size=3, padding="same")(inputs)
     x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
 
     # layer 2
-    x_hidden = layers.Conv3D(filters=32, kernel_size=3, padding="same")(x_hidden)
-    x_hidden = layers.BatchNormalization()(x_hidden)
-    x_hidden = layers.ReLU()(x_hidden)
+    x_hidden = layers.Conv3D(filters=64, kernel_size=3, padding="same")(x_hidden)
     x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
 
     # layer 3
-    x_hidden = layers.Conv3D(filters=64, kernel_size=3, padding="same")(x_hidden)
-    x_hidden = layers.BatchNormalization()(x_hidden)
-    x_hidden = layers.ReLU()(x_hidden)
-
-    # # layer 4
-    # x_hidden = layers.Conv3D(filters=64, kernel_size=3, padding="same")(x_hidden)
-    # x_hidden = layers.BatchNormalization()(x_hidden)
-    # x_hidden = layers.ReLU()(x_hidden)
-    #
-    # # layer 5
-    # x_hidden = layers.Conv3D(filters=128, kernel_size=3, padding="same")(x_hidden)
-    # x_hidden = layers.BatchNormalization()(x_hidden)
-    # x_hidden = layers.ReLU()(x_hidden)
-    # x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
-
-    # layer 6
     x_hidden = layers.Conv3D(filters=128, kernel_size=3, padding="same")(x_hidden)
-    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
     x_hidden = layers.ReLU()(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
 
-    # # layer 7
-    # x_hidden = layers.Conv3D(filters=128, kernel_size=3, padding="same")(x_hidden)
-    # x_hidden = layers.BatchNormalization()(x_hidden)
-    # x_hidden = layers.ReLU()(x_hidden)
-    #
-    # # layer 8
-    # x_hidden = layers.Conv3D(filters=256, kernel_size=3, padding="same")(x_hidden)
-    # x_hidden = layers.BatchNormalization()(x_hidden)
-    # x_hidden = layers.ReLU()(x_hidden)
-    # x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
-    #
-    # # layer 9
-    # x_hidden = layers.Conv3D(filters=512, kernel_size=3, padding="same")(x_hidden)
-    # x_hidden = layers.BatchNormalization()(x_hidden)
-    # x_hidden = layers.ReLU()(x_hidden)
-    #
-    # # layer 10
-    # x_hidden = layers.Conv3D(filters=256, kernel_size=3, padding="same")(x_hidden)
-    # x_hidden = layers.BatchNormalization()(x_hidden)
-    # x_hidden = layers.ReLU()(x_hidden)
-    #
-    # # layer 11
-    # x_hidden = layers.Conv3D(filters=512, kernel_size=3, padding="same")(x_hidden)
-    # x_hidden = layers.BatchNormalization()(x_hidden)
-    # x_hidden = layers.ReLU()(x_hidden)
-    #
-    # # layer 12
-    # x_hidden = layers.Conv3D(filters=256, kernel_size=3, padding="same")(x_hidden)
-    # x_hidden = layers.BatchNormalization()(x_hidden)
-    # x_hidden = layers.ReLU()(x_hidden)
+    # layer 4
+    x_hidden = layers.Conv3D(filters=256, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
 
+    if dsnt:
+        x_hidden = layers.Conv3D(filters=points_num, kernel_size=1, padding="same")(x_hidden)
+
+    return x_hidden
+
+
+def down_net_short_model(height=176, width=176, depth=48, points_num=4):
+    inputs = keras.Input((height, width, depth, 1))
+    down_net_features = down_net_short(inputs, points_num=points_num, dsnt=False)
+
+    x_hidden = layers.Flatten()(down_net_features)
+    x_hidden = layers.Dense(units=512, )(x_hidden)
     x_hidden = layers.Dropout(0.2)(x_hidden)
-    x_hidden = layers.Flatten()(x_hidden)
     outputs = layers.Dense(units=points_num * 3, )(x_hidden)
 
     outputs = layers.Reshape((points_num, 3))(outputs)
 
     # Define the model.
-    model = keras.Model(inputs, outputs, name="straight-3d-cnn")
+    model = keras.Model(inputs, outputs, name="down-net-short")
+    return model
+
+
+def down_net_short_dsnt_model(height=176, width=176, depth=48, points_num=2, batch_size=2):
+    inputs = keras.Input((height, width, depth, 1))
+
+    heatmap = down_net_short(inputs, points_num, dsnt=True)
+
+    base_cor_rcs = coordinate_3d(batch_size, points_num, heatmap.shape[1], heatmap.shape[2], heatmap.shape[3])
+    outputs = dsnt_transfer(heatmap, base_cor_rcs, "down-net-short-dsnt")
+
+    model = keras.Model(inputs, outputs, name="down-net-short-dsnt-model")
 
     return model
 
@@ -1530,10 +1530,14 @@ def model_manager(args_dict):
     batch_size = args_dict["batch_size"]
 
     if model_name == "straight_model":
-        model = straight_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
-    elif model_name == "straight_model_short":
-        model = straight_model_short(input_shape[0], input_shape[1], input_shape[2], model_output_num)
-    elif model_name == "straight_model_mini":
+        model = down_net_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
+    elif model_name == "down_net_dsnt":
+        model = down_net_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
+    elif model_name == "down_net_short":
+        model = down_net_short_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
+    elif model_name == "down_net_short_dsnt":
+        model = down_net_short_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
+    elif model_name == "down_net_mini":
         model = straight_model_mini(input_shape[0], input_shape[1], input_shape[2], model_output_num)
     elif model_name == "res_net":
         model = ResNet34((input_shape[0], input_shape[1], input_shape[2], 1), model_output_num)

@@ -29,8 +29,8 @@ def get_train_id(tid, args_dict_list):
             return args_dict
 
 
-if module_name == "straight_model":
-    args_updates_list = start_training.train_straight_model()
+if module_name == "down_net":
+    args_updates_list = start_training.train_down_net_model()
 elif module_name == "u_net_dsnt":
     args_updates_list = start_training.train_unet_dsnt_model()
 elif module_name == "scn_dsnt":

@@ -165,7 +165,7 @@ def eval_metric_manager(args_dict):
     eval_fn = my_eval
     if eval_name == 'my_eval':
         eval_fn = my_eval
-    if eval_name == 'my_eval_cpn':
+    elif eval_name == 'my_eval_cpn':
         eval_fn = my_eval_cpn
     else:
         print("Unknown eval metric name", eval_name)

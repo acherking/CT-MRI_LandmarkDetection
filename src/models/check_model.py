@@ -16,7 +16,7 @@ import start_training
 base_args = start_training.base_args
 
 train_id = 5
-args_updates = start_training.train_straight_model()[train_id]
+args_updates = start_training.train_down_net_model()[train_id]
 base_args.update(args_updates)
 
 date_tag = "07Jun20241451"
