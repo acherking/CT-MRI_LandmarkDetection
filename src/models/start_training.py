@@ -229,6 +229,7 @@ def train_down_net_dsnt_model():
         {"train_id": 1.1, "model_name": "down_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]]},
+        ## 2.051, no overfitting, bias? worse than S1 interesting
         {"train_id": 1.2, "model_name": "down_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]]},
@@ -242,13 +243,20 @@ def train_down_net_dsnt_model():
         {"train_id": 2, "model_name": "down_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]], "save_model": False},
+        ### 0.389, seems not overfitting
         {"train_id": 3, "model_name": "down_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
          "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]], "save_model": False},
+        ### 0.447, seems learning rate should between 1e-5 to 5e-5
+        {"train_id": 3.1, "model_name": "down_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00001,
+         "model_label_1": "learning_rate", "model_label_2": "0.00001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]], "save_model": False},
         ## S1.5
+        ### 0.791, seems no overfitting
         {"train_id": 4, "model_name": "down_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]], "save_model": False},
+        ### 0.798, learning rate not influence much
         {"train_id": 5, "model_name": "down_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
          "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]], "save_model": False},
@@ -259,9 +267,12 @@ def train_down_net_dsnt_model():
 # down_net_short
 def train_down_net_short_model():
     update_args_dict_list = [
+        ### 0.494, seems no overfitting, good enough in S1 for a very simple model
+        ### if I use this to do overfitting, will it focus more on import area?
         {"train_id": 1.1, "model_name": "down_net_short", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]]},
+        ### 0.373, seems no overfitting, good
         {"train_id": 1.2, "model_name": "down_net_short", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]]},
@@ -271,16 +282,24 @@ def train_down_net_short_model():
         # dataset noises_s1.5_test_dis [[25, 27], [33, 29], [28, 30]]
         # *********
         ## S1
+        ### 0.406, overfitting about 2x
         {"train_id": 2, "model_name": "down_net_short", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]], "save_model": False},
+        ### 0.49, overfitting about 2x, learning rate should increase?
         {"train_id": 3, "model_name": "down_net_short", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
          "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]], "save_model": False},
+        ### 0.391, less overfitting, can try more learning rate? 0.001?
+        {"train_id": 2.1, "model_name": "down_net_short", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0005,
+         "model_label_1": "learning_rate", "model_label_2": "0.0005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]], "save_model": False},
         ## S1.5
+        ### 0.215, seems no overfitting
         {"train_id": 4, "model_name": "down_net_short", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]], "save_model": False},
+        ### 0.258, no overfitting, seems should decrease learning rate
         {"train_id": 5, "model_name": "down_net_short", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
          "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]], "save_model": False},
@@ -291,9 +310,11 @@ def train_down_net_short_model():
 # down_net_short_dsnt
 def train_down_net_short_dsnt_model():
     update_args_dict_list = [
+        ### 0.467 overfitting x5
         {"train_id": 1.1, "model_name": "down_net_short_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]]},
+        ### 0.427 overfitting x10
         {"train_id": 1.2, "model_name": "down_net_short_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]]},
@@ -303,16 +324,20 @@ def train_down_net_short_dsnt_model():
         # dataset noises_s1.5_test_dis [[25, 27], [33, 29], [28, 30]]
         # *********
         ## S1
+        ### 0.475 no overfitting
         {"train_id": 2, "model_name": "down_net_short_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]], "save_model": False},
+        ### 0.491, seems not overfitting
         {"train_id": 3, "model_name": "down_net_short_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
          "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]], "save_model": False},
         ## S1.5
+        ### 0.812, seems not overfitting
         {"train_id": 4, "model_name": "down_net_short_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]], "save_model": False},
+        ### 0.806, seems not overfitting
         {"train_id": 5, "model_name": "down_net_short_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
          "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]], "save_model": False},
@@ -705,10 +730,12 @@ def train_scn_dsnt_model():
 # cpn
 def train_cpn_model():
     update_args_dict_list = [
+        ### 1.215, overfitting, model too complex?
         {"train_id": 1.1, "model_name": "cpn_fc_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]], "save_model": False, "loss_name": "2_MSE_res",
          'eval_name': "my_eval_cpn"},
+        ### 0.502, overfitting still, seems shifting influenced a lot
         {"train_id": 1.2, "model_name": "cpn_fc_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]], "save_model": False, "loss_name": "2_MSE_res",
@@ -740,10 +767,12 @@ def train_cpn_model():
          "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]], "save_model": False, "loss_name": "2_MSE_res",
          'eval_name': "my_eval_cpn"},
+        ### 0.417 little bit overfitting
         {"train_id": 6, "model_name": "cpn_fc_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0002,
          "model_label_1": "learning_rate", "model_label_2": "0.0002", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]], "save_model": False, "loss_name": "2_MSE_res",
          'eval_name': "my_eval_cpn"},
+        ### 0.447, overfitting 10x
         {"train_id": 7, "model_name": "cpn_fc_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0005,
          "model_label_1": "learning_rate", "model_label_2": "0.0005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]], "save_model": False, "loss_name": "2_MSE_res",
@@ -755,10 +784,12 @@ def train_cpn_model():
 # cpn_dsnt
 def train_cpn_dsnt_model():
     update_args_dict_list = [
+        ### 1.807, no overfitting
         {"train_id": 1.1, "model_name": "cpn_dsnt_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]], "save_model": False, "loss_name": "2_MSE_res",
          'eval_name': "my_eval_cpn"},
+        ### 1.722, no overfitting
         {"train_id": 1.2, "model_name": "cpn_dsnt_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]], "save_model": False, "loss_name": "2_MSE_res",
@@ -779,6 +810,16 @@ def train_cpn_dsnt_model():
          "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]], "save_model": False, "loss_name": "2_MSE_res",
          'eval_name': "my_eval_cpn"},
+        ### 1.509, seems no overfitting
+        {"train_id": 2.1, "model_name": "cpn_dsnt_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.001,
+         "model_label_1": "learning_rate", "model_label_2": "0.001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]], "save_model": False, "loss_name": "2_MSE_res",
+         'eval_name': "my_eval_cpn"},
+        ### 1.561, bigger overfitting
+        {"train_id": 2.2, "model_name": "cpn_dsnt_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.005,
+         "model_label_1": "learning_rate", "model_label_2": "0.005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]], "save_model": False, "loss_name": "2_MSE_res",
+         'eval_name': "my_eval_cpn"},
         ## S1.5
         ### 1.694, under fitting, bias (too general)
         {"train_id": 4, "model_name": "cpn_dsnt_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
@@ -790,12 +831,24 @@ def train_cpn_dsnt_model():
          "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]], "save_model": False, "loss_name": "2_MSE_res",
          'eval_name': "my_eval_cpn"},
+        ### 1.638, no overfitting
         {"train_id": 6, "model_name": "cpn_dsnt_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0002,
          "model_label_1": "learning_rate", "model_label_2": "0.0002", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]], "save_model": False, "loss_name": "2_MSE_res",
          'eval_name': "my_eval_cpn"},
+        ### 1.513, no overfitting, learning rate do influence
         {"train_id": 7, "model_name": "cpn_dsnt_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0005,
          "model_label_1": "learning_rate", "model_label_2": "0.0005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]], "save_model": False, "loss_name": "2_MSE_res",
+         'eval_name': "my_eval_cpn"},
+        ### 1.585, look like learning rate should bigger than 0.0001
+        {"train_id": 4.1, "model_name": "cpn_dsnt_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.001,
+         "model_label_1": "learning_rate", "model_label_2": "0.001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]], "save_model": False, "loss_name": "2_MSE_res",
+         'eval_name': "my_eval_cpn"},
+        ### 1.516, learning rate can bigger than 0.005
+        {"train_id": 4.2, "model_name": "cpn_dsnt_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.005,
+         "model_label_1": "learning_rate", "model_label_2": "0.005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1.5_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 27], [33, 29], [28, 30]], "save_model": False, "loss_name": "2_MSE_res",
          'eval_name': "my_eval_cpn"},
     ]
