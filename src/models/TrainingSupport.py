@@ -114,9 +114,9 @@ def load_dataset_manager(args_dict):
         if data_split_static: print("Using static dataset split: Train, Val, Test")
         data_splits = MyDataset.get_data_splits(MyDataset.get_pat_splits(static=data_split_static), split=True)
     elif data_split_tag == "cross_val":
-        data_splits = []
-        print("This fun can not deal with cross_val data splits yet!")
-        exit(0)
+        k_pat_splits = MyDataset.get_k_folds_pat_splits(args_dict["k_cross_num"])
+        print("K folds patients split: ", k_pat_splits[args_dict["k_cross_idx"]])
+        data_splits = MyDataset.get_data_splits(k_pat_splits[args_dict["k_cross_idx"]], split=True)
     else:
         print("Unknown data_split_tag: ", data_split_tag)
         exit(0)
