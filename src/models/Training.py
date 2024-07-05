@@ -179,6 +179,8 @@ def train_model(args_dict):
     if args_dict.get("write_log", True):
         log.close()
 
+    return best_val[1]["mean_dis_all"]
+
 
 if __name__ == "__main__":
     args = {

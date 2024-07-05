@@ -12,3 +12,5 @@ data/processed/Y/~*
 models/*
 
 src/models/slurm/output/
+
+notebook/my_dir/
