@@ -142,6 +142,9 @@ def train_down_net_model():
         {"train_id": 33, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]]},  # ***
+        {"train_id": 33.1, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]], "batch_size": 6},
         {"train_id": 34, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[22, 21], [30, 26], [23, 25]]},

@@ -34,10 +34,16 @@ def get_record_dir(args_dict, get_dir=False):
     if len(label_2) > 0:
         save_dir = f"{save_dir}/{label_2}"
 
-    train_id_str = str(args_dict.get("train_id", -1))
-    train_id_tag = f"trainID-{train_id_str}"
     time_tag = time.strftime("%d%b%Y-%H:%M:%S")
-    save_dir = f"{save_dir}/{time_tag}-{train_id_tag}"
+    if args_dict.get("data_split_tag") == "cross_val":
+        k_str = str(args_dict["k_cross_num"])
+        k_idx_str = str(args_dict["k_cross_idx"])
+        k_fold_tag = f"{k_str}fold{k_idx_str}"
+        save_dir = f"{save_dir}/{time_tag}-{k_fold_tag}"
+    else:
+        train_id_str = str(args_dict.get("train_id", -1))
+        train_id_tag = f"trainID-{train_id_str}"
+        save_dir = f"{save_dir}/{time_tag}-{train_id_tag}"
 
     if not get_dir:
         # create the dir if not exist

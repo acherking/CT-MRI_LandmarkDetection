@@ -1,5 +1,6 @@
 import keras_tuner
 import Training
+import k_fold_cross_validation
 import start_training
 
 base_args = start_training.base_args
@@ -11,23 +12,27 @@ for args_update in args_update_list:
     if args_update['train_id'] == train_id:
         base_args.update(args_update)
 
-base_args.update({'model_label_1': "keras_tuner_try"})
+base_args.update({'model_label_1': "keras_tuner_training_process"})
 
 
 class MyTuner(keras_tuner.RandomSearch):
     def run_trial(self, trial, **kwargs):
         hp = trial.hyperparameters
-        lr = hp.Float("lr", min_value=1e-4, max_value=1e-2, sampling="log")
+        # hyper-parameter
+        lr = hp.Float("lr", min_value=1e-5, max_value=1e-2, sampling="log")
+        bs = hp.Int("bs", min_value=2, max_value=10, step=2)
+        optimizer = hp.Choice("optimizer", ['Adam', 'SGD'])
+        decay_steps = hp.Int("decay_steps", min_value=100, max_value=1000, step=50)
         base_args.update({'model_label_2': f"{trial.trial_id}.keras_tuner"})
-        base_args.update({'learning_rate': lr})
-        return Training.train_model(base_args)
+        base_args.update({'learning_rate': lr, "batch_size": bs, "optimizer": optimizer, "decay_steps": decay_steps})
+        return k_fold_cross_validation.k_fold_cross_validation(8, base_args)
 
 
 tuner = MyTuner(
-    max_trials=10,
+    max_trials=50,
     overwrite=True,
-    directory="my_dir",
-    project_name="try_keras_tuner",
+    directory="keras_tuner_dir",
+    project_name="keras_tuner_training_process",
 )
 tuner.search()
 # Retraining the model

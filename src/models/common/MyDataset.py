@@ -235,27 +235,29 @@ def get_k_folds(k):
         return []
 
 
+def split_list(lst, chunk_size):
+    chunks = [[] for _ in range((len(lst) + chunk_size - 1) // chunk_size)]
+    for i, item in enumerate(lst):
+        chunks[i // chunk_size].append(item)
+    return chunks
+
+
 def get_k_folds_pat_splits(k):
-    k_folds = get_k_folds(k)
+    # just use the ramdom result got in the beginning
+    train_pat_id = [2, 4, 18, 17, 12, 10, 6, 0, 11, 16, 9, 14, 5, 19, 3, 13]
+    test_pats_id = [8, 7, 1, 15]
+
+    # k_folds = get_k_folds(k)
+    k_folds = split_list(train_pat_id, int(16/k))
     print("K folds: ", k_folds)
 
     # [training_dataset_id, val_dataset_id, val_dataset_id] --- just for convenient
     k_folds_idx_splits = []
     for k_i in range(k):
-        test_pats = k_folds[k_i]
-        test_pats_id = [patient_names.index(name) for name in test_pats]
+        val_pats_id = k_folds[k_i]
 
-        training_pats = k_folds[:k_i] + k_folds[k_i+1:]
-        training_pats = [j for i in training_pats for j in i]  # combine sub-lists
-        training_pats_id = [patient_names.index(name) for name in training_pats]
-
-        # add val dataset
-        # shuffle(training_pats_id)
-        # val_pats_id = training_pats_id[0:2]
-        # training_pats_id = training_pats_id[2:]
-
-        # no val dataset
-        val_pats_id = list.copy(training_pats_id)
+        training_pats_id = k_folds[:k_i] + k_folds[k_i+1:]
+        training_pats_id = [j for i in training_pats_id for j in i]  # combine sub-lists
 
         pat_splits = [training_pats_id, val_pats_id, test_pats_id]
         k_folds_idx_splits.append(pat_splits)
