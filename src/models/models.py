@@ -537,6 +537,40 @@ def ResNet34(shape=(72, 72, 48, 1), points_num=4):
     return model
 
 
+def down_net_dynamic_model(hp, height=176, width=176, depth=48, points_num=4):
+
+    inputs = keras.Input((height, width, depth, 1))
+    # layer 1
+    filter_num_l1 = hp.Int("filters_1", min_value=32, max_value=512, step=32)
+    x_hidden = layers.Conv3D(filters=filter_num_l1, kernel_size=3, padding="same")(inputs)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.ReLU()(x_hidden)
+    if hp.Boolean("max_pooling_1"):
+        x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+
+    # layer ...
+    for i in range(2, hp.Int("num_layers", 5, 12)):
+        filter_num = hp.Int(f"filters_{i}", min_value=32, max_value=512, step=32)
+        x_hidden = layers.Conv3D(filters=filter_num, kernel_size=3, padding="same")(x_hidden)
+        x_hidden = layers.BatchNormalization()(x_hidden)
+        x_hidden = layers.ReLU()(x_hidden)
+        if x_hidden.shape[1] > 1 and x_hidden.shape[2] > 1 and x_hidden.shape[3] > 1:
+            if hp.Boolean(f"max_pooling_{i}"):
+                x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+
+    if hp.Boolean(f"drop_out"):
+        dropout_rate = hp.Float("dropout_rate", min_value=0.1, max_value=0.3, step=0.05)
+        x_hidden = layers.Dropout(dropout_rate)(x_hidden)
+
+    x_hidden = layers.Flatten()(x_hidden)
+    outputs = layers.Dense(units=points_num * 3, )(x_hidden)
+    outputs = layers.Reshape((points_num, 3))(outputs)
+
+    # Define the model.
+    model = keras.Model(inputs, outputs, name="dynamic-down-net")
+    return model
+
+
 def down_net(inputs, points_num=4, dsnt=False):
     # layer 1
     x_hidden = layers.Conv3D(filters=32, kernel_size=3, padding="same")(inputs)
@@ -1531,6 +1565,9 @@ def model_manager(args_dict):
 
     if model_name == "straight_model":
         model = down_net_model(input_shape[0], input_shape[1], input_shape[2], model_output_num)
+    elif model_name == "down_net_dynamic":
+        hp = args_dict["hp"]
+        model = down_net_dynamic_model(hp, input_shape[0], input_shape[1], input_shape[2], model_output_num)
     elif model_name == "down_net_dsnt":
         model = down_net_dsnt_model(input_shape[0], input_shape[1], input_shape[2], model_output_num, batch_size)
     elif model_name == "down_net_short":
