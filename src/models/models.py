@@ -571,6 +571,113 @@ def down_net_dynamic_model(hp, height=176, width=176, depth=48, points_num=4):
     return model
 
 
+def down_net_org(inputs, points_num=4, dsnt=False):
+    # layer 1
+    x_hidden = layers.Conv3D(filters=32, kernel_size=3, padding="same")(inputs)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.LeakyReLU(negative_slope=0.1)(x_hidden)
+    x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+
+    # layer 2
+    x_hidden = layers.Conv3D(filters=64, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.LeakyReLU(negative_slope=0.1)(x_hidden)
+    x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+
+    # layer 3
+    x_hidden = layers.Conv3D(filters=128, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.LeakyReLU(negative_slope=0.1)(x_hidden)
+
+    # layer 4
+    x_hidden = layers.Conv3D(filters=64, kernel_size=1, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.LeakyReLU(negative_slope=0.1)(x_hidden)
+
+    # layer 5
+    x_hidden = layers.Conv3D(filters=128, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.LeakyReLU(negative_slope=0.1)(x_hidden)
+    x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+
+    # layer 6
+    x_hidden = layers.Conv3D(filters=256, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.LeakyReLU(negative_slope=0.1)(x_hidden)
+
+    # layer 7
+    x_hidden = layers.Conv3D(filters=128, kernel_size=1, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.LeakyReLU(negative_slope=0.1)(x_hidden)
+
+    # layer 8
+    x_hidden = layers.Conv3D(filters=256, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.LeakyReLU(negative_slope=0.1)(x_hidden)
+    x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+
+    # layer 9
+    x_hidden = layers.Conv3D(filters=512, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.LeakyReLU(negative_slope=0.1)(x_hidden)
+
+    # layer 10
+    x_hidden = layers.Conv3D(filters=256, kernel_size=1, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.LeakyReLU(negative_slope=0.1)(x_hidden)
+
+    # layer 11
+    x_hidden = layers.Conv3D(filters=512, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.LeakyReLU(negative_slope=0.1)(x_hidden)
+
+    # layer 12
+    x_hidden = layers.Conv3D(filters=256, kernel_size=1, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.LeakyReLU(negative_slope=0.1)(x_hidden)
+
+    # layer 13
+    x_hidden = layers.Conv3D(filters=512, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.LeakyReLU(negative_slope=0.1)(x_hidden)
+    x_hidden = layers.MaxPool3D(pool_size=2)(x_hidden)
+
+    # layer 14
+    x_hidden = layers.Conv3D(filters=1024, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.LeakyReLU(negative_slope=0.1)(x_hidden)
+
+    # layer 15
+    x_hidden = layers.Conv3D(filters=512, kernel_size=1, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.LeakyReLU(negative_slope=0.1)(x_hidden)
+
+    # layer 16
+    x_hidden = layers.Conv3D(filters=1024, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.LeakyReLU(negative_slope=0.1)(x_hidden)
+
+    # layer 17
+    x_hidden = layers.Conv3D(filters=512, kernel_size=1, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.LeakyReLU(negative_slope=0.1)(x_hidden)
+
+    # layer 18
+    x_hidden = layers.Conv3D(filters=1024, kernel_size=3, padding="same")(x_hidden)
+    x_hidden = layers.BatchNormalization()(x_hidden)
+    x_hidden = layers.LeakyReLU(negative_slope=0.1)(x_hidden)
+
+    # layer 12
+    if dsnt:
+        x_hidden = layers.Conv3D(filters=points_num, kernel_size=3, padding="same")(x_hidden)
+    else:
+        x_hidden = layers.Conv3D(filters=256, kernel_size=3, padding="same")(x_hidden)
+        x_hidden = layers.BatchNormalization()(x_hidden)
+        x_hidden = layers.ReLU()(x_hidden)
+
+    return x_hidden
+
+
 def down_net(inputs, points_num=4, dsnt=False):
     # layer 1
     x_hidden = layers.Conv3D(filters=32, kernel_size=3, padding="same")(inputs)

@@ -263,3 +263,14 @@ def get_k_folds_pat_splits(k):
         k_folds_idx_splits.append(pat_splits)
 
     return k_folds_idx_splits
+
+
+def get_test_pat_splits():
+    # just use the ramdom result got in the beginning
+    train_pat_id = [2, 4, 18, 17, 12, 10, 6, 0, 11, 16, 9, 14, 5, 19, 3, 13]
+    test_pats_id = [8, 7, 1, 15]
+
+    # [training_dataset_id, val_dataset_id, val_dataset_id] --- just for convenient
+    pat_id_split = [train_pat_id, test_pats_id, test_pats_id]
+
+    return pat_id_split

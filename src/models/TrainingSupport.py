@@ -123,6 +123,8 @@ def load_dataset_manager(args_dict):
         k_pat_splits = MyDataset.get_k_folds_pat_splits(args_dict["k_cross_num"])
         print("K folds patients split: ", k_pat_splits[args_dict["k_cross_idx"]])
         data_splits = MyDataset.get_data_splits(k_pat_splits[args_dict["k_cross_idx"]], split=True)
+    elif data_split_tag == "test":
+        data_splits = MyDataset.get_data_splits(MyDataset.get_test_pat_splits(), split=True)
     else:
         print("Unknown data_split_tag: ", data_split_tag)
         exit(0)
