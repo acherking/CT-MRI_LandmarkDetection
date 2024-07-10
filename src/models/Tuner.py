@@ -21,7 +21,7 @@ class MyTuner(keras_tuner.RandomSearch):
     def run_trial(self, trial, **kwargs):
         hp = trial.hyperparameters
         # hyper-parameter
-        lr = hp.Float("lr", min_value=1e-5, max_value=1e-2, sampling="log")
+        lr = hp.Float("lr", min_value=5e-5, max_value=2e-4, sampling="log")
         bs = 2
         optimizer = 'Adam'
         decay_steps = hp.Int("decay_steps", min_value=8000, max_value=12000, step=1000)
@@ -53,7 +53,7 @@ if __name__ == "__main__":
         max_trials=50,
         overwrite=True,
         directory="keras_tuner_dir",
-        project_name="keras_tuner_training_process_lr",
+        project_name="keras_tuner_training_process_lr_narrow",
     )
     # tuner = MyTunerExtra(
     #     max_trials=100,
