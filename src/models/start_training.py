@@ -182,6 +182,8 @@ def train_down_net_model():
         {"train_id": 33.3, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00027237,
          "model_label_1": "turner-results", "model_label_2": "training-process", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]], "batch_size": 8, "decay_steps": 1000, "epochs": 78,
+         ### just learning rate, and decay steps
+         ### learning rate: 0.00015939, decay steps: 9000
          "data_split_tag": "test"},
         {"train_id": 34, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
