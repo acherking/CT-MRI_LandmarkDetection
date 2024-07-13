@@ -182,8 +182,17 @@ def train_down_net_model():
         {"train_id": 33.3, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00027237,
          "model_label_1": "turner-results", "model_label_2": "training-process", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]], "batch_size": 8, "decay_steps": 1000, "epochs": 78,
-         ### just learning rate, and decay steps
-         ### learning rate: 0.00015939, decay steps: 9000
+         "data_split_tag": "test"},
+        ### just learning rate, and decay steps
+        ### learning rate: 0.00015961, decay steps: 8000 ** [45, 23, 92, 85, 54, 44, 47, 95] -- 61
+        {"train_id": 33.4, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00015961,
+         "model_label_1": "turner-results", "model_label_2": "training-process", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]], "batch_size": 2, "decay_steps": 8000, "epochs": 61,
+         "data_split_tag": "test"},
+        ### learning rate: 0.00018241, decay steps: 8000, [88, 42, 98, 46, 34, 81, 81, 91] -- 70
+        {"train_id": 33.5, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00018241,
+         "model_label_1": "turner-results", "model_label_2": "training-process", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]], "batch_size": 2, "decay_steps": 8000, "epochs": 70,
          "data_split_tag": "test"},
         {"train_id": 34, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
@@ -425,6 +434,8 @@ def train_unet_dsnt_model():
         ## Identical Voxel distance with MSE_res
         {"train_id": 0, "model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001"},
+        {"train_id": 0.1, "model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "fix_activation_before_dsnt", "model_label_2": "0.0001"},
         {"train_id": 1, "model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
          "model_label_1": "learning_rate", "model_label_2": "0.00005"},
         {"train_id": 2, "model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00001,
@@ -436,6 +447,8 @@ def train_unet_dsnt_model():
         ## Variable Voxel distance with MSE_res
         {"train_id": 5, "model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_label_1": "variable_voxel_distance"},
+        {"train_id": 5.1, "model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
+         "model_label_1": "fix_activation_before_dsnt", "model_label_2": "0.0001", "dataset_label_1": "variable_voxel_distance"},
         {"train_id": 6, "model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
          "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_label_1": "variable_voxel_distance"},
         {"train_id": 7, "model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00001,
@@ -452,6 +465,9 @@ def train_unet_dsnt_model():
         # MSE_res or MSE not change much, it seems
         {"train_id": 11, "model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
          "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]]},
+        {"train_id": 11.1, "model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
+         "model_label_1": "fix_activation_before_dsnt", "model_label_2": "0.00005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[0, 0], [0, 0], [0, 0]]},
         {"train_id": 12, "model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
          "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",

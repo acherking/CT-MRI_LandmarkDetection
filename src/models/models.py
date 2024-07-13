@@ -1249,20 +1249,24 @@ def u_net_mini(inputs, points_num=2, dsnt=False):
     f1, p1 = downsample_block(inputs, 64)
     # 2 - downsample
     f2, p2 = downsample_block(p1, 128)
+    # 3 - downsample
+    f3, p3 = downsample_block(p2, 256)
 
-    # 3 - bottleneck
-    bottleneck = double_conv_block(p2, 256)
+    # 0 - bottleneck
+    bottleneck = double_conv_block(p3, 512)
 
     # decoder: expanding path - upsample
     # 4 - upsample
-    u4 = upsample_block(bottleneck, f2, 128)
+    u4 = upsample_block(bottleneck, f3, 256)
     # 5 - upsample
-    u5 = upsample_block(u4, f1, 64)
+    u5 = upsample_block(u4, f2, 128)
+    # 6 - upsample
+    u6 = upsample_block(u5, f1, 64)
 
     if dsnt:
-        heatmaps = layers.Conv3D(points_num, 1, padding="same", activation="softmax")(u5)
+        heatmaps = layers.Conv3D(points_num, 1, padding="same")(u6)
     else:
-        heatmaps = layers.Conv3D(3, 3, strides=4, activation="relu")(u5)
+        heatmaps = layers.Conv3D(3, 3, strides=4, activation="relu")(u6)
 
     return heatmaps
 
