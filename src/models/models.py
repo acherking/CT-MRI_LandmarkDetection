@@ -1289,7 +1289,7 @@ def u_net_mini_bn(inputs, points_num=2, dsnt=False):
     u5 = upsample_block(u4, f1, 64, True)
 
     if dsnt:
-        heatmaps = layers.Conv3D(points_num, 1, padding="same", activation="softmax")(u5)
+        heatmaps = layers.Conv3D(points_num, 1, padding="same")(u5)
     else:
         heatmaps = layers.Conv3D(3, 3, strides=4, activation="relu")(u5)
 
@@ -1314,7 +1314,7 @@ def u_net_mini_upsample_rep(inputs, points_num=2, dsnt=False):
     u5 = upsample_block(u4, f1, 64, True, 1)
 
     if dsnt:
-        heatmaps = layers.Conv3D(points_num, 1, padding="same", activation="softmax")(u5)
+        heatmaps = layers.Conv3D(points_num, 1, padding="same")(u5)
     else:
         heatmaps = layers.Conv3D(3, 3, strides=4, activation="relu")(u5)
 

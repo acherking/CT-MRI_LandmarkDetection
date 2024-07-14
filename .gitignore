@@ -14,3 +14,4 @@ models/*
 src/models/slurm/output/
 
 notebook/my_dir/
+notebook/tmp/

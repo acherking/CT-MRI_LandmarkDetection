@@ -21,11 +21,11 @@ class MyTuner(keras_tuner.RandomSearch):
     def run_trial(self, trial, **kwargs):
         hp = trial.hyperparameters
         # hyper-parameter
-        lr = hp.Float("lr", min_value=5e-5, max_value=2e-4, sampling="log")
+        lr = hp.Float("lr", min_value=5e-5, max_value=1e-3, sampling="log")
         bs = 2
-        optimizer = 'Adam'
+        optimizer = 'SGD'
         decay_steps = hp.Int("decay_steps", min_value=8000, max_value=12000, step=1000)
-        base_args.update({'model_label_1': "keras_tuner_training_process_lr"})
+        base_args.update({'model_label_1': "keras_tuner_training_process_sgd"})
         base_args.update({'model_label_2': f"{trial.trial_id}.keras_tuner"})
         base_args.update({'learning_rate': lr, "batch_size": bs, "optimizer": optimizer, "decay_steps": decay_steps})
         return k_fold_cross_validation.k_fold_cross_validation(8, base_args)
@@ -50,10 +50,10 @@ class MyTunerExtra(keras_tuner.RandomSearch):
 if __name__ == "__main__":
 
     tuner = MyTuner(
-        max_trials=50,
+        max_trials=20,
         overwrite=True,
         directory="keras_tuner_dir",
-        project_name="keras_tuner_training_process_lr_narrow",
+        project_name="keras_tuner_training_process_sgd",
     )
     # tuner = MyTunerExtra(
     #     max_trials=100,

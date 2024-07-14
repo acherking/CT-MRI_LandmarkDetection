@@ -185,11 +185,13 @@ def train_down_net_model():
          "data_split_tag": "test"},
         ### just learning rate, and decay steps
         ### learning rate: 0.00015961, decay steps: 8000 ** [45, 23, 92, 85, 54, 44, 47, 95] -- 61
+        ### {'mean_dis_all': 0.257, 'std_dev_all': 0.129, 'mean_dis_1': 0.222, 'std_dev_1': 0.109, 'mean_dis_2': 0.291, 'std_dev_2': 0.138}
         {"train_id": 33.4, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00015961,
          "model_label_1": "turner-results", "model_label_2": "training-process", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]], "batch_size": 2, "decay_steps": 8000, "epochs": 61,
          "data_split_tag": "test"},
         ### learning rate: 0.00018241, decay steps: 8000, [88, 42, 98, 46, 34, 81, 81, 91] -- 70
+        ### {'mean_dis_all': 0.257, 'std_dev_all': 0.125, 'mean_dis_1': 0.207, 'std_dev_1': 0.117, 'mean_dis_2': 0.307, 'std_dev_2': 0.113}
         {"train_id": 33.5, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00018241,
          "model_label_1": "turner-results", "model_label_2": "training-process", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]], "batch_size": 2, "decay_steps": 8000, "epochs": 70,
