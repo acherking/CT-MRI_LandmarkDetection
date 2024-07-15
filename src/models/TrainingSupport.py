@@ -19,10 +19,11 @@ def get_record_dir(args_dict, get_dir=False):
     # y_tag: "one_landmark_[1/2]", "two_landmarks", "mean_two_landmarks"
     y_tag = args_dict.get("y_tag")
     data_size = args_dict.get("input_shape")
-    cut_layers = args_dict["cut_layers"]
-    data_size = (data_size[0]-cut_layers[0][0] - cut_layers[0][1],
-                 data_size[1]-cut_layers[1][0] - cut_layers[1][1],
-                 data_size[2]-cut_layers[2][0] - cut_layers[2][1])
+    if dataset_tag == "cropped":
+        cut_layers = args_dict["cut_layers"]
+        data_size = (data_size[0]-cut_layers[0][0] - cut_layers[0][1],
+                     data_size[1]-cut_layers[1][0] - cut_layers[1][1],
+                     data_size[2]-cut_layers[2][0] - cut_layers[2][1])
     data_size_str = f"{data_size[0]}x{data_size[1]}x{data_size[2]}"
     dataset_label_1 = args_dict.get("dataset_label_1")
     label_1 = args_dict.get("model_label_1")
