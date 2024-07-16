@@ -37,7 +37,8 @@ def train_model(args_dict):
     # Prepare dataset used in the training process
     train_num = train_dataset[0].shape[0]
     train_dataset = tf.data.Dataset.from_tensor_slices(train_dataset)
-    train_dataset = train_dataset.shuffle(buffer_size=train_num * 2, reshuffle_each_iteration=True).batch(batch_size)
+    train_dataset_eval = train_dataset.batch(batch_size)
+    train_dataset_shuffle = train_dataset.shuffle(buffer_size=train_num * 2, reshuffle_each_iteration=True).batch(batch_size)
 
     val_dataset = tf.data.Dataset.from_tensor_slices(val_dataset).batch(batch_size)
 
@@ -45,7 +46,7 @@ def train_model(args_dict):
 
     # Review these datasets before the training
     print("*** review the dataset ***")
-    for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset):
+    for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset_shuffle):
         print("train_dataset, step: ", step)
         print("x shape: ", x_batch_train.shape, type(x_batch_train))
         print("y value: ", y_batch_train)
@@ -104,7 +105,7 @@ def train_model(args_dict):
         start_time = time.time()
 
         # Iterate over the batches of a dataset.
-        for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset):
+        for step, (x_batch_train, y_batch_train, res_batch_train) in enumerate(train_dataset_shuffle):
             loss_mse = train_step(x_batch_train, y_batch_train, res_batch_train)
 
             # Logging every *** batches
@@ -129,6 +130,8 @@ def train_model(args_dict):
         train_eval["time(h)"] = float("{:.2f}".format(epoch_time * (epoch+1) / 3600))
 
         # Run a validation loop at the end of each epoch.
+        train_all_eval = my_evaluate(train_dataset_eval)
+        print("Train: ", train_all_eval[0])
         val_eval = my_evaluate(val_dataset)
         print("Val : ", val_eval[0])
 
@@ -139,7 +142,8 @@ def train_model(args_dict):
             # Use Test Dataset to evaluate the best Val model (at the moment), and save the Test results
             test_eval = my_evaluate(test_dataset)
             np.save(f"{save_dir}/best_val_Y_test_pred", test_eval[2])
-            if args_dict.get("save_model", True): model.save_weights(f"{save_dir}/best_val_model.weights.h5")
+            # if args_dict.get("save_model", True): model.save_weights(f"{save_dir}/best_val_model.weights.h5")
+            model.save_weights(f"{save_dir}/best_val_model.weights.h5")
             print("Test: ", test_eval[0])
             # for reviewing ...
             best_val = [train_eval.copy(), val_eval[0].copy(), test_eval[0].copy()]
@@ -155,7 +159,8 @@ def train_model(args_dict):
     np.save(f"{save_dir}/final_Y_test_pred", final_test_eval[2])
     np.save(f"{save_dir}/Y_test_true", final_test_eval[1])
     np.save(f"{save_dir}/res_test", final_test_eval[3])
-    if args_dict.get("save_model", True): model.save_weights(f"{save_dir}/final_model.weights.h5")
+    # if args_dict.get("save_model", True): model.save_weights(f"{save_dir}/final_model.weights.h5")
+    model.save_weights(f"{save_dir}/final_model.weights.h5")
 
     # gather results into one file (for convenient)
     dataset_tag = args_dict.get("dataset_tag")
