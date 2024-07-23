@@ -763,6 +763,7 @@ def train_scn_dsnt_model():
         # *********
         ## S1
         ### precision improved compare to 100x100x100 S1
+        ### learning rate 0.0001 better than 5e-5
         {"train_id": 11, "model_name": "scn_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]],
