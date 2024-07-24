@@ -51,9 +51,12 @@ if __name__ == "__main__":
 
     base_args.update({'save_model': False})
     base_args.update({'model_label_1': "random_grid_opt"})
-    base_args.update({'model_label_2': f"worker_{worker_id}/{worker_num}"})
+    base_args.update({'model_label_2': f"worker_{worker_id}[{worker_num}]"})
 
     try_parameter_sets = random_pick(worker_num)
+    print("***")
+    print(try_parameter_sets[worker_num])
+    print("***")
 
     res = []
     for tid in range(try_num):
