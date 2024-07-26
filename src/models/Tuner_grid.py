@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
     try_parameter_sets = random_pick(worker_num)
     print("***")
-    print(try_parameter_sets[worker_num])
+    print(try_parameter_sets[worker_id])
     print("***")
 
     res = []
