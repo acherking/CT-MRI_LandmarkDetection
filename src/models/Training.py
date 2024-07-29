@@ -38,7 +38,8 @@ def train_model(args_dict):
     train_num = train_dataset[0].shape[0]
     train_dataset = tf.data.Dataset.from_tensor_slices(train_dataset)
     train_dataset_eval = train_dataset.batch(batch_size)
-    train_dataset_shuffle = train_dataset.shuffle(buffer_size=train_num * 2, reshuffle_each_iteration=True).batch(batch_size)
+    train_dataset_shuffle = train_dataset.shuffle(buffer_size=train_num * 2, reshuffle_each_iteration=True).batch(
+        batch_size)
 
     val_dataset = tf.data.Dataset.from_tensor_slices(val_dataset).batch(batch_size)
 
@@ -127,7 +128,7 @@ def train_model(args_dict):
         print("Time taken:                       %.2fs" % epoch_time)
 
         train_eval["epoch"] = epoch
-        train_eval["time(h)"] = float("{:.2f}".format(epoch_time * (epoch+1) / 3600))
+        train_eval["time(h)"] = float("{:.2f}".format(epoch_time * (epoch + 1) / 3600))
 
         # Run a validation loop at the end of each epoch.
         train_all_eval = my_evaluate(train_dataset_eval)
@@ -137,6 +138,7 @@ def train_model(args_dict):
 
         # Show best Val results
         val_mean_disl = val_eval[0].get("mean_dis_all")
+        if epoch == 0: min_val_mean_dis = val_mean_disl + 1
         if val_mean_disl < min_val_mean_dis:
             min_val_mean_dis = val_mean_disl
             # Use Test Dataset to evaluate the best Val model (at the moment), and save the Test results

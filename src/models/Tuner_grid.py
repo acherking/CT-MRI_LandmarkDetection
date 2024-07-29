@@ -11,7 +11,7 @@ import random
 def grid_search():
     learning_rates = np.arange(5e-5, 3e-4, 5e-5)
     decay_steps = np.arange(500, 2000, 250)
-    batch_sizes = np.arange(2, 10, 2)
+    batch_sizes = np.asarray([2, 4, 8, 10])
     optimizers = ['Adam', 'SGD']
     full_grid = []
     for lr in learning_rates:
@@ -51,7 +51,8 @@ if __name__ == "__main__":
 
     base_args.update({'save_model': False})
     base_args.update({'model_label_1': "random_grid_opt"})
-    base_args.update({'model_label_2': f"worker_{worker_id}[{worker_num}]"})
+    base_args.update({'model_label_2': f"worker_{worker_id}_{worker_num}"})
+    # base_args.update({'epochs': 2})
 
     try_parameter_sets = random_pick(worker_num)
     print("***")
