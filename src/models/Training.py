@@ -1,5 +1,6 @@
 import sys
 import time
+import math
 
 import numpy as np
 import tensorflow as tf
@@ -114,6 +115,7 @@ def train_model(args_dict):
                 print("********Step ", step, " ********")
                 print("Training loss (mean distance):    %.3f" % loss_mse.numpy())
                 print("Seen so far: %d samples" % ((step + 1) * batch_size))
+                if math.isnan(loss_mse.numpy()): break
 
         end_time = time.time()
         # Display metrics at the end of each epoch.
@@ -138,8 +140,7 @@ def train_model(args_dict):
 
         # Show best Val results
         val_mean_disl = val_eval[0].get("mean_dis_all")
-        if epoch == 0: min_val_mean_dis = val_mean_disl + 1
-        if val_mean_disl < min_val_mean_dis:
+        if epoch == 0 or val_mean_disl < min_val_mean_dis:
             min_val_mean_dis = val_mean_disl
             # Use Test Dataset to evaluate the best Val model (at the moment), and save the Test results
             test_eval = my_evaluate(test_dataset)
@@ -190,7 +191,13 @@ def train_model(args_dict):
     if args_dict.get("write_log", True):
         log.close()
 
-    return best_val[1]["mean_dis_all"]
+    if math.isnan(best_val[1]["mean_dis_all"]):
+        return 500
+    elif 'best_val' in locals() or 'best_val' in globals():
+        return best_val[1]["mean_dis_all"]
+    else:
+        return 600
+
 
 
 if __name__ == "__main__":

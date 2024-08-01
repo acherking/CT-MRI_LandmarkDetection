@@ -65,6 +65,7 @@ if __name__ == "__main__":
         print(try_parameter_sets[worker_id][tid])
         base_args.update(try_parameter_sets[worker_id][tid])
         res.append(k_fold_cross_validation.k_fold_cross_validation(8, base_args))
+        print(res)
 
     tid_min_res = np.argmin(res)
     print(try_parameter_sets[worker_id][tid_min_res])
