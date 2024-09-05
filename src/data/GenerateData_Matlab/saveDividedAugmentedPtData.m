@@ -1,17 +1,17 @@
 
 function saveDividedAugmentedPtData(vol, pts, nAug, patName)
 
-imgSize = [176 88 48; 240 120 64; 320 160 96].';
+imgSize = [176 88 48].';
 
-volSize = size(vol);
+% volSize = size(vol);
 
-if volSize(2) ~= 1020
-    fprintf("X not 1020, patient: %s (%d)\n", patName, volSize(2));
-end
+% if volSize(2) ~= 1020
+%     fprintf("X not 1020, patient: %s (%d)\n", patName, volSize(2));
+% end
 
 orig = mean(pts);
 
-idx = 2;
+idx = 1;
 while idx <= nAug
 
     strIdx = string(idx);
@@ -43,9 +43,9 @@ while idx <= nAug
     augLeftVolSize = size(augLeftVol);
     augRightVolSize = size(augRightVol);
         
-    origBase = "F:\Data\augmentation_exp";
+    origBase = "/data/gpfs/projects/punim1836/Data/raw/aug";
 
-    augFile = origBase + "\original_divided_augmentation\" + patName + '_aug_' + strIdx + '.mat';
+    augFile = origBase + "/original_divided_augmentation/" + patName + '_aug_' + strIdx + '.mat';
     save(augFile, 'augVol', 'augPts', 'augVolSize', '-v7.3');
 
     fprintf("Saved augmentation vol for patient: %s -- %d \n To Path: %s\n", patName, idx, augFile)
@@ -60,7 +60,8 @@ while idx <= nAug
         augRightVolRescaledSize = size(augRightVolRescaled);
 
         % in mm
-        oriRes = [0.15, 0.15, 0.15];
+        %oriRes = [0.15, 0.15, 0.15];
+        oriRes = [0.26, 0.26, 0.3];
         
         leftScale = augLeftVolRescaledSize ./ augLeftVolSize;
         leftRes = oriRes ./ leftScale;
@@ -69,7 +70,7 @@ while idx <= nAug
         rightRes = oriRes ./ rightScale;
 
         strSize = num2str(sizeT(1)) + "x" + num2str(sizeT(2)) + "x" + num2str(sizeT(3));
-        inPath = origBase + "\reduce_size\" + strSize + "\";
+        inPath = origBase + "/reduce_size/" + strSize + "/";
         augRescaledFile = inPath + patName + '_' + strSize + '_' + strIdx + '.mat';
                 
         % save to datastores

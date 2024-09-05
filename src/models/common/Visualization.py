@@ -139,7 +139,7 @@ def show_two_landmarks(left_volume, left_points, right_volume, right_points, pix
     right_points = right_points - 1
     # right_points[:, [0]] = right_points[:, [0]] + 2
 
-    landmark_radius = left_volume.shape[1] * pixel_space[1] * 0.016
+    landmark_radius = left_volume.shape[1] * pixel_space[1] * 0.03
 
     fig, axs = pyplot.subplots(2, 2, sharex=True, constrained_layout=True)
     fig.set_dpi(400)

@@ -4,7 +4,7 @@ close all;
 % reset random value generator
 rng default
 
-roiFile = '/Users/achs/PhD/code/CT-MRI_LandmarkDetection/data/processed/Y/ROI_MR_6.xlsx'; % median is better
+roiFile = '/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/data/processed/Y/ROI_MR_6.xlsx'; % median is better
 %roiFile = '.\Data\ROI\ROI JM.xlsx';
 %strFile = 'F:\Code\CT-MRI_LandmarkDetection\Resources\nameStrings.xlsx';
 imageDataPath = '/data/gpfs/projects/punim1836/Data/raw/CT_MRI_Pre_Post/'; % change as required
@@ -24,7 +24,7 @@ nAug = 50;
 refSc = 0.2604;
 
 % data tags
-imageTag = 'Pre'; % Pre (for CT) or MR
+imageTag = 'MR'; % Pre (for CT) or MR
 roiTags = {'LLSCC ant', 'LLSCC post', 'RLSCC ant', 'RLSCC post'};
 
 if strcmp(imageTag, 'Pre')
