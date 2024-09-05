@@ -4,11 +4,11 @@ close all;
 % reset random value generator
 rng default
 
-roiFile = 'F:\Code\CT-MRI_LandmarkDetection\Resources\ROI\ROI_CT_6.xlsx'; % median is better
+roiFile = '/Users/achs/PhD/code/CT-MRI_LandmarkDetection/data/processed/Y/ROI_MR_6.xlsx'; % median is better
 %roiFile = '.\Data\ROI\ROI JM.xlsx';
-strFile = 'F:\Code\CT-MRI_LandmarkDetection\Resources\nameStrings.xlsx';
-imageDataPath = 'F:\Data\CT_MRI_Pre_Post\'; % change as required
-augPath = '/Volumes/Shawn_HDD/PhD/Project/Date/augmentation_from_matlab/'; % change as required
+%strFile = 'F:\Code\CT-MRI_LandmarkDetection\Resources\nameStrings.xlsx';
+imageDataPath = '/data/gpfs/projects/punim1836/Data/raw/CT_MRI_Pre_Post/'; % change as required
+augPath = '/data/gpfs/projects/punim1836/Data/raw/aug/'; % change as required
 trainPath = [augPath 're_aug/'];
 valPath = [augPath 're_aug/'];
 testPath = [augPath 're_aug/'];
@@ -41,7 +41,7 @@ imageFiles = {imageFiles.name};
 imageFiles = imageFiles(3:end);
 
 % get naming strings
-[~, nameStr] = xlsread(strFile);
+%[~, nameStr] = xlsread(strFile);
 
 % get roi info
 [roiNum, roiStr] = xlsread(roiFile);
