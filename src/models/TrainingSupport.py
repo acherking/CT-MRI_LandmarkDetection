@@ -78,9 +78,9 @@ def load_dataset_manager(args_dict):
     instances_num = x_dataset.shape[0]
     res_dataset = np.repeat(np.load(res_dataset_path), 2, axis=1).reshape(instances_num, 1, 3)
 
-    if dataset_tag == "divided":
+    if dataset_tag == "divided" or dataset_tag == "divided_MR":
         print("No more cook for divided dataset.")
-    elif dataset_tag == "cropped":
+    elif dataset_tag == "cropped" or dataset_tag == "cropped_MR":
         cut_layers = np.asarray(args_dict.get("cut_layers"))
         if not np.all(cut_layers == 0):
             x_dataset, y_dataset = \
@@ -284,33 +284,33 @@ def load_dataset_crop_dir(x_dir, y_dir, length_dir):
     cropped_length = np.asarray(cropped_length).reshape((instances_num, 2, 3))
 
     # read centre shift
-    centre_shift = np.load("/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/data/processed/noises/noises_s1.5_test_dis.npy")
+    centre_shift = np.load("/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/models_MR/divided_MR/176x88x48/variable_voxel_distance/mean_two_landmarks/straight_model/learning_rate/0.0001/13Sep2024-10:42:13-trainID-2/noises_s1.5_test_dis.npy")
     # centre_shift = np.zeros((2000, 1, 3))
 
     cropped_volumes, cropped_points, cropped_length = \
         MyCrop.crop_outside_layers_trans(cropped_volumes, cropped_points, cropped_length, centre_shift)
 
     crop_size = "100x100x100"
-    dataset_tag = "noises_s1.5_test_dis"
-    save_dir_base = f"/data/gpfs/projects/punim1836/Data/cropped/{crop_size}/{dataset_tag}"
+    dataset_tag = "noises_s1_test_dis"
+    save_dir_base = f"/data/gpfs/projects/punim1836/Data/cropped_MR/{crop_size}/{dataset_tag}"
     # create the dir if not exist
     if os.path.exists(save_dir_base): print("Save dataset to: ", save_dir_base)
     else:
         os.makedirs(save_dir_base)
         print("Create dir and save dataset in it: ", save_dir_base)
 
-    save_volume_path = f"{save_dir_base}/cropped_volumes_{crop_size}.npy"
-    save_points_path = f"{save_dir_base}/cropped_points_{crop_size}.npy"
-    save_length_path = f"{save_dir_base}/cropped_length_{crop_size}.npy"
+    save_volume_path = f"{save_dir_base}/cropped_MR_volumes_{crop_size}.npy"
+    save_points_path = f"{save_dir_base}/cropped_MR_points_{crop_size}.npy"
+    save_length_path = f"{save_dir_base}/cropped_MR_length_{crop_size}.npy"
     # add res for cropped volume, yes is all 0,15 just to make it the same in the training process
-    save_res_path = f"{save_dir_base}/cropped_res_{crop_size}.npy"
+    save_res_path = f"{save_dir_base}/cropped_MR_res_{crop_size}.npy"
     np.save(save_volume_path, cropped_volumes)
     print("saved: ", save_volume_path)
     np.save(save_points_path, cropped_points)
     print("saved: ", save_points_path)
     np.save(save_length_path, cropped_length)
     print("saved: ", save_length_path)
-    np.save(save_res_path, np.ones((int(instances_num/2), 1, 3)) * 0.15)
+    np.save(save_res_path, np.ones((int(instances_num/2), 1, 3)) * 0.2604)
     print("saved: ", save_res_path)
 
     return 1

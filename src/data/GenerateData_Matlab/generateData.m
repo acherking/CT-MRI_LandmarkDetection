@@ -107,11 +107,11 @@ for pIdx = 1:nPat
     meta = dicominfo([dicomPath, '/', dicomFiles{1}]);
     
     % resize volume so that voxels are square
-%     sp = [meta.PixelSpacing, meta.SliceThickness];
-%     sc = sp / refSc;
-%     sp = sp ./ sc;
-%     sz = round(sz .* sc);
-%     [vol, pts] = rescaleData(vol, pts, sz);
+    sp = [meta.PixelSpacing(1), meta.PixelSpacing(2), meta.SliceThickness];
+    sc = sp / refSc;
+    sp = sp ./ sc;
+    sz = round(sz .* sc);
+    [vol, pts] = rescaleData(vol, pts, sz);
 
     if ~isempty(find(trainIdx == pIdx))
         inPath = [trainPath, inputFolder];

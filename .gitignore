@@ -10,6 +10,7 @@ src/models/__pycache__
 
 data/processed/Y/~*
 models/*
+models_MR/*
 
 src/models/slurm/output/
 

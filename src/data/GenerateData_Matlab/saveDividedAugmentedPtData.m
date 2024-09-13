@@ -61,7 +61,7 @@ while idx <= nAug
 
         % in mm
         %oriRes = [0.15, 0.15, 0.15];
-        oriRes = [0.26, 0.26, 0.3];
+        oriRes = [0.2604, 0.2604, 0.2604];
         
         leftScale = augLeftVolRescaledSize ./ augLeftVolSize;
         leftRes = oriRes ./ leftScale;
