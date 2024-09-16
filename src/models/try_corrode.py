@@ -7,7 +7,8 @@ import numpy as np
 import common.MyDataset as MyDataset
 import TrainingSupport
 import models
-import start_training
+#import start_training
+import start_training_MR as start_training
 import pathlib
 import loss_optimizer
 
@@ -19,7 +20,7 @@ base_args = start_training.base_args
 
 # set the model
 module_name = sys.argv[1]
-train_id = int(sys.argv[2])
+train_id = float(sys.argv[2])
 date_tag = sys.argv[3]
 
 

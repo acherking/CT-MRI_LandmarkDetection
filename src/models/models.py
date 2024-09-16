@@ -1679,7 +1679,7 @@ def model_manager(args_dict):
     input_shape = args_dict["input_shape"]
     cut_layers = args_dict["cut_layers"]
     dataset_tag = args_dict.get("dataset_tag")
-    if dataset_tag == "cropped":
+    if dataset_tag == "cropped" or dataset_tag == "cropped_MR":
         cut_layers = np.asarray(args_dict.get("cut_layers"))
         if not np.all(cut_layers == 0):
             input_shape = (input_shape[0]-cut_layers[0][0] - cut_layers[0][1],

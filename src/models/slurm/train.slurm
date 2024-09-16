@@ -10,7 +10,7 @@ module load CUDA/11.7.0
 module load TensorFlow/2.11.0-CUDA-11.7.0
 
 export TF_ENABLE_ONEDNN_OPTS=0
-python3 /data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/src/models/start_training.py cov_only_dsnt 10
+python3 /data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/src/models/start_training_MR.py down_net 7.2 7.3 7.4 7.5 7.6 7.7 7.8 7.9 7.10
 
 ##DO NOT ADD/EDIT BEYOND THIS LINE##
 ##Job monitor command to list the resource usage
