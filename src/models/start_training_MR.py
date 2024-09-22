@@ -122,33 +122,43 @@ def train_down_net_model():
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped_MR", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[25, 35], [29, 35], [26, 33]]},
 
+        # compromise rate [0.0], row column slice: [[20, 30], [16, 16], [25, 30]], input shape: (50, 68, 45)
+        # compromise rate [0.01], row column slice: [[21, 30], [38, 20], [27, 31]], input shape: (49, 42, 42)
+        # compromise rate [0.02], row column slice: [[22, 31], [38, 24], [28, 32]], input shape: (47, 38, 40)
+        # compromise rate [0.03], row column slice: [[23, 32], [38, 32], [29, 33]], input shape: (45, 30, 38)
+        # compromise rate [0.04], row column slice: [[25, 33], [38, 34], [30, 34]], input shape: (42, 28, 36)
+        # compromise rate [0.05], row column slice: [[25, 35], [38, 41], [31, 35]], input shape: (40, 21, 34)
+        # compromise rate [0.06], row column slice: [[27, 40], [39, 41], [31, 36]], input shape: (33, 20, 33)
+        # compromise rate [0.07], row column slice: [[29, 41], [39, 42], [32, 37]], input shape: (30, 19, 31)
+        # compromise rate [0.08], row column slice: [[33, 42], [39, 42], [32, 38]], input shape: (25, 19, 30)
+        # compromise rate [0.09], row column slice: [[33, 42], [39, 42], [32, 38]], input shape: (25, 19, 30)  
         {"train_id": 8.2, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped_MR", "dataset_label_1": "noises_s1_test_dis",
-         "input_shape": (100, 100, 100), "cut_layers": [[35, 43], [39, 43], [32, 39]]},
+         "input_shape": (100, 100, 100), "cut_layers": [[21, 30], [38, 20], [27, 31]]},
         {"train_id": 8.3, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped_MR", "dataset_label_1": "noises_s1_test_dis",
-         "input_shape": (100, 100, 100), "cut_layers": [[36, 44], [40, 44], [35, 41]]},
+         "input_shape": (100, 100, 100), "cut_layers": [[22, 31], [38, 24], [28, 32]]},
         {"train_id": 8.4, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped_MR", "dataset_label_1": "noises_s1_test_dis",
-         "input_shape": (100, 100, 100), "cut_layers": [[37, 45], [40, 45], [36, 43]]},
+         "input_shape": (100, 100, 100), "cut_layers": [[23, 32], [38, 32], [29, 33]]},
         {"train_id": 8.5, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped_MR", "dataset_label_1": "noises_s1_test_dis",
-         "input_shape": (100, 100, 100), "cut_layers": [[37, 46], [41, 46], [37, 44]]},
+         "input_shape": (100, 100, 100), "cut_layers": [[25, 33], [38, 34], [30, 34]]},
         {"train_id": 8.6, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped_MR", "dataset_label_1": "noises_s1_test_dis",
-         "input_shape": (100, 100, 100), "cut_layers": [[37, 47], [41, 47], [37, 45]]},
+         "input_shape": (100, 100, 100), "cut_layers": [[25, 35], [38, 41], [31, 35]]},
         {"train_id": 8.7, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped_MR", "dataset_label_1": "noises_s1_test_dis",
-         "input_shape": (100, 100, 100), "cut_layers": [[38, 47], [41, 47], [38, 45]]},
+         "input_shape": (100, 100, 100), "cut_layers": [[27, 40], [39, 41], [31, 36]]},
         {"train_id": 8.8, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped_MR", "dataset_label_1": "noises_s1_test_dis",
-         "input_shape": (100, 100, 100), "cut_layers": [[38, 48], [42, 48], [39, 46]]},
+         "input_shape": (100, 100, 100), "cut_layers": [[29, 41], [39, 42], [32, 37]]},
         {"train_id": 8.9, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped_MR", "dataset_label_1": "noises_s1_test_dis",
-         "input_shape": (100, 100, 100), "cut_layers": [[39, 48], [42, 48], [40, 46]]},
+         "input_shape": (100, 100, 100), "cut_layers": [[33, 42], [39, 42], [32, 38]]},
         {"train_id": 8.10, "model_name": "straight_model", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped_MR", "dataset_label_1": "noises_s1_test_dis",
-         "input_shape": (100, 100, 100), "cut_layers": [[39, 49], [43, 49], [40, 47]]},
+         "input_shape": (100, 100, 100), "cut_layers": [[33, 42], [39, 42], [32, 38]]},
         
         {"train_id": 8, "model_name": "straight_model", "model_output_num": 1, "y_tag": "mean_two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
