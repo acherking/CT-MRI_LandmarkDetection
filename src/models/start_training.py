@@ -486,6 +486,12 @@ def train_unet_dsnt_model():
         {"train_id": 13, "model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.0001,
          "model_label_1": "learning_rate", "model_label_2": "0.0001", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]]},
+        ## cross validation results
+        ### {'learning_rate': 0.00015000000000000001, 'decay_steps': 1750, 'batch_size': 2, 'optimizer': 'Adam'}
+        {"train_id": 13.1, "model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00015,
+         "model_label_1": "turner_results", "model_label_2": "random_grid_0", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
+         "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]], 'decay_steps': 1750, "epochs": 76,
+         "data_split_tag": "test"},
         {"train_id": 14, "model_name": "u_net_dsnt", "model_output_num": 2, "y_tag": "two_landmarks", "learning_rate": 0.00005,
          "model_label_1": "learning_rate", "model_label_2": "0.00005", "dataset_tag": "cropped", "dataset_label_1": "noises_s1_test_dis",
          "input_shape": (100, 100, 100), "cut_layers": [[20, 17], [27, 23], [19, 20]]},
