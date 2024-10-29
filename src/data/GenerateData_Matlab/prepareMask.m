@@ -1,9 +1,12 @@
 
-imageDataPath = '/Volumes/Shawn_HDD/PhD/Project/Date/CT_MRI_Pre_Post/AZ MR';
+imageDataPath = '/Volumes/Shawn_HDD/PhD/Project/Date/CT_MRI_Pre_Post/AZ Pre';
 
 % get volume data
 vol = dicomreadVolume(imageDataPath);
+vol = double
 vol = squeeze(vol);
+min(vol(:))
+max(vol(:))
 
 %%
 
