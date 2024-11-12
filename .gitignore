@@ -13,6 +13,12 @@ models/*
 models_MR/*
 
 src/models/slurm/output/
+*.asv
 
 notebook/my_dir/
 notebook/tmp/
+
+
+src/models/keras_tuner_dir/
+src/models/my_dir/
+src/models/slurm/keras_tuner_dir/
