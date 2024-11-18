@@ -1,44 +1,13 @@
-function [mask] = prepareMask(dicomPath, dicomFiles)
-
-%imageDataPath = '/Volumes/Shawn_HDD/PhD/Project/Date/CT_MRI_Pre_Post/AZ Pre';
-imageDataPath = '/data/gpfs/projects/punim1836/Data/raw/CT_MRI_Pre_Post/SM MR';
-%filePath = [imageDataPath, '/ser011img00000.dcm'];
-filePath = [imageDataPath, '/ser003img00001.dcm'];
-
-% info = dicominfo(filePath);
-% info.RescaleSlope
-% info.RescaleIntercept
-% get volume data
-vol = dicomreadVolume(imageDataPath);
-vol = squeeze(vol);
-min(vol(:))
-max(vol(:))
-
-%%
-
+function [mask] = prepareMask(vol)
+% Otsu's method
 level = multithresh(vol);
 seg_I = imquantize(vol,level, [0 ,1]);
 
-%%
-slice =80;
-BW = seg_I(:, :, slice);
-
-subplot(2,2,1);
-imshow(vol(:, :, slice), []);
-title('Original');
-
-subplot(2,2,2);
-imshow(BW);
-title('Binary');
-
-subplot(2,2,3);
-CH = bwconvhull(BW);
-imshow(CH);
-title('Union Convex Hull');
-
-%%
-ptNames = ["AH", 'AZ', 'DE', 'DM', 'DM2', 'DGL', 'FA', 'GE', 'GM', 'GP', 'HB', 'HH', 'JH', 'JM', 'LG', 'LP', 'MJ', 'NV', 'PH', 'SM'];
-
-for patient=ptNames
-    
+% create mask
+sizeValue = size(seg_I);
+mask = zeros(sizeValue);
+for s = 1:sizeValue(3)
+    mask(:,:,s) = bwconvhull(seg_I(:, :, s));
 end
+% reduce store space
+mask = uint8(mask);

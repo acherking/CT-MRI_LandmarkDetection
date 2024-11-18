@@ -1,8 +1,13 @@
 
-function saveAugmentedPtData(vol, pts, nAug, inPath, outPath, patName)
+function saveAugmentedPtData(vol, pts, nAug, patName)
 
-imgSz = [170 170 30]; % change as required
+% reduce size
+imgSize = [176 176 48];
 %cropScale = 3/4;
+
+% in mm
+% oriRes = [0.15, 0.15, 0.15];
+oriRes = [0.2604, 0.2604, 0.2604];
 
 orig = mean(pts);
 
@@ -24,26 +29,31 @@ while idx <= nAug
     %[augVol, augPts] = getCroppedVolume(augVol, augPts, cropScale);   
     
     if checkPointLimits(size(augVol), augPts)
-        
-        origBase = "/Volumes/Shawn_HDD/PhD/Project/Date/augmentation_from_matlab/re_aug/original_augmentation_data/";
-        origFile = origBase + patName + '_aug_' + strIdx + '.mat';
-        save(origFile, 'augVol', 'augPts', '-v7.3');
+        augVolSize = size(augVol);
+        % the narrow (doesn't include some border area) region where has sth from the patient
+        [augMask] = prepareMask(augVol);
+        origBase = "/data/gpfs/projects/punim1836/Data/raw/aug/";
+        origFile = origBase + 'original_augmentation/' + patName + '_aug_' + strIdx + '.mat';
+        save(origFile, 'augVol', 'augPts', 'augMask', "augVolSize", '-v7.3');
         fprintf("Saved augmentation vol for patient: %s -- %d \n To Path: %s\n", patName, idx, origFile)
+        
+        [augVolRescaled, augPtsRescaled, augMaskRescaled] = rescaleData(augVol, augPts, imgSize, augMask);
+        
+        augVolRescaledSize = size(augVolRescaled);
+        
+        scale = augVolRescaledSize ./ augVolSize;
+        res = oriRes ./ scale;
 
-        % reduce size
-        % [augVol, augPts] = rescaleData(augVol, augPts, imgSz);
-        % strIdx = num2str(idx);
-        % fileName_vol = [inPath patName '_17017030_AugVol_' strIdx '.mat'];
-        % fileName_pts = [outPath patName '_17017030_AugPts_' strIdx '.mat'];
+        strSize = num2str(imgSize(1)) + "x" + num2str(imgSize(2)) + "x" + num2str(imgSize(3));
+        inPath = origBase + "/reduce_size/" + strSize + "/";
+        augRescaledFile = inPath + patName + '_' + strSize + '_' + strIdx + '.mat';
                 
         % save to datastores
-        % rescaled_aug_vol = augVol;
-        % save(fileName_vol, 'rescaled_aug_vol', '-v7.3');
-        % fprintf("Saved augmentation vol for patient: %s -- %d \n To Path: %s\n", patName, idx, fileName_vol)
+        save(augRescaledFile, 'augVolRescaled', 'augPtsRescaled', 'res', ...
+            'augVolSize', 'augMaskRescaled', '-v7.3');
 
-        % rescaled_aug_pts = augPts(:);
-        % save(fileName_pts, 'rescaled_aug_pts', '-v7.3');
-        % fprintf("Saved augmentation pts for patient: %s -- %d \n To Path: %s\n\n", patName, idx, fileName_pts)
+        fprintf("Saved augmentation vol for patient: %s -- %d \n To Path: %s\n", patName, idx, augRescaledFile)
+
         
         idx = idx + 1;
     end

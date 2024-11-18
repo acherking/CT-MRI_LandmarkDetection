@@ -1,7 +1,7 @@
 
 function saveDividedAugmentedPtData(vol, pts, nAug, patName)
 
-imgSize = [176 88 48].';
+imgSize = [176 176 48].';
 
 % volSize = size(vol);
 
