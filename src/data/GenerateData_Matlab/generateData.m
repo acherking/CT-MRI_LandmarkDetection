@@ -11,10 +11,10 @@ nAug = 50;
 refSc = 0.2604;
 
 % data tags
-imageTag = 'Pre'; % Pre (for CT) or MR
+imageTag = 'Post'; % Pre (for CT) or MR, and Post (for CT)
 roiTags = {'LLSCC ant', 'LLSCC post', 'RLSCC ant', 'RLSCC post'};
 
-if strcmp(imageTag, 'Pre')
+if strcmp(imageTag, 'Pre') | strcmp(imageTag, 'Post')
     imageTypeTag = 'CT';
     minMax = 3092;
 else
@@ -39,6 +39,7 @@ patList = patList(patIdx);
 
 imgNameList = roiStr(:, 1);
 
+% for pIdx = 15:nPat
 for pIdx = 1:nPat
     patName = patList{pIdx};    
     imgIdx = find(strcmp(imgNameList, patName));
@@ -69,7 +70,8 @@ for pIdx = 1:nPat
     end
 
     fprintf("loaded dicom volume for patient: %s +++++++++++\n", patName)
-    vol(find(vol > minMax)) = minMax;
+    % need to reserve the electrode intensive voxels
+    % vol(find(vol > minMax)) = minMax;
     vol = squeeze(vol);
     vol = double(vol);
     vol = rescale(vol);

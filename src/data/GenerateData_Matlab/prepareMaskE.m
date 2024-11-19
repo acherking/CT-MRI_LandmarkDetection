@@ -1,4 +1,4 @@
-function [mask] = prepareMaskE(volPost,volPre)
+function [mask] = prepareMaskE(volPost)
 % Otsu's method
 level = multithresh(volPost);
 seg_I = imquantize(volPost,level, [0 ,1]);
@@ -11,8 +11,8 @@ for s = 1:sizeValue(3)
 end
 %%
 % exclude the electrodes
-maxVal = max(volPre(:));
-seg_E = imquantize(volPost,maxVal, [1 ,0]);
+% maxVal = max(volPre(:));
+seg_E = imquantize(volPost,3092, [1 ,0]);
 mask = mask & seg_E;
 
 % reduce store space

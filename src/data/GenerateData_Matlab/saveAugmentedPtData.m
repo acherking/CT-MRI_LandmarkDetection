@@ -9,10 +9,15 @@ imgSize = [176 176 48];
 % oriRes = [0.15, 0.15, 0.15];
 oriRes = [0.2604, 0.2604, 0.2604];
 
+minMax = 3096;
+
 orig = mean(pts);
 
 idx = 1;
 while idx <= nAug
+    % if patName = 'LG' and idx < 38
+    %   continue
+    % end
 
     strIdx = string(idx);
     fprintf("Start augmentation for patient: %s -- %d\n", patName, idx)
@@ -31,7 +36,9 @@ while idx <= nAug
     if checkPointLimits(size(augVol), augPts)
         augVolSize = size(augVol);
         % the narrow (doesn't include some border area) region where has sth from the patient
-        [augMask] = prepareMask(augVol);
+        [augMask] = prepareMaskE(augVol);
+        % for CT Post, because of...
+        vol(find(augVol > minMax)) = minMax;
         origBase = "/data/gpfs/projects/punim1836/Data/raw/aug/";
         origFile = origBase + 'original_augmentation/' + patName + '_aug_' + strIdx + '.mat';
         save(origFile, 'augVol', 'augPts', 'augMask', "augVolSize", '-v7.3');
