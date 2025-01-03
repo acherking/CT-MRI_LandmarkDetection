@@ -1,6 +1,6 @@
 
 % imageDataPath = '/Volumes/Shawn_HDD/PhD/Project/Date/CT_MRI_Pre_Post/AZ Pre';
-imageDataPath = '/data/gpfs/projects/punim1836/Data/raw/CT_MRI_Pre_Post/SM Pre';
+imageDataPath = '/data/gpfs/projects/punim1836/Data/raw/CT_MRI_Pre_Post/SM Post';
 filePath = [imageDataPath, '/ser003img00001.dcm'];
 
 % info = dicominfo(filePath);
@@ -28,14 +28,14 @@ end
 mask = uint8(mask);
 
 %%
-imageDataPathPre = '/data/gpfs/projects/punim1836/Data/raw/CT_MRI_Pre_Post/SM Pre';
+% imageDataPathPre = '/data/gpfs/projects/punim1836/Data/raw/CT_MRI_Pre_Post/SM Pre';
 imageDataPathPost = '/data/gpfs/projects/punim1836/Data/raw/CT_MRI_Pre_Post/SM Post';
-volPre = dicomreadVolume(imageDataPathPre);
+% volPre = dicomreadVolume(imageDataPathPre);
 volPost = dicomreadVolume(imageDataPathPost);
-volPre = squeeze(volPre);
+% volPre = squeeze(volPre);
 volPost = squeeze(volPost);
 %%
-mask = prepareMaskE(volPost, volPre);
+mask = prepareMaskE(volPost);
 
 %%
 slice =131;
@@ -52,7 +52,7 @@ subplot(2,2,3);
 imshow(mask(:, :, slice), []);
 title('Union Convex Hull');
 %%
-slice = 25;
+slice = 26;
 
 subplot(2,1,1);
 imshow(augVolRescaled(:, :, slice), []);

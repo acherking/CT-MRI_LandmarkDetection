@@ -91,3 +91,6 @@ importlib.reload(support_modules)
 *** Python tmp
 
 
+*** rsync
+rsync -avz -e ssh wezw@spartan.hpc.unimelb.edu.au:/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/data/processed/Y/CT_POST/ .
+rsync -tv -e ssh ./* wezw@spartan.hpc.unimelb.edu.au:/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/data/processed/Y/CT_POST/

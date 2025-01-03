@@ -171,7 +171,7 @@ def get_data_splits(pat_splits, split=False, aug_num=50):
 
 
 def get_pat_names():
-    return patient_names
+    return list.copy(patient_names)
 
 
 def get_idx_from_pat(pat_name, aug_id, split=False):

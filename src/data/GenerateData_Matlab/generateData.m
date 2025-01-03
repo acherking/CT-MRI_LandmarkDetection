@@ -4,7 +4,7 @@ close all;
 % reset random value generator
 rng default
 
-roiFile = '/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/data/processed/Y/ROI_MR_6.xlsx'; % median is better
+roiFile = '/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/data/processed/Y/CT_POST/ROI_CT_Post_3_17.xlsx'; % median is better
 imageDataPath = '/data/gpfs/projects/punim1836/Data/raw/CT_MRI_Pre_Post/'; % change as required
 augPath = '/data/gpfs/projects/punim1836/Data/raw/aug/'; % change as required
 nAug = 50;
@@ -39,7 +39,7 @@ patList = patList(patIdx);
 
 imgNameList = roiStr(:, 1);
 
-% for pIdx = 15:nPat
+%for pIdx = 15:nPat
 for pIdx = 1:nPat
     patName = patList{pIdx};    
     imgIdx = find(strcmp(imgNameList, patName));

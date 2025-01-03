@@ -15,10 +15,7 @@ orig = mean(pts);
 
 idx = 1;
 while idx <= nAug
-    % if patName = 'LG' and idx < 38
-    %   continue
-    % end
-
+    
     strIdx = string(idx);
     fprintf("Start augmentation for patient: %s -- %d\n", patName, idx)
 
