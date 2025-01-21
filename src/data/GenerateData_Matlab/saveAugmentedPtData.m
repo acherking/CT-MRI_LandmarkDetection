@@ -35,7 +35,9 @@ while idx <= nAug
         % the narrow (doesn't include some border area) region where has sth from the patient
         [augMask] = prepareMaskE(augVol);
         % for CT Post, because of...
-        vol(find(augVol > minMax)) = minMax;
+        augVol(find(augVol > minMax)) = minMax;
+        augVol = rescale(augVol);
+
         origBase = "/data/gpfs/projects/punim1836/Data/raw/aug/";
         origFile = origBase + 'original_augmentation/' + patName + '_aug_' + strIdx + '.mat';
         save(origFile, 'augVol', 'augPts', 'augMask', "augVolSize", '-v7.3');
