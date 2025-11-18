@@ -4,14 +4,14 @@ close all;
 % reset random value generator
 rng default
 
-roiFile = '/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/data/processed/Y/CT_POST/ROI_CT_Post_3_17.xlsx'; % median is better
-imageDataPath = '/data/gpfs/projects/punim1836/Data/raw/CT_MRI_Pre_Post/'; % change as required
+roiFile = '/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/data/processed/Y/more_CT_Pre/ROI_addition_CT_Pre_14_Nov2025.xlsx'; % median is better
+imageDataPath = '/data/gpfs/projects/punim1836/Data/raw/CT_MRI_Pre_Post_add/CT Pre/'; % change as required
 augPath = '/data/gpfs/projects/punim1836/Data/raw/aug/'; % change as required
-nAug = 50;
+nAug = 1;
 refSc = 0.2604;
 
 % data tags
-imageTag = 'Post'; % Pre (for CT) or MR, and Post (for CT)
+imageTag = 'Pre'; % Pre (for CT) or MR, and Post (for CT)
 roiTags = {'LLSCC ant', 'LLSCC post', 'RLSCC ant', 'RLSCC post'};
 
 if strcmp(imageTag, 'Pre') | strcmp(imageTag, 'Post')
@@ -70,8 +70,7 @@ for pIdx = 1:nPat
     end
 
     fprintf("loaded dicom volume for patient: %s +++++++++++\n", patName)
-    % need to reserve the electrode intensive voxels
-    % vol(find(vol > minMax)) = minMax;
+    vol(find(vol > minMax)) = minMax;
     vol = squeeze(vol);
     vol = double(vol);
     % vol = rescale(vol);
@@ -84,14 +83,14 @@ for pIdx = 1:nPat
     meta = dicominfo([dicomPath, '/', dicomFiles{1}]);
     
     % resize volume so that voxels are square
-    sp = [meta.PixelSpacing(1), meta.PixelSpacing(2), meta.SliceThickness];
-    sc = sp / refSc;
-    sp = sp ./ sc;
-    sz = round(sz .* sc);
-    [vol, pts] = rescaleData(vol, pts, sz);
+    % sp = [meta.PixelSpacing(1), meta.PixelSpacing(2), meta.SliceThickness];
+    % sc = sp / refSc;
+    % sp = sp ./ sc;
+    % sz = round(sz .* sc);
+    % [vol, pts] = rescaleData(vol, pts, sz);
 
-    %saveDividedAugmentedPtData(vol, pts, nAug, patName);
-    saveAugmentedPtData(vol, pts, nAug, patName);
+    saveDividedAugmentedPtData(vol, pts, nAug, patName);
+    %saveAugmentedPtData(vol, pts, nAug, patName);
     %saveAugmentedData(vol, pts, rotAng, sp, nAug, inPath, outAngPath, outOrigPath, pIdx, nameStr);
     fprintf("finished augmentation for patient: %s ------------------\n", patName)
 end

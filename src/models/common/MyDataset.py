@@ -10,6 +10,8 @@ from scipy.ndimage import zoom
 patient_names = ['AH', 'AZ', 'DE', 'DM', 'DM2', 'DGL', 'FA', 'GE', 'GM', 'GP', 'HB', 'HH',
                  'JH', 'JM', 'LG', 'LP', 'MJ', 'NV', 'PH', 'SM']
 
+patient_names_14 = ['CD', 'DN', 'GS', 'HME', 'LY', 'MG', 'MM', 'NJ', 'RM', 'SL', 'TA', 'TG', 'VPR', 'YJ']
+
 # static K folds
 k_folds_5 = [['JM', 'DM2', 'LG', 'HB'],
              ['GP', 'PH', 'AZ', 'HH'],
@@ -172,6 +174,10 @@ def get_data_splits(pat_splits, split=False, aug_num=50):
 
 def get_pat_names():
     return list.copy(patient_names)
+
+
+def get_pat_names_14():
+    return list.copy(patient_names_14)
 
 
 def get_idx_from_pat(pat_name, aug_id, split=False):

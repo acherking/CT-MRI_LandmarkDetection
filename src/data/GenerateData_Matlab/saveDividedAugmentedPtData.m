@@ -43,7 +43,7 @@ while idx <= nAug
     augLeftVolSize = size(augLeftVol);
     augRightVolSize = size(augRightVol);
         
-    origBase = "/data/gpfs/projects/punim1836/Data/raw/aug";
+    origBase = "/data/gpfs/projects/punim1836/Data/train/CT_Pre_14";
 
     augFile = origBase + "/original_divided_augmentation/" + patName + '_aug_' + strIdx + '.mat';
     save(augFile, 'augVol', 'augPts', 'augVolSize', '-v7.3');
@@ -60,8 +60,8 @@ while idx <= nAug
         augRightVolRescaledSize = size(augRightVolRescaled);
 
         % in mm
-        %oriRes = [0.15, 0.15, 0.15];
-        oriRes = [0.2604, 0.2604, 0.2604];
+        oriRes = [0.15, 0.15, 0.15];
+        %oriRes = [0.2604, 0.2604, 0.2604];
         
         leftScale = augLeftVolRescaledSize ./ augLeftVolSize;
         leftRes = oriRes ./ leftScale;
