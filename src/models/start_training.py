@@ -971,4 +971,5 @@ if __name__ == "__main__":
             print(f"Found train_id: [{train_id}] in [{train_model_name}] args list, start training.")
             args = base_args.copy()
             args.update(args_update)
+            print(f"Training with args: {args}")
             Training.train_model(args)

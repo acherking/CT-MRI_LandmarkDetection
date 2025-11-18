@@ -1,7 +1,9 @@
 
 function saveDividedAugmentedPtData(vol, pts, nAug, patName)
 
-imgSize = [176 176 48].';
+%imgSize = [176 176 48].';
+% cut and flip here
+imgSize = [176 88 48].';
 
 % volSize = size(vol);
 
@@ -46,7 +48,7 @@ while idx <= nAug
     origBase = "/data/gpfs/projects/punim1836/Data/train/CT_Pre_14";
 
     augFile = origBase + "/original_divided_augmentation/" + patName + '_aug_' + strIdx + '.mat';
-    save(augFile, 'augVol', 'augPts', 'augVolSize', '-v7.3');
+    %save(augFile, 'augVol', 'augPts', 'augVolSize', '-v7.3');
 
     fprintf("Saved augmentation vol for patient: %s -- %d \n To Path: %s\n", patName, idx, augFile)
 
