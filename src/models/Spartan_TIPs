@@ -74,7 +74,7 @@ https://ipython.readthedocs.io/en/latest/install/kernel_install.html#kernels-for
 import TrainingSupport
 import numpy as np
 
-base_dir = "/data/gpfs/projects/punim1836/Data/cropped/based_on_truth/x100100y100100z8080"
+base_dir = "/data/gpfs/projects/punim1836/Data/train/CT_Pre_14/cropped/based_on_truth/x100100y100100z8080"
 
 x_dir = base_dir + "/volumes/"
 
@@ -86,7 +86,7 @@ TrainingSupport.load_dataset_crop_dir(x_dir,y_dir,length_dir)
 
 import importlib
 
-importlib.reload(support_modules)
+importlib.reload(TrainingSupport)
 
 *** Python tmp
 

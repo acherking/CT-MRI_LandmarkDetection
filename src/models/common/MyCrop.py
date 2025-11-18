@@ -271,6 +271,9 @@ def crop_outside_layers_no_length(x_volumes_org, y_landmarks_org, crop_layers, k
 # centre_shift: (instance_num, 1, dimensions_num); in mm; '+' --> shift in descending order, '-' opposite
 def crop_outside_layers_trans(x_volumes_org, y_landmarks_org, length_org,
                               centre_shift, target_shape=(100, 100, 100)):
+    
+    ins_num = x_volumes_org.shape[0]
+
     x_dataset = x_volumes_org
     y_dataset = y_landmarks_org
     length_dataset = length_org
@@ -307,12 +310,12 @@ def crop_outside_layers_trans(x_volumes_org, y_landmarks_org, length_org,
     # calculate new y_dataset and length_dataset (after crop)
     y_dataset = y_dataset - crop_start_array
     ## left ear
-    length_dataset[range(0, 2000, 2)] = length_dataset[range(0, 2000, 2)] + crop_start_array[range(0, 2000, 2)]
+    length_dataset[range(0, ins_num, 2)] = length_dataset[range(0, ins_num, 2)] + crop_start_array[range(0, ins_num, 2)]
     ## right ear, because of the flip
-    right_ear_length_shift = np.copy(crop_start_array[range(1, 2000, 2)])
+    right_ear_length_shift = np.copy(crop_start_array[range(1, ins_num, 2)])
     right_ear_length_shift[:, :, 1] = np.ones(right_ear_length_shift[:, :, 1].shape) * \
                                       (x_dataset.shape[2] - target_shape[1]) - right_ear_length_shift[:, :, 1]
-    length_dataset[range(1, 2000, 2)] = length_dataset[range(1, 2000, 2)] + right_ear_length_shift
+    length_dataset[range(1, ins_num, 2)] = length_dataset[range(1, ins_num, 2)] + right_ear_length_shift
 
     # debug
     print("***********New Y **********")

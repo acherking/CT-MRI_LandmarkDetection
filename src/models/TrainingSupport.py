@@ -245,7 +245,9 @@ def load_dataset_crop_test_only(x_path, y_path, length_path, crop_layers):
 # idx_splits: [[train_idx], [val_idx], [test_idx]], idx from 0 to 19
 # crop_layers: ndarray shape(3*2), [[row_ascending, row_descending], [column_a, column_d], [slice_a, slice_d]]
 def load_dataset_crop_dir(x_dir, y_dir, length_dir):
-    pat_names = MyDataset.get_pat_names()
+    # pat_names = MyDataset.get_pat_names()
+    pat_names = MyDataset.get_pat_names_14()
+    aug_num = 1
 
     # Combine cropped volumes
     cropped_volumes = []
@@ -253,7 +255,7 @@ def load_dataset_crop_dir(x_dir, y_dir, length_dir):
     cropped_length = []
 
     for pat_name in pat_names:
-        for aug_id in range(1, 51):
+        for aug_id in range(1, aug_num + 1):
             print("**************" + pat_name + "__" + str(aug_id) + "***************")
             cropped_volume_left_path = x_dir + pat_name + "_augVolume_" + str(aug_id) + "_cropped_left.npy"
             cropped_volume_right_path = x_dir + pat_name + "_augVolume_" + str(aug_id) + "_cropped_right.npy"
@@ -284,7 +286,11 @@ def load_dataset_crop_dir(x_dir, y_dir, length_dir):
     cropped_length = np.asarray(cropped_length).reshape((instances_num, 2, 3))
 
     # read centre shift
-    centre_shift = np.load("/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/models_MR/divided_MR/176x88x48/variable_voxel_distance/mean_two_landmarks/straight_model/learning_rate/0.0001/13Sep2024-10:42:13-trainID-2/noises_s1.5_test_dis.npy")
+    # CT, (2000, 1, 3)
+    centre_shift = np.load("/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/data/processed/noises/noises_s1_pred_test_dis.npy")
+    centre_shift = centre_shift[:instances_num] # for specific number of instances
+    # MRI, (2000, 1, 3)
+    # centre_shift = np.load("/data/gpfs/projects/punim1836/CT-MRI_LandmarkDetection/models_MR/divided_MR/176x88x48/variable_voxel_distance/mean_two_landmarks/straight_model/learning_rate/0.0001/13Sep2024-10:42:13-trainID-2/noises_s1.5_test_dis.npy")
     # centre_shift = np.zeros((2000, 1, 3))
 
     cropped_volumes, cropped_points, cropped_length = \
@@ -292,25 +298,25 @@ def load_dataset_crop_dir(x_dir, y_dir, length_dir):
 
     crop_size = "100x100x100"
     dataset_tag = "noises_s1_test_dis"
-    save_dir_base = f"/data/gpfs/projects/punim1836/Data/cropped_MR/{crop_size}/{dataset_tag}"
+    save_dir_base = f"/data/gpfs/projects/punim1836/Data/train/CT_Pre_14/cropped/{crop_size}/{dataset_tag}"
     # create the dir if not exist
     if os.path.exists(save_dir_base): print("Save dataset to: ", save_dir_base)
     else:
         os.makedirs(save_dir_base)
         print("Create dir and save dataset in it: ", save_dir_base)
 
-    save_volume_path = f"{save_dir_base}/cropped_MR_volumes_{crop_size}.npy"
-    save_points_path = f"{save_dir_base}/cropped_MR_points_{crop_size}.npy"
-    save_length_path = f"{save_dir_base}/cropped_MR_length_{crop_size}.npy"
-    # add res for cropped volume, yes is all 0,15 just to make it the same in the training process
-    save_res_path = f"{save_dir_base}/cropped_MR_res_{crop_size}.npy"
+    save_volume_path = f"{save_dir_base}/cropped_volumes_{crop_size}.npy"
+    save_points_path = f"{save_dir_base}/cropped_points_{crop_size}.npy"
+    save_length_path = f"{save_dir_base}/cropped_length_{crop_size}.npy"
+    # add res for cropped volume, yes is all 0.15 (for CT, MRI is 0.2604) just to make it the same in the training process
+    save_res_path = f"{save_dir_base}/cropped_res_{crop_size}.npy"
     np.save(save_volume_path, cropped_volumes)
     print("saved: ", save_volume_path)
     np.save(save_points_path, cropped_points)
     print("saved: ", save_points_path)
     np.save(save_length_path, cropped_length)
     print("saved: ", save_length_path)
-    np.save(save_res_path, np.ones((int(instances_num/2), 1, 3)) * 0.2604)
+    np.save(save_res_path, np.ones((int(instances_num/2), 1, 3)) * 0.15)
     print("saved: ", save_res_path)
 
     return 1
