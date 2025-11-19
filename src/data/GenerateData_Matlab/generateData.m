@@ -73,7 +73,7 @@ for pIdx = 1:nPat
     vol(find(vol > minMax)) = minMax;
     vol = squeeze(vol);
     vol = double(vol);
-    % vol = rescale(vol);
+    vol = rescale(vol);
     sz = size(vol);
 
     % load dicom file

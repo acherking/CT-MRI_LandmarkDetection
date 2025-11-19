@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow import keras
 import numpy as np
 
-import Functions.MyDataset as MyDataset
+import common.MyDataset as MyDataset
 from src.models import TrainingSupport as supporter
 import models
 

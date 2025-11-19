@@ -219,6 +219,8 @@ def load_dataset_crop_test_only(x_path, y_path, length_path, crop_layers):
     y_dataset = np.load(y_path).astype('float32')
     length_dataset = np.load(length_path).astype('float32')
 
+    ins_num = x_dataset.shape[0]
+
     row_num = x_dataset.shape[1]
     column_num = x_dataset.shape[2]
     slice_num = x_dataset.shape[3]
@@ -231,11 +233,11 @@ def load_dataset_crop_test_only(x_path, y_path, length_path, crop_layers):
         y_dataset = y_dataset - [crop_layers[1, 0], crop_layers[0, 0], crop_layers[2, 0]]
         y_dataset = y_dataset.astype('float32')
         # left ear
-        length_dataset[range(0, 2000, 2)] = \
-            length_dataset[range(0, 2000, 2)] + [crop_layers[1, 0], crop_layers[0, 0], crop_layers[2, 0]]
+        length_dataset[range(0, ins_num, 2)] = \
+            length_dataset[range(0, ins_num, 2)] + [crop_layers[1, 0], crop_layers[0, 0], crop_layers[2, 0]]
         # right ear, because of the flip
-        length_dataset[range(1, 2000, 2)] = \
-            length_dataset[range(1, 2000, 2)] + [crop_layers[1, 1], crop_layers[0, 0], crop_layers[2, 0]]
+        length_dataset[range(1, ins_num, 2)] = \
+            length_dataset[range(1, ins_num, 2)] + [crop_layers[1, 1], crop_layers[0, 0], crop_layers[2, 0]]
         length_dataset = length_dataset.astype('float32')
 
     return x_dataset, y_dataset, length_dataset
