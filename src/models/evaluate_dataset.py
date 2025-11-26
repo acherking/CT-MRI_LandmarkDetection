@@ -109,6 +109,10 @@ res_path = f"{save_dir}/res_CTPre14.npy"
 np.save(res_path, res_test)
 print("Saved: ", res_path)
 
+length_path = f"{save_dir}/length_CTPre14.npy"
+np.save(length_path, length_test)
+print("Saved: ", length_path)
+
 exit()
 
 pred_file_path = f"{save_dir}/best_val_Y_CTPre14_pred.npy"
